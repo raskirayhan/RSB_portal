@@ -48,7 +48,10 @@ export const RegisterPage: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Registration Error', err);
-      setError(err.response?.data?.message || 'রেজিস্ট্রেশন ব্যর্থ হয়েছে।');
+      const networkHelp = err.message === 'Network Error' 
+        ? 'সার্ভারে কানেক্ট করা যাচ্ছে না। দয়া করে ব্যাকএন্ড চালু আছে কিনা বা Vercel Settings-এ VITE_API_URL সঠিক কিনা নিশ্চিত করুন।' 
+        : undefined;
+      setError(err.response?.data?.message || networkHelp || 'রেজিস্ট্রেশন ব্যর্থ হয়েছে।');
     } finally {
       setLoading(false);
     }

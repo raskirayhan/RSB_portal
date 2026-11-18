@@ -2,13 +2,14 @@
   "name": "rsb-portal-server",
   "version": "1.0.0",
   "description": "Backend API Server for Rayhan Special Batch (RSB_portal)",
-  "main": "dist/server.js",
+  "type": "module",
+  "main": "api/index.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "build": "prisma generate && tsc && esbuild src/app.ts --bundle --platform=node --packages=external --format=esm --outfile=api/index.js",
     "start": "node dist/server.js",
     "postinstall": "prisma generate",
-    "vercel-build": "prisma generate",
+    "vercel-build": "prisma generate && esbuild src/app.ts --bundle --platform=node --packages=external --format=esm --outfile=api/index.js",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "seed": "tsx src/prisma/seed.ts"
@@ -37,6 +38,7 @@
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^6.4.17",
     "@types/qrcode": "^1.5.5",
+    "esbuild": "^0.28.2",
     "prisma": "^5.22.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"

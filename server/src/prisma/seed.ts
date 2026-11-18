@@ -116,87 +116,101 @@ async function main() {
     });
 
     for (const c of s.chapters) {
-      const chapter = await prisma.chapter.create({
-        data: {
-          subjectId: subject.id,
-          title: c.title,
-          chapterNumber: c.chapterNumber,
-        },
+      let chapter = await prisma.chapter.findFirst({
+        where: { subjectId: subject.id, chapterNumber: c.chapterNumber },
       });
 
-      // Add sample study materials
-      await prisma.studyMaterial.createMany({
-        data: [
-          {
-            title: `${c.title} - লেকচার শিট ও বোর্ড থিওরি`,
-            chapterId: chapter.id,
-            materialType: MaterialType.LECTURE_SHEET,
-            fileUrl: 'generated',
-            fileSize: '2.4 MB',
-            isPremium: true,
+      if (!chapter) {
+        chapter = await prisma.chapter.create({
+          data: {
+            subjectId: subject.id,
+            title: c.title,
+            chapterNumber: c.chapterNumber,
           },
-          {
-            title: `${c.title} - সূত্রের শিট ও শর্টকাট নোট`,
-            chapterId: chapter.id,
-            materialType: MaterialType.FORMULA_SHEET,
-            fileUrl: 'generated',
-            fileSize: '1.1 MB',
-            isPremium: true,
-          },
-          {
-            title: `${c.title} - ক্যাডেট কলেজ সৃজনশীল CQ প্রশ্নব্যাংক`,
-            chapterId: chapter.id,
-            materialType: MaterialType.CQ_QUESTION_BANK,
-            fileUrl: 'generated',
-            fileSize: '3.6 MB',
-            isPremium: true,
-          },
-        ],
+        });
+      }
+
+      const matCount = await prisma.studyMaterial.count({
+        where: { chapterId: chapter.id },
       });
+
+      if (matCount === 0) {
+        await prisma.studyMaterial.createMany({
+          data: [
+            {
+              title: `${c.title} - লেকচার শিট ও বোর্ড থিওরি`,
+              chapterId: chapter.id,
+              materialType: MaterialType.LECTURE_SHEET,
+              fileUrl: 'generated',
+              fileSize: '2.4 MB',
+              isPremium: true,
+            },
+            {
+              title: `${c.title} - সূত্রের শিট ও শর্টকাট নোট`,
+              chapterId: chapter.id,
+              materialType: MaterialType.FORMULA_SHEET,
+              fileUrl: 'generated',
+              fileSize: '1.1 MB',
+              isPremium: true,
+            },
+            {
+              title: `${c.title} - ক্যাডেট কলেজ সৃজনশীল CQ প্রশ্নব্যাংক`,
+              chapterId: chapter.id,
+              materialType: MaterialType.CQ_QUESTION_BANK,
+              fileUrl: 'generated',
+              fileSize: '3.6 MB',
+              isPremium: true,
+            },
+          ],
+        });
+      }
     }
   }
 
   // 4. Seed Demo Videos
-  await prisma.demoVideo.createMany({
-    data: [
-      {
-        title: 'ভেক্টরের ক্রস গুণন ও ত্রিভুজ ক্ষেত্রফল নির্ণয়ের জাদু',
-        subject: 'Physics',
-        chapter: 'ভেক্টর',
-        duration: '৩:৪৫ মিনিট',
-        youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-        thumbnailUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&auto=format&fit=crop&q=80',
-        featured: true,
-      },
-      {
-        title: 'জৈব রসায়নের মারকনিকভ নীতি ও বেনজিন চক্রের ইলেকট্রোফিলিক প্রতিস্থাপন',
-        subject: 'Chemistry',
-        chapter: 'জৈব যৌগ',
-        duration: '৪:১০ মিনিট',
-        youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-        thumbnailUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&auto=format&fit=crop&q=80',
-        featured: true,
-      },
-      {
-        title: 'কার্নো ম্যাপ (K-Map) ও লজিক গেট সরলীকরণের সহজ ট্রিকস',
-        subject: 'ICT',
-        chapter: 'ডিজিটাল লজিক',
-        duration: '৩:১৫ মিনিট',
-        youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-        thumbnailUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80',
-        featured: true,
-      },
-      {
-        title: 'অন্তরীকরণের চেইন রুল ও স্পর্শকের ঢাল নিমিষেই বের করার উপায়',
-        subject: 'Higher Math',
-        chapter: 'অন্তরীকরণ',
-        duration: '৩:৫০ মিনিট',
-        youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-        thumbnailUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=600&auto=format&fit=crop&q=80',
-        featured: true,
-      },
-    ],
-  });
+  const demoCount = await prisma.demoVideo.count();
+  if (demoCount === 0) {
+    await prisma.demoVideo.createMany({
+      data: [
+        {
+          title: 'ভেক্টরের ক্রস গুণন ও ত্রিভুজ ক্ষেত্রফল নির্ণয়ের জাদু',
+          subject: 'Physics',
+          chapter: 'ভেক্টর',
+          duration: '৩:৪৫ মিনিট',
+          youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+          thumbnailUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&auto=format&fit=crop&q=80',
+          featured: true,
+        },
+        {
+          title: 'জৈব রসায়নের মারকনিকভ নীতি ও বেনজিন চক্রের ইলেকট্রোফিলিক প্রতিস্থাপন',
+          subject: 'Chemistry',
+          chapter: 'জৈব যৌগ',
+          duration: '৪:১০ মিনিট',
+          youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+          thumbnailUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&auto=format&fit=crop&q=80',
+          featured: true,
+        },
+        {
+          title: 'কার্নো ম্যাপ (K-Map) ও লজিক গেট সরলীকরণের সহজ ট্রিকস',
+          subject: 'ICT',
+          chapter: 'ডিজিটাল লজিক',
+          duration: '৩:১৫ মিনিট',
+          youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+          thumbnailUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80',
+          featured: true,
+        },
+        {
+          title: 'অন্তরীকরণের চেইন রুল ও স্পর্শকের ঢাল নিমিষেই বের করার উপায়',
+          subject: 'Higher Math',
+          chapter: 'অন্তরীকরণ',
+          duration: '৩:৫০ মিনিট',
+          youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+          thumbnailUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=600&auto=format&fit=crop&q=80',
+          featured: true,
+        },
+      ],
+    });
+  }
 
   // 5. Seed Test Student 1 (Completed Profile)
   const studentUser1 = await prisma.user.upsert({
@@ -237,70 +251,91 @@ async function main() {
   });
 
   // Seed sample invoice for student 1
-  const inv1 = await prisma.invoice.create({
-    data: {
-      userId: studentUser1.id,
-      month: 'November 2026',
-      amount: 2500.0,
-      dueDate: new Date(2026, 10, 10),
-      status: InvoiceStatus.PAID,
-      paidAt: new Date(),
-    },
+  let inv1 = await prisma.invoice.findFirst({
+    where: { userId: studentUser1.id, month: 'November 2026' },
   });
 
-  await prisma.paymentReceipt.create({
-    data: {
-      invoiceId: inv1.id,
-      userId: studentUser1.id,
-      paymentMethod: PaymentMethod.BKASH_MANUAL,
-      senderNumber: '01711223344',
-      trxId: 'BKASH8839210A',
-      amount: 2500.0,
-      status: PaymentStatus.APPROVED,
-      verifiedBy: 'Rayhan Sir',
-      verifiedAt: new Date(),
-    },
+  if (!inv1) {
+    inv1 = await prisma.invoice.create({
+      data: {
+        userId: studentUser1.id,
+        month: 'November 2026',
+        amount: 2500.0,
+        dueDate: new Date(2026, 10, 10),
+        status: InvoiceStatus.PAID,
+        paidAt: new Date(),
+      },
+    });
+  }
+
+  const existingReceipt = await prisma.paymentReceipt.findUnique({
+    where: { trxId: 'BKASH8839210A' },
   });
+
+  if (!existingReceipt) {
+    await prisma.paymentReceipt.create({
+      data: {
+        invoiceId: inv1.id,
+        userId: studentUser1.id,
+        paymentMethod: PaymentMethod.BKASH_MANUAL,
+        senderNumber: '01711223344',
+        trxId: 'BKASH8839210A',
+        amount: 2500.0,
+        status: PaymentStatus.APPROVED,
+        verifiedBy: 'Rayhan Sir',
+        verifiedAt: new Date(),
+      },
+    });
+  }
 
   // Seed Attendance & Badges for Student 1
-  await prisma.attendance.create({
-    data: {
-      userId: studentUser1.id,
-      batchId: batchHsc.id,
-      status: 'PRESENT',
-      scannedVia: 'CAMERA_QR_SCANNER',
-    },
-  });
+  const attCount = await prisma.attendance.count({ where: { userId: studentUser1.id } });
+  if (attCount === 0) {
+    await prisma.attendance.create({
+      data: {
+        userId: studentUser1.id,
+        batchId: batchHsc.id,
+        status: 'PRESENT',
+        scannedVia: 'CAMERA_QR_SCANNER',
+      },
+    });
+  }
 
-  await prisma.userBadge.createMany({
-    data: [
-      {
-        userId: studentUser1.id,
-        title: 'Periodic Table Wizard',
-        badgeCode: 'ORGANIC_WIZARD',
-        icon: '⚗️',
-      },
-      {
-        userId: studentUser1.id,
-        title: 'Rayhan Science Scholar',
-        badgeCode: 'SCIENCE_SCHOLAR',
-        icon: '🎓',
-      },
-    ],
-  });
+  const badgeCount = await prisma.userBadge.count({ where: { userId: studentUser1.id } });
+  if (badgeCount === 0) {
+    await prisma.userBadge.createMany({
+      data: [
+        {
+          userId: studentUser1.id,
+          title: 'Periodic Table Wizard',
+          badgeCode: 'ORGANIC_WIZARD',
+          icon: '⚗️',
+        },
+        {
+          userId: studentUser1.id,
+          title: 'Rayhan Science Scholar',
+          badgeCode: 'SCIENCE_SCHOLAR',
+          icon: '🎓',
+        },
+      ],
+    });
+  }
 
   // Seed Feedback for Student 1
-  await prisma.studentFeedback.create({
-    data: {
-      userId: studentUser1.id,
-      authorId: admin.id,
-      authorName: 'Rayhan Sir',
-      remarks: 'আবিরের ফিজিক্সের গাণিতিক দক্ষতায় প্রভূত উন্নতি হয়েছে। তবে অর্গানিক কেমিস্ট্রির বিক্রিয়ার মেকানিজমে আরো কয়েকবার লিখে অনুশীলন করতে হবে।',
-      strengths: 'ভেক্টর ও গতিবিদ্যার সমস্যা সমাধানে দ্রুততা',
-      areasToImprove: 'জৈব রসায়নের নেমড রিঅ্যাকশনসমূহ',
-      month: 'November 2026',
-    },
-  });
+  const feedbackCount = await prisma.studentFeedback.count({ where: { userId: studentUser1.id } });
+  if (feedbackCount === 0) {
+    await prisma.studentFeedback.create({
+      data: {
+        userId: studentUser1.id,
+        authorId: admin.id,
+        authorName: 'Rayhan Sir',
+        remarks: 'আবিরের ফিজিক্সের গাণিতিক দক্ষতায় প্রভূত উন্নতি হয়েছে। তবে অর্গানিক কেমিস্ট্রির বিক্রিয়ার মেকানিজমে আরো কয়েকবার লিখে অনুশীলন করতে হবে।',
+        strengths: 'ভেক্টর ও গতিবিদ্যার সমস্যা সমাধানে দ্রুততা',
+        areasToImprove: 'জৈব রসায়নের নেমড রিঅ্যাকশনসমূহ',
+        month: 'November 2026',
+      },
+    });
+  }
 
   // 6. Seed Student 2 (Sakib - Profile Pending Completion)
   const studentUser2 = await prisma.user.upsert({
@@ -336,15 +371,21 @@ async function main() {
   });
 
   // Seed Unpaid invoice for student 2 to test payment workflow
-  await prisma.invoice.create({
-    data: {
-      userId: studentUser2.id,
-      month: 'November 2026',
-      amount: 2000.0,
-      dueDate: new Date(2026, 10, 10),
-      status: InvoiceStatus.UNPAID,
-    },
+  const inv2 = await prisma.invoice.findFirst({
+    where: { userId: studentUser2.id, month: 'November 2026' },
   });
+
+  if (!inv2) {
+    await prisma.invoice.create({
+      data: {
+        userId: studentUser2.id,
+        month: 'November 2026',
+        amount: 2000.0,
+        dueDate: new Date(2026, 10, 10),
+        status: InvoiceStatus.UNPAID,
+      },
+    });
+  }
 
   console.log('[Seed] Database successfully populated with initial data!');
 }

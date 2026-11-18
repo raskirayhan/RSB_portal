@@ -50,7 +50,10 @@ export const LoginPage: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Login error', err);
-      setError(err.response?.data?.message || 'লগইন ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+      const networkHelp = err.message === 'Network Error' 
+        ? 'সার্ভারে কানেক্ট করা যাচ্ছে না। দয়া করে ব্যাকএন্ড সার্ভার চালু আছে কিনা বা Vercel Settings-এ VITE_API_URL সঠিক কিনা নিশ্চিত করুন।' 
+        : undefined;
+      setError(err.response?.data?.message || networkHelp || 'লগইন ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
     } finally {
       setLoading(false);
     }
