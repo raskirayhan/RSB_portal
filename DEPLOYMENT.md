@@ -11,12 +11,12 @@ A complete step-by-step guide to deploying **Rayhan Special Batch (RSB_portal)**
 3. Select Region: **Singapore (ap-southeast-1)** for lowest latency from Bangladesh.
 4. Copy your **Pooled / Direct Connection String**:
    ```text
-   postgresql://neondb_owner:npg_xxxx@ep-xxxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+   postgresql://username:password@ep-sample-project.region.aws.neon.tech/neondb?sslmode=require
    ```
 5. Push the schema and seed your online database from your terminal:
    ```bash
    cd server
-   $env:DATABASE_URL="your_neon_connection_string"
+   $env:DATABASE_URL="postgresql://username:password@ep-sample-project.region.aws.neon.tech/neondb?sslmode=require"
    npx prisma db push
    npm run seed
    ```
@@ -33,21 +33,25 @@ A complete step-by-step guide to deploying **Rayhan Special Batch (RSB_portal)**
    - **Framework Preset**: `Other`
    - **Build Command**: `npm run vercel-build` (or leave default)
    - **Output Directory**: Leave empty
-4. Add the following **Environment Variables** (Copy & Paste directly):
+4. Add the following **Environment Variables** in Vercel project settings:
 
-| Key | Exact Value | Description |
+| Key | Example / Placeholder Value | Description |
 | :--- | :--- | :--- |
-| `DATABASE_URL` | `postgresql://neondb_owner:REDACTED_SECRET@ep-sample-pooler.region.aws.neon.tech/neondb?sslmode=require&channel_binding=require&schema=rsb` | Live Neon DB with schema=rsb |
+| `DATABASE_URL` | `postgresql://username:password@ep-sample-pooler.region.aws.neon.tech/neondb?sslmode=require&channel_binding=require&schema=rsb` | Your pooled Neon DB connection string |
 | `NODE_ENV` | `production` | Production environment |
 | `PORT` | `5000` | Port |
-| `JWT_SECRET` | `dev_jwt_secret_placeholder` | JWT Signing Secret |
-| `JWT_EXPIRES_IN` | `7d` | Token Validity |
-| `REFRESH_TOKEN_SECRET`| `dev_refresh_token_secret_placeholder` | Refresh Token Secret |
+| `JWT_SECRET` | `your_super_secret_jwt_key_here` | 256-bit secure secret key |
+| `JWT_EXPIRES_IN` | `7d` | Token Validity (e.g. 7d) |
+| `REFRESH_TOKEN_SECRET`| `your_ultra_secure_refresh_token_key_here` | 256-bit refresh token secret |
 | `CLIENT_URL` | `https://client-xi-lac.vercel.app` | Frontend Origin (Live Vercel URL) |
 | `MAX_ALLOWED_DEVICES` | `2` | Dual-Device Session Limit |
-| `EMAIL_HOST` | `smtp.gmail.com` | Gmail SMTP |
+| `EMAIL_HOST` | `smtp.gmail.com` | SMTP Host |
 | `EMAIL_PORT` | `587` | SMTP Port |
-| `EMAIL_USER` | `raskirayhan@gmail.com` | Email Sender |
+| `EMAIL_USER` | `your_email@example.com` | Notification sender email |
+| `EMAIL_PASS` | `your_smtp_app_password_here` | SMTP App Password |
+
+> [!WARNING]
+> Never commit real database URLs or passwords to git. Always store production secrets securely in the Vercel Dashboard under **Project Settings > Environment Variables**.
 
 5. Click **Deploy**. Your backend API will be live at `https://<your-backend-project>.vercel.app` (e.g. `https://rsb-portal-server.vercel.app`).
    - Test by opening: `https://<your-backend-project>.vercel.app/health`
@@ -64,11 +68,11 @@ You already deployed the frontend at **`https://client-xi-lac.vercel.app/`**. No
    - **Key**: `VITE_API_URL`
    - **Value**: `https://<your-backend-project>.vercel.app/api` *(Your backend Vercel URL + `/api`)*
 4. Go to **Deployments** tab -> click the three dots (`...`) on the latest deployment -> **Redeploy**.
-5. Once redeployed, open `https://client-xi-lac.vercel.app/login` and click any **1-Click Test Login** button!
+5. Once redeployed, open `https://client-xi-lac.vercel.app/login` to log in!
 
 ---
 
-## 3. Frontend Deployment (Vercel or Netlify)
+## 4. Frontend Deployment (Vercel or Netlify)
 
 ### Option A: Deploy on Vercel
 1. On Vercel, click **Add New** -> **Project** -> Select `raskirayhan/RSB_portal`.
@@ -95,7 +99,7 @@ You already deployed the frontend at **`https://client-xi-lac.vercel.app/`**. No
 
 ---
 
-## 4. Default Seeded Credentials for Testing
+## 5. Seeded Test Accounts (Development & Testing)
 
 * **Super Admin (Rayhan Sir)**: `rayhan@rsb.com` | `Password123!`
 * **Student 1 (Full Profile & Fee Paid)**: `student@rsb.com` | `Password123!`
