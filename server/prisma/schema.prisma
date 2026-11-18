@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+  FACEBOOK
+}
+
+enum DeviceType {
+  MOBILE
+  DESKTOP
+  TABLET
+}
+
+enum OtpPurpose {
+  REGISTRATION
+  PASSWORD_RESET
+}
+
+enum MaterialType {
+  LECTURE_SHEET
+  FORMULA_SHEET
+  CQ_QUESTION_BANK
+  MCQ_SHEET
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PAID
+  OVERDUE
+}
+
+enum PaymentMethod {
+  BKASH_MANUAL
+  NAGAD_MANUAL
+  ONLINE_GATEWAY
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+enum GameType {
+  PERIODIC_TABLE
+  FORMULA_RUSH
+  MATH_SPRINT
+  MCQ_BATTLE
+}
+
+model User {
+  id              String            @id @default(uuid())
+  email           String            @unique
+  name            String
+  passwordHash    String
+  role            Role              @default(STUDENT)
+  status          UserStatus        @default(ACTIVE)
+  authProvider    AuthProvider      @default(LOCAL)
+  googleId        String?
+  facebookId      String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  deviceSessions  DeviceSession[]
+  otps            OtpVerification[]
+  profile         StudentProfile?
+  invoices        Invoice[]
+  receipts        PaymentReceipt[]
+  attendances     Attendance[]
+  feedbacks       StudentFeedback[]
+  gameScores      GameScore[]
+  badges          UserBadge[]
+}
+
+model DeviceSession {
+  id            String     @id @default(uuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId      String
+  deviceName    String?
+  deviceType    DeviceType @default(DESKTOP)
+  browser       String?
+  os            String?
+  ipAddress     String?
+  refreshToken  String     @unique
+  lastActiveAt  DateTime   @default(now())
+  createdAt     DateTime   @default(now())
+
+  @@index([userId])
+}
+
+model OtpVerification {
+  id         String     @id @default(uuid())
+  email      String
+  otpHash    String
+  purpose    OtpPurpose @default(REGISTRATION)
+  expiresAt  DateTime
+  attempts   Int        @default(0)
+  verified   Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  user       User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String?
+
+  @@index([email])
+}
+
+model Batch {
+  id             String           @id @default(uuid())
+  name           String
+  academicLevel  String
+  scheduleDays   String
+  timeSlot       String
+  monthlyFee     Float            @default(2000.0)
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+
+  students       StudentProfile[]
+  attendances    Attendance[]
+}
+
+model StudentProfile {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studentIdNumber  String    @unique // e.g. RSB-26-001
+  academicLevel    String    // SSC_2026, HSC_2026, HSC_2027
+  institutionName  String?
+  batchId          String?
+  batch            Batch?    @relation(fields: [batchId], references: [id])
+  fatherName       String?
+  motherName       String?
+  studentPhone     String?
+  guardianPhone    String?
+  guardianEmail    String?
+  avatarUrl        String?
+  qrCodeDataUrl    String?   @db.Text
+  isCompleted      Boolean   @default(false)
+  currentStreak    Int       @default(1)
+  totalXp          Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Subject {
+  id             String     @id @default(uuid())
+  name           String
+  code           String     @unique // PHYSICS, CHEMISTRY, MATH, HIGHER_MATH, BIOLOGY, ICT
+  academicLevel  String     // SSC, HSC, BOTH
+  icon           String?
+  chapters       Chapter[]
+}
+
+model Chapter {
+  id             String          @id @default(uuid())
+  subjectId      String
+  subject        Subject         @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  title          String
+  chapterNumber  Int
+  materials      StudyMaterial[]
+}
+
+model StudyMaterial {
+  id            String       @id @default(uuid())
+  title         String
+  description   String?
+  chapterId     String
+  chapter       Chapter      @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  materialType  MaterialType @default(LECTURE_SHEET)
+  fileUrl       String
+  fileSize      String?
+  isPremium     Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+}
+
+model DemoVideo {
+  id            String   @id @default(uuid())
+  title         String
+  subject       String
+  chapter       String
+  duration      String
+  youtubeUrl    String
+  thumbnailUrl  String?
+  featured      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+}
+
+model Invoice {
+  id          String        @id @default(uuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  month       String        // e.g. "November 2026"
+  amount      Float
+  status      InvoiceStatus @default(UNPAID)
+  dueDate     DateTime
+  paidAt      DateTime?
+  createdAt   DateTime      @default(now())
+
+  receipt     PaymentReceipt?
+
+  @@index([userId])
+}
+
+model PaymentReceipt {
+  id            String        @id @default(uuid())
+  invoiceId     String        @unique
+  invoice       Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentMethod PaymentMethod @default(BKASH_MANUAL)
+  senderNumber  String
+  trxId         String        @unique
+  amount        Float
+  status        PaymentStatus @default(PENDING)
+  verifiedBy    String?
+  verifiedAt    DateTime?
+  receiptPdfUrl String?
+  createdAt     DateTime      @default(now())
+
+  @@index([userId])
+}
+
+model Attendance {
+  id          String           @id @default(uuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  batchId     String
+  batch       Batch            @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  date        DateTime         @default(now())
+  status      AttendanceStatus @default(PRESENT)
+  scannedVia  String           @default("QR_CODE")
+
+  @@index([userId, date])
+}
+
+model StudentFeedback {
+  id                  String   @id @default(uuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  authorId            String
+  authorName          String   @default("Rayhan Sir")
+  remarks             String   @db.Text
+  strengths           String?
+  areasToImprove      String?
+  studentReply        String?  @db.Text
+  month               String
+  sharedWithGuardian  Boolean  @default(true)
+  createdAt           DateTime @default(now())
+
+  @@index([userId])
+}
+
+model GameScore {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gameType  GameType
+  score     Int
+  xpEarned  Int
+  playedAt  DateTime @default(now())
+
+  @@index([userId, gameType])
+}
+
+model UserBadge {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  badgeCode  String
+  icon       String
+  awardedAt  DateTime @default(now())
+
+  @@unique([userId, badgeCode])
+}

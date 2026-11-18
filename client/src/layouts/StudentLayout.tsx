@@ -1,0 +1,134 @@
+import React from 'react';
+import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { Navbar } from '../components/Navbar';
+import { Footer } from '../components/Footer';
+import {
+  AlertTriangle,
+  Flame,
+  Award,
+  BookOpen,
+  LayoutDashboard,
+  UserCheck,
+  CreditCard,
+  Gamepad2,
+  MessageSquare,
+  Smartphone
+} from 'lucide-react';
+
+export const StudentLayout: React.FC = () => {
+  const { user, profile, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 font-medium">লোড হচ্ছে...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  const navLinks = [
+    { to: '/dashboard', label: 'ওভারভিউ', icon: LayoutDashboard },
+    { to: '/vault', label: 'স্টাডি ভল্ট (নোটস)', icon: BookOpen },
+    { to: '/profile', label: 'প্রোফাইল ও QR কার্ড', icon: UserCheck },
+    { to: '/billing', label: 'পেমেন্ট ও রসিদ', icon: CreditCard },
+    { to: '/games', label: 'সায়েন্স গেমস', icon: Gamepad2 },
+    { to: '/feedback', label: 'টিচার ফিডব্যাক', icon: MessageSquare },
+    { to: '/devices', label: 'ডিভাইস সেশন', icon: Smartphone },
+  ];
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-50">
+      <Navbar />
+
+      {/* Profile Incomplete Banner */}
+      {profile && !profile.isCompleted && (
+        <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-4 py-2.5 shadow-sm text-sm">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div className="flex items-center space-x-2">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0 animate-bounce" />
+              <span className="font-medium">
+                আপনার প্রোফাইল এখনও ১০০% সম্পন্ন হয়নি! স্টাডি ভল্ট নোটস ডাউনলোড ও ফুল অ্যাক্সেস পেতে প্রোফাইল ফর্মটি পূরণ করুন।
+              </span>
+            </div>
+            <Link
+              to="/profile"
+              className="px-3 py-1 bg-white text-amber-700 font-bold text-xs rounded-lg shadow-sm hover:bg-amber-50 transition-colors whitespace-nowrap"
+            >
+              প্রোফাইল পূরণ করুন →
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Student Top Bar: Streak, XP & Batch */}
+      <div className="bg-white border-b border-slate-200 py-3 shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center space-x-3">
+            <h2 className="text-lg font-bold text-slate-800">
+              স্বাগতম, {user.name} 👋
+            </h2>
+            <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-blue-100 text-blue-800">
+              {profile?.studentIdNumber || 'ID Pending'}
+            </span>
+            <span className="hidden sm:inline-block text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600">
+              {profile?.batch?.name || profile?.academicLevel || 'Science Batch'}
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            {/* Daily Streak */}
+            <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold">
+              <Flame className="w-4 h-4 text-amber-500 fill-amber-500 animate-pulse" />
+              <span>{profile?.currentStreak || 1} Days Streak</span>
+            </div>
+
+            {/* Total XP */}
+            <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-xs font-bold">
+              <Award className="w-4 h-4 text-purple-600" />
+              <span>{profile?.totalXp || 0} XP</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Secondary Navigation Pills */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-3 overflow-x-auto">
+          <div className="flex items-center space-x-2 pb-1 text-sm whitespace-nowrap">
+            {navLinks.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.to;
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg font-medium transition-all ${
+                    isActive
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Outlet />
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
