@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../../api/client';
 import {
   GraduationCap,
@@ -15,15 +16,29 @@ import {
   Calendar,
   X,
   Star,
-  BookOpen
+  BookOpen,
+  Award,
+  Zap,
+  HelpCircle,
+  ChevronDown,
+  MessageCircle,
+  Phone,
+  MapPin,
+  TrendingUp,
+  Cpu,
+  Atom,
+  Flame,
+  Binary
 } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
   const [landingData, setLandingData] = useState<any>(null);
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   useEffect(() => {
-    api.get('/public/landing-data')
+    api
+      .get('/public/landing-data')
       .then((res) => {
         if (res.data.success) {
           setLandingData(res.data.data);
@@ -32,307 +47,718 @@ export const LandingPage: React.FC = () => {
       .catch((err) => console.error('Failed to load landing data', err));
   }, []);
 
+  const fallbackVideos = [
+    {
+      id: 'demo-1',
+      title: 'ভেক্টরের ক্রস গুণন ও সামান্তরিক ক্ষেত্রফল নির্ণয়ের জাদু',
+      subject: 'Physics',
+      chapter: 'ভেক্টর (Vectors)',
+      duration: '৩:৪৫ মিনিট',
+      youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&auto=format&fit=crop&q=80',
+    },
+    {
+      id: 'demo-2',
+      title: 'জৈব রসায়নের মারকনিকভ নীতি ও বেনজিন চক্রের ইলেকট্রোফিলিক প্রতিস্থাপন',
+      subject: 'Chemistry',
+      chapter: 'জৈব যৌগ (Organic Chemistry)',
+      duration: '৪:১০ মিনিট',
+      youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&auto=format&fit=crop&q=80',
+    },
+    {
+      id: 'demo-3',
+      title: 'কার্নো ম্যাপ (K-Map) ও লজিক গেট সরলীকরণের সহজ হ্যাকস',
+      subject: 'ICT',
+      chapter: 'ডিজিটাল লজিক (Digital Logic)',
+      duration: '৩:১৫ মিনিট',
+      youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80',
+    },
+    {
+      id: 'demo-4',
+      title: 'অন্তরীকরণের চেইন রুল ও স্পর্শকের ঢাল নিমিষেই বের করার টেকনিক',
+      subject: 'Higher Math',
+      chapter: 'অন্তরীকরণ (Calculus)',
+      duration: '৩:৫০ মিনিট',
+      youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=600&auto=format&fit=crop&q=80',
+    },
+  ];
+
+  const videos = landingData?.demoVideos?.length ? landingData.demoVideos : fallbackVideos;
+
+  const faqs = [
+    {
+      q: 'How do I register and get my Student QR ID?',
+      a: 'রেজিস্ট্রেশন পেইজে গিয়ে নাম, ইমেইল ও পাসওয়ার্ড দিয়ে সাইন-আপ করলে আপনার ইমেইলে একটি ৬-ডিজিটের OTP কোড যাবে। কোডটি ভেরিফাই করার পর আপনার প্রোফাইল ১০০% পূরণ করলেই সিস্টেম স্বয়ংক্রিয়ভাবে একটি ইউনিক RSB স্টুডেন্ট আইডি ও কিউআর (QR) ব্যাজ তৈরি করে দেবে।',
+    },
+    {
+      q: 'How does the monthly tuition fee payment work?',
+      a: 'প্রতি মাসের ১ তারিখে আপনার স্টুডেন্ট ড্যাশবোর্ডে ওই মাসের টিউশন ফি যোগ হবে। আপনি bKash বা Nagad-এ ফি পাঠিয়ে ট্রানজেকশন আইডি (TrxID) ইনপুট দিলেই স্যার ভেরিফাই করে অ্যাপ্রুভ করবেন এবং সাথে সাথেই আপনি অফিসিয়াল ডিজিটাল মানি রিসিট ডাউনলোড করতে পারবেন।',
+    },
+    {
+      q: 'Can guardians track their child’s monthly attendance and test results?',
+      a: 'হ্যাঁ, প্রোফাইলে দেওয়া অভিভাবকের ইমেইলে প্রতি মাসের শেষে শিক্ষার্থীর মোট উপস্থিতি, অধ্যায়ভিত্তিক কুইজের স্কোর, এবং রায়হান স্যারের স্পেশাল পার্সোনালাইজড ফিডব্যাক স্বয়ংক্রিয়ভাবে পৌঁছে যাবে।',
+    },
+    {
+      q: 'Where are the offline coaching batches located in Khulna & Bagerhat?',
+      a: 'খুলনা ও বাগেরহাটের নির্দিষ্ট প্রাইভেট সেন্টারে সপ্তাহে ৩ দিন করে অফলাইন ব্যাচ পরিচালিত হয়। অফলাইনে ক্লাসের পাশাপাশি শিক্ষার্থীরা যেকোনো সময় ওয়েবসাইটের স্টাডি ভল্ট, ওয়াটারমার্কড নোটস ও ডেমো ভিডিও ব্যাকআপ হিসেবে ব্যবহার করতে পারে।',
+    },
+    {
+      q: 'What makes the PDF notes anti-piracy and watermarked?',
+      a: 'যেকোনো শিক্ষার্থী যখন কোনো লেকচার শিট বা সূত্রের শিট ডাউনলোড করে, সিস্টেম রিয়েল-টাইমে পিডিএফ ফাইলের প্রতিটি পৃষ্ঠার ওপর ওই শিক্ষার্থীর নাম, স্টুডেন্ট আইডি, ফোন নম্বর ও ডাউনলোডের সঠিক সময় দিয়ে অদৃশ্য ও দৃশ্যমান ওয়াটারমার্ক এমবেড করে দেয়।',
+    },
+  ];
+
+  const subjects = [
+    {
+      code: 'PHYSICS',
+      name: 'Physics (পদার্থবিজ্ঞান)',
+      badge: 'Mechanics & Waves',
+      topics: 'ভেক্টর, গতিবিদ্যা, নিউটনীয় বলবিদ্যা, কাজ-শক্তি ও পর্যায়বৃত্ত গতি',
+      color: 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200',
+      tagColor: 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300',
+      icon: Atom,
+      iconColor: 'text-blue-600',
+    },
+    {
+      code: 'CHEMISTRY',
+      name: 'Chemistry (রসায়ন)',
+      badge: 'Organic & Equilibrium',
+      topics: 'গুণগত রসায়ন, পর্যায়বৃত্ত ধর্ম, জৈব রসায়নের মেকানিজম ও বিক্রিয়া',
+      color: 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200',
+      tagColor: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300',
+      icon: Flame,
+      iconColor: 'text-emerald-600',
+    },
+    {
+      code: 'HIGHER_MATH',
+      name: 'Higher Math (উচ্চতর গণিত)',
+      badge: 'Calculus & Vectors',
+      topics: 'ম্যাট্রিক্স-নির্ণায়ক, সরলরেখা, বৃত্ত, অন্তরীকরণ ও যোগজীকরণ',
+      color: 'bg-amber-50/80 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200',
+      tagColor: 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300',
+      icon: TrendingUp,
+      iconColor: 'text-amber-600',
+    },
+    {
+      code: 'GENERAL_MATH',
+      name: 'General Math (সাধারণ গণিত)',
+      badge: 'Algebra & Geometry',
+      topics: 'বাস্তব সংখ্যা, বীজগণিতীয় রাশি, জ্যামিতিক উপপাদ্য ও পরিমিতি',
+      color: 'bg-orange-50/80 dark:bg-orange-950/40 border-orange-200 dark:border-orange-800 text-orange-900 dark:text-orange-200',
+      tagColor: 'bg-orange-100 text-orange-800 dark:bg-orange-900/60 dark:text-orange-300',
+      icon: BookOpen,
+      iconColor: 'text-orange-600',
+    },
+    {
+      code: 'BIOLOGY',
+      name: 'Biology (জীববিজ্ঞান)',
+      badge: 'Genetics & Physiology',
+      topics: 'কোষ ও কোষের গঠন, ডিএনএ রেপ্লিকেশন, জিনতত্ত্ব ও বিবর্তন',
+      color: 'bg-rose-50/80 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-900 dark:text-rose-200',
+      tagColor: 'bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-300',
+      icon: Sparkles,
+      iconColor: 'text-rose-600',
+    },
+    {
+      code: 'ICT',
+      name: 'ICT (তথ্য ও প্রযুক্তি)',
+      badge: 'C Code & Logic Gates',
+      topics: 'সংখ্যা পদ্ধতি, ডিজিটাল ডিভাইস, সি প্রোগ্রামিং অ্যালগরিদম ও এইচটিএমএল',
+      color: 'bg-purple-50/80 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800 text-purple-900 dark:text-purple-200',
+      tagColor: 'bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-300',
+      icon: Binary,
+      iconColor: 'text-purple-600',
+    },
+  ];
+
+  const reviews = [
+    {
+      name: 'আবির হোসেন',
+      level: 'HSC Science 2026',
+      college: 'ঢাকা রেসিডেনসিয়াল মডেল কলেজ',
+      rating: 5,
+      comment:
+        'ফিজিক্সের ভেক্টর আর গতিবিদ্যার অংকগুলো আগে মুখস্থ করার মতো লাগত। রায়হান স্যারের ক্লাস করার পর বুঝতে পারলাম সায়েন্সকে ইঞ্জিনিয়ারিং লজিকে কতটা সহজভাবে ভাবা যায়!',
+    },
+    {
+      name: 'সাকিব আল হাসান',
+      level: 'SSC Science 2026',
+      college: 'খুলনা জিলা স্কুল',
+      rating: 5,
+      comment:
+        'অর্গানিক কেমিস্ট্রির বিক্রিয়াগুলো আগে আতঙ্কের মতো ছিল। স্যারের শর্টকাট সূত্রের শিট এবং ৩ মিনিটের কনসেপ্ট ভিডিওগুলো রিভিশনের জন্য সেরা সাপোর্ট দেয়।',
+    },
+    {
+      name: 'মো: মোস্তফা কামাল (অভিভাবক)',
+      level: 'গার্ডিয়ান অব আবির',
+      college: 'খুলনা',
+      rating: 5,
+      comment:
+        'সবচেয়ে ভালো লেগেছে প্রতি মাসের শেষে গার্ডিয়ান রিপোর্ট এবং স্বয়ংক্রিয় bKash রিসিট সিস্টেম। ছেলে কতদিন উপস্থিত ছিল আর কোন অধ্যায়ে দুর্বল তা ঘরে বসেই জানতে পারি।',
+    },
+  ];
+
   return (
-    <div className="space-y-20 pb-16">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28 bg-gradient-to-b from-blue-50/80 via-white to-slate-50">
+    <div className="space-y-0 selection:bg-blue-600 selection:text-white">
+      {/* ========================================================= */}
+      {/* SECTION 1: GLASS NAVBAR & HERO (Light Lavender/White Theme) */}
+      {/* ========================================================= */}
+      <section className="relative overflow-hidden pt-12 pb-24 lg:pt-20 lg:pb-32 bg-gradient-to-b from-indigo-50/70 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 border-b border-slate-100 dark:border-slate-800/80">
+        {/* Glow orbs */}
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[650px] h-[350px] bg-gradient-to-tr from-blue-400/15 via-indigo-400/20 to-purple-400/15 rounded-full blur-3xl pointer-events-none" />
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            {/* Left Column */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+            {/* Left Column: Headline & CTAs */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-blue-100/80 border border-blue-200 text-blue-800 text-xs font-bold tracking-wide">
-                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                <span>SSC & HSC 2026-2027 স্পেশাল সায়েন্স ব্যাচ অ্যাডমিশন শুরু</span>
-              </div>
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-blue-100/90 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 text-xs font-black tracking-wide"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                <span>SSC & HSC 2026-2027 SCIENCE BATCH • KHULNA & BAGERHAT</span>
+              </motion.div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
-                বিজ্ঞান বিভাগে নিখুঁত কনসেপ্ট আর সর্বোচ্চ ফলাফলের জন্য{' '}
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]"
+              >
+                Master SSC & HSC Science with{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
-                  রায়হান স্পেশাল ব্যাচ
-                </span>
-              </h1>
+                  Rayhan Sir
+                </span>{' '}
+                — Smarter, Faster, Clearer.
+              </motion.h1>
 
-              <p className="text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                পদার্থবিজ্ঞান, রসায়ন, উচ্চতর গণিত, জীববিজ্ঞান ও আইসিটি—প্রতিটি বিষয়ে শতভাগ কনসেপ্ট ক্লিয়ারিং, ব্যক্তিগত কেয়ার, অ্যান্টি-লিক ওয়াটারমার্কড নোটস এবং নিয়মিত গার্ডিয়ান প্রগ্রেস রিপোর্ট।
-              </p>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-medium"
+              >
+                ইন্টারেক্টিভ ৩ মিনিটের কনসেপ্ট লেসন, অ্যান্টি-লিক ওয়াটারমার্কড নোটস, মান্থলি গার্ডিয়ান প্রগ্রেস ট্র্যাকিং এবং ব্রেন গেমস—খুলনা ও বাগেরহাটের বিজ্ঞান শিক্ষার্থীদের জন্য পূর্ণাঙ্গ একাডেমিক সাপোর্ট।
+              </motion.p>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-2">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2"
+              >
                 <Link
                   to="/register"
-                  className="w-full sm:w-auto px-7 py-3.5 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/30 hover:shadow-xl transition-all flex items-center justify-center space-x-2 text-base"
+                  className="w-full sm:w-auto px-8 py-4 rounded-2xl font-black text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl shadow-blue-500/25 hover:shadow-2xl hover:scale-[1.02] transition-all flex items-center justify-center space-x-2 text-sm sm:text-base"
                 >
-                  <span>অনলাইনে ব্যাচে ভর্তি হোন</span>
+                  <span>Join the Batch 🚀</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <a
                   href="#demo-classes"
-                  className="w-full sm:w-auto px-7 py-3.5 rounded-xl font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 shadow-sm transition-all flex items-center justify-center space-x-2 text-base"
+                  className="w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-slate-800 dark:text-slate-200 bg-white/90 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 shadow-sm transition-all flex items-center justify-center space-x-2 text-sm sm:text-base backdrop-blur-md"
                 >
                   <Play className="w-4 h-4 text-blue-600 fill-blue-600" />
-                  <span>ফ্রি ডেমো ক্লাস দেখুন</span>
+                  <span>Watch 3-Min Demo ▶️</span>
                 </a>
-              </div>
+              </motion.div>
 
-              {/* Trust Badges */}
-              <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-200/80 max-w-lg mx-auto lg:mx-0 text-left">
-                <div>
-                  <p className="text-2xl font-extrabold text-blue-600">৪৮+ জন</p>
-                  <p className="text-xs text-slate-500 font-medium">বিগত ব্যাচে গোল্ডেন A+</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-extrabold text-indigo-600">১০০%</p>
-                  <p className="text-xs text-slate-500 font-medium">কনসেপ্ট ক্লিয়ারিং গ্যারান্টি</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-extrabold text-purple-600">২-ডিভাইস</p>
-                  <p className="text-xs text-slate-500 font-medium">নিরাপদ স্টুডেন্ট পোর্টাল</p>
-                </div>
+              {/* Batch Location Pill */}
+              <div className="flex items-center justify-center lg:justify-start space-x-2 text-xs text-slate-500 dark:text-slate-400 pt-1 font-medium">
+                <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                <span>অফলাইন প্রাইভেট ব্যাচ: খুলনা ও বাগেরহাট • সাথে ২৪/৭ স্মার্ট পোর্টাল ব্যাকআপ</span>
               </div>
             </div>
 
-            {/* Right Column: Visual Card */}
+            {/* Right Column: Centerpiece Visual Card with Floating Badges */}
             <div className="lg:col-span-5 relative">
-              <div className="relative mx-auto max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 overflow-hidden">
-                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl pointer-events-none" />
-
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="relative mx-auto max-w-sm sm:max-w-md bg-white/80 dark:bg-slate-900/80 rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 backdrop-blur-xl"
+              >
+                {/* Header Profile Badge */}
                 <div className="flex items-center space-x-4 mb-6">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-700 flex items-center justify-center text-white font-extrabold text-xl shadow-md">
-                    RS
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white font-black text-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                    RR
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-slate-900">রায়হান স্যার</h3>
-                    <p className="text-xs font-semibold text-blue-600">সিনিয়র সায়েন্স ইন্সট্রাক্টর ও মেন্টর</p>
-                    <p className="text-[11px] text-slate-500">১০+ বছর ধরে বুয়েট, মেডিকেল ও বোর্ড পরীক্ষায় সাফল্যের ইতিহাস</p>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight">
+                      শেখ রাসকি রায়হান
+                    </h3>
+                    <p className="text-xs font-bold text-blue-600 dark:text-blue-400">
+                      CSE Engineer & Science Educator
+                    </p>
+                    <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                      Khulna & Bagerhat Mentor
+                    </span>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-start space-x-3">
-                    <FileText className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-bold text-slate-800">অ্যান্টি-লিক ওয়াটারমার্কড স্টাডি ভল্ট</p>
-                      <p className="text-[11px] text-slate-500">প্রতিটি লেকচার শিটে স্টুডেন্টের নাম, আইডি ও ফোন স্বয়ংক্রিয়ভাবে ওয়াটারমার্ক হবে।</p>
-                    </div>
+                {/* Floating Badges */}
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center justify-between p-3 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/60 text-xs font-bold text-blue-900 dark:text-blue-200">
+                    <span className="flex items-center space-x-2">
+                      <Atom className="w-4 h-4 text-blue-600" />
+                      <span>Physics (Mechanics & Waves)</span>
+                    </span>
+                    <span className="text-[10px] bg-blue-200/70 dark:bg-blue-900 px-2 py-0.5 rounded-full font-mono">
+                      CORE
+                    </span>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-start space-x-3">
-                    <Smartphone className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-bold text-slate-800">ডুয়াল-ডিভাইস সিকিউর লগইন</p>
-                      <p className="text-[11px] text-slate-500">সর্বোচ্চ ২টি ডিভাইসে (মোবাইল + ল্যাপটপ) লগইন প্রযোজ্য। অ্যাকাউন্ট শেয়ারিং সম্পূর্ণ সুরক্ষিত।</p>
-                    </div>
+                  <div className="flex items-center justify-between p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/60 text-xs font-bold text-emerald-900 dark:text-emerald-200">
+                    <span className="flex items-center space-x-2">
+                      <Flame className="w-4 h-4 text-emerald-600" />
+                      <span>Chemistry (Organic & Periodic)</span>
+                    </span>
+                    <span className="text-[10px] bg-emerald-200/70 dark:bg-emerald-900 px-2 py-0.5 rounded-full font-mono">
+                      CORE
+                    </span>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-start space-x-3">
-                    <Users className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-bold text-slate-800">অটো গার্ডিয়ান রিপোর্ট ও QR ব্যাজ</p>
-                      <p className="text-[11px] text-slate-500">মাসিক উপস্থিতি ও পারফরম্যান্স অভিভাবকের কাছে পৌঁছাবে এবং অফলাইনে থাকবে ডিজিটাল QR কার্ড।</p>
-                    </div>
+                  <div className="flex items-center justify-between p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/60 text-xs font-bold text-amber-900 dark:text-amber-200">
+                    <span className="flex items-center space-x-2">
+                      <TrendingUp className="w-4 h-4 text-amber-600" />
+                      <span>Higher Math (Calculus & Vectors)</span>
+                    </span>
+                    <span className="text-[10px] bg-amber-200/70 dark:bg-amber-900 px-2 py-0.5 rounded-full font-mono">
+                      CORE
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/60 text-xs font-bold text-purple-900 dark:text-purple-200">
+                    <span className="flex items-center space-x-2">
+                      <Binary className="w-4 h-4 text-purple-600" />
+                      <span>ICT (C Code & Logic Gates)</span>
+                    </span>
+                    <span className="text-[10px] bg-purple-200/70 dark:bg-purple-900 px-2 py-0.5 rounded-full font-mono">
+                      CORE
+                    </span>
                   </div>
                 </div>
-              </div>
+
+                {/* Target GPA 5.00 Banner */}
+                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between shadow-md">
+                  <div className="flex items-center space-x-2.5">
+                    <Award className="w-5 h-5 text-yellow-300" />
+                    <div>
+                      <p className="text-xs font-extrabold">Target: Board GPA 5.00</p>
+                      <p className="text-[10px] text-blue-100">BUET & Medical Admission Foundation</p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-black bg-white/20 px-2 py-1 rounded-lg">100% Care</span>
+                </div>
+              </motion.div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Free Demo Video Classes Gallery */}
-      <section id="demo-classes" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <span className="text-xs font-bold px-3 py-1 bg-blue-100 text-blue-700 rounded-full uppercase tracking-wider">
-            ফ্রি কনসেপ্ট ডেমো ক্লাস
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3">
-            লগইন ছাড়াই দেখে নিন রায়হান স্যারের ক্লাসের মান
-          </h2>
-          <p className="text-slate-600 text-sm sm:text-base mt-2">
-            জটিল বিজ্ঞানের থিওরি কীভাবে ২ থেকে ৪ মিনিটে অ্যানিমেশন ও প্র্যাকটিক্যাল উদাহরণের মাধ্যমে পানির মতো সহজ করে দেওয়া হয়:
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {landingData?.demoVideos?.map((video: any) => (
-            <div
-              key={video.id}
-              onClick={() => setSelectedVideo(video)}
-              className="group bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition-all cursor-pointer flex flex-col"
-            >
-              <div className="relative aspect-video bg-slate-800 overflow-hidden">
-                <img
-                  src={video.thumbnailUrl || 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&auto=format&fit=crop&q=80'}
-                  alt={video.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-slate-950/40 group-hover:bg-slate-950/20 transition-colors flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full bg-blue-600/90 group-hover:bg-blue-600 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <Play className="w-5 h-5 fill-white ml-0.5" />
-                  </div>
-                </div>
-                <div className="absolute bottom-2 right-2 bg-slate-900/80 text-white text-[10px] font-bold px-2 py-0.5 rounded">
-                  {video.duration}
-                </div>
-                <div className="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">
-                  {video.subject}
-                </div>
-              </div>
-
-              <div className="p-4 flex-1 flex flex-col justify-between">
-                <div>
-                  <p className="text-xs text-blue-600 font-semibold mb-1">{video.chapter}</p>
-                  <h4 className="text-sm font-bold text-slate-800 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                    {video.title}
-                  </h4>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                  <span>রায়হান স্যার স্পেশাল</span>
-                  <span className="font-semibold text-blue-600 group-hover:underline">প্লে করুন →</span>
-                </div>
-              </div>
+      {/* ========================================================= */}
+      {/* SECTION 2: TRUST & COUNTER BAR (Floating White Card)       */}
+      {/* ========================================================= */}
+      <section className="-mt-10 relative z-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white/95 dark:bg-slate-900/95 rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200/80 dark:border-slate-800 backdrop-blur-xl">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800">
+            <div className="pt-2 md:pt-0">
+              <p className="text-3xl sm:text-4xl font-black text-blue-600 dark:text-blue-400">500+</p>
+              <p className="text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1">Students Mentored</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">SSC & HSC Science Batches</p>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* Video Modal Player */}
-      {selectedVideo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-          <div className="bg-slate-900 rounded-2xl max-w-2xl w-full overflow-hidden border border-slate-700 shadow-2xl">
-            <div className="p-4 bg-slate-800 flex items-center justify-between text-white border-b border-slate-700">
-              <div>
-                <span className="text-[10px] bg-blue-600 px-2 py-0.5 rounded font-bold uppercase">{selectedVideo.subject}</span>
-                <h3 className="text-sm font-bold text-white mt-1">{selectedVideo.title}</h3>
-              </div>
-              <button
-                onClick={() => setSelectedVideo(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700"
-              >
-                <X className="w-5 h-5" />
-              </button>
+            <div className="pt-4 md:pt-0">
+              <p className="text-3xl sm:text-4xl font-black text-emerald-600 dark:text-emerald-400">100%</p>
+              <p className="text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1">Concept Clarity</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Zero Memorization Guarantee</p>
             </div>
-            <div className="aspect-video bg-black flex items-center justify-center relative">
-              <iframe
-                src={`https://www.youtube.com/embed/${selectedVideo.youtubeUrl.includes('v=') ? selectedVideo.youtubeUrl.split('v=')[1] : 'dQw4w9WgXcQ'}?autoplay=1`}
-                title={selectedVideo.title}
-                className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+
+            <div className="pt-4 md:pt-0">
+              <p className="text-3xl sm:text-4xl font-black text-indigo-600 dark:text-indigo-400">Smart</p>
+              <p className="text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1">Digital QR Portal</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Auto-ID & Attendance Scan</p>
             </div>
-            <div className="p-4 bg-slate-800 text-xs text-slate-300 flex items-center justify-between">
-              <span>অধ্যায়: {selectedVideo.chapter} • মেয়াদ: {selectedVideo.duration}</span>
-              <Link
-                to="/register"
-                className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-500"
-              >
-                সম্পূর্ণ ব্যাচে ভর্তি হোন
-              </Link>
+
+            <div className="pt-4 md:pt-0">
+              <p className="text-3xl sm:text-4xl font-black text-purple-600 dark:text-purple-400">24/7</p>
+              <p className="text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1">Doubt Support</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Direct WhatsApp & Portal</p>
             </div>
           </div>
         </div>
-      )}
-
-      {/* Batch Schedules & Details */}
-      <section id="batches" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <span className="text-xs font-bold px-3 py-1 bg-purple-100 text-purple-700 rounded-full uppercase tracking-wider">
-            বর্তমান ব্যাচের সময়সূচী
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3">
-            SSC ও HSC অফলাইন ও অনলাইন বিজ্ঞান ব্যাচসমূহ
-          </h2>
-          <p className="text-slate-600 text-sm sm:text-base mt-2">
-            প্রতিটি ব্যাচে সীমিত সংখ্যক আসন বরাদ্দ থাকে যাতে প্রতিটি স্টুডেন্টকে ব্যক্তিগত নজরদারি করা সম্ভব হয়।
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {landingData?.batches?.map((b: any) => (
-            <div
-              key={b.id}
-              className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                    {b.academicLevel} সায়েন্স
-                  </span>
-                  <span className="text-xs text-emerald-600 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full">
-                    ভর্তি চলছে
-                  </span>
-                </div>
-
-                <h3 className="text-xl font-bold text-slate-900 mb-2">{b.name}</h3>
-                <p className="text-2xl font-black text-slate-900 mb-4">
-                  ৳ {b.monthlyFee.toLocaleString()}{' '}
-                  <span className="text-xs font-normal text-slate-500">/ মাসিক টিউশন ফি</span>
-                </p>
-
-                <div className="space-y-2.5 py-4 border-t border-slate-100 text-xs text-slate-600">
-                  <div className="flex items-center space-x-2.5">
-                    <Calendar className="w-4 h-4 text-blue-600" />
-                    <span>ক্লাস ডেস: <strong>{b.scheduleDays}</strong></span>
-                  </div>
-                  <div className="flex items-center space-x-2.5">
-                    <Clock className="w-4 h-4 text-indigo-600" />
-                    <span>সময়: <strong>{b.timeSlot}</strong></span>
-                  </div>
-                  <div className="flex items-center space-x-2.5">
-                    <Users className="w-4 h-4 text-purple-600" />
-                    <span>বর্তমান শিক্ষার্থী: <strong>{b._count?.students || 0} জন</strong></span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-slate-100">
-                <Link
-                  to="/register"
-                  className="w-full block text-center py-3 bg-slate-900 hover:bg-blue-600 text-white font-bold text-sm rounded-xl transition-colors shadow-sm"
-                >
-                  এই ব্যাচে যোগ দিন
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
       </section>
 
-      {/* Reviews & Achievements */}
-      <section className="bg-slate-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="text-3xl font-extrabold text-white">শিক্ষার্থী ও অভিভাবকদের আস্থা</h2>
-            <p className="text-slate-400 text-sm mt-2">
-              বিগত বছরগুলোর রায়হান স্যারের স্পেশাল ব্যাচের কৃতী শিক্ষার্থীদের মতামত
+      {/* ========================================================= */}
+      {/* SECTION 3: HOW YOUR LEARNING WORKS (Deep Dark Navy #0F0C29)*/}
+      {/* ========================================================= */}
+      <section id="how-it-works" className="py-24 bg-[#0F0C29] text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-transparent to-transparent pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-xs font-mono font-bold uppercase tracking-widest text-indigo-400 bg-indigo-950/80 px-3.5 py-1 rounded-full border border-indigo-800">
+              STREAMLINED WORKFLOW
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight mt-4">
+              How Your Learning Works at Rayhan's Lab
+            </h2>
+            <p className="text-sm sm:text-base text-slate-400 mt-2">
+              অ্যাডমিশন থেকে শুরু করে বোর্ড পরীক্ষায় এ-প্লাস অর্জন—৬টি স্বয়ংক্রিয় ধাপে সাজানো আপনার সফলতার যাত্রা
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {landingData?.reviews?.map((rev: any, index: number) => (
-              <div
-                key={index}
-                className="bg-slate-800/80 rounded-2xl p-6 border border-slate-700 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center space-x-1 text-amber-400 mb-3">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-slate-300 text-xs sm:text-sm italic leading-relaxed">
-                    "{rev.comment}"
-                  </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Card 1 */}
+            <div className="p-6 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-blue-500/40 backdrop-blur-md transition-all hover:translate-y-[-4px] space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-400 flex items-center justify-center font-mono font-black text-lg">
+                01
+              </div>
+              <h3 className="text-base font-extrabold text-white">Quick Sign-Up & OTP</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Google, Facebook অথবা ৫ মিনিটের মেয়াদযুক্ত ৬-ডিজিট ইমেইল OTP দিয়ে ১ মিনিটে নিরাপদ সাইন-আপ ও পাসওয়ার্ড রিসেট সুবিধা।
+              </p>
+            </div>
+
+            {/* Card 2 */}
+            <div className="p-6 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-emerald-500/40 backdrop-blur-md transition-all hover:translate-y-[-4px] space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-mono font-black text-lg">
+                02
+              </div>
+              <h3 className="text-base font-extrabold text-white">Smart Digital ID & QR Card</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                প্রোফাইল শতভাগ পূরণ করলেই সিস্টেম ইউনিক RSB আইডি (যেমন: RSB-26-001) ও QR ব্যাজ তৈরি করবে, যা অফলাইন ক্লাসের অ্যাটেনডেন্সে স্ক্যান হয়।
+              </p>
+            </div>
+
+            {/* Card 3 */}
+            <div className="p-6 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-purple-500/40 backdrop-blur-md transition-all hover:translate-y-[-4px] space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-purple-600/20 border border-purple-500/30 text-purple-400 flex items-center justify-center font-mono font-black text-lg">
+                03
+              </div>
+              <h3 className="text-base font-extrabold text-white">3-Min Concept Videos</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                বড় লেকচারের ক্লান্তি দূর করতে জটিল টপিকগুলো ২-৪ মিনিটের নিখুঁত কনসেপ্ট ভিডিওতে ব্যাখ্যা করা—যাতে যেকোনো সময় দ্রুত রিভিশন দেওয়া যায়।
+              </p>
+            </div>
+
+            {/* Card 4 */}
+            <div className="p-6 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-amber-500/40 backdrop-blur-md transition-all hover:translate-y-[-4px] space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-600/20 border border-amber-500/30 text-amber-400 flex items-center justify-center font-mono font-black text-lg">
+                04
+              </div>
+              <h3 className="text-base font-extrabold text-white">The Study Vault & Watermarking</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                অধ্যায়ভিত্তিক লেকচার শিট, সূত্রের শিট ও ক্যাডেট কলেজ CQ প্রশ্নব্যাংক ডাউনলোড করুন। পাইরেসি রোধে থাকবে আপনার নিজস্ব ডায়নামিক ওয়াটারমার্ক।
+              </p>
+            </div>
+
+            {/* Card 5 */}
+            <div className="p-6 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-rose-500/40 backdrop-blur-md transition-all hover:translate-y-[-4px] space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-rose-600/20 border border-rose-500/30 text-rose-400 flex items-center justify-center font-mono font-black text-lg">
+                05
+              </div>
+              <h3 className="text-base font-extrabold text-white">Brain Arena & Quizzes</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                ফিজিক্স ফর্মুলা রাশ ও পিরিয়ডিক টেবিল কুইজ খেলে অর্জন করুন XP পয়েন্ট, স্ট্রিক ব্যাজ এবং ব্যাচের লিডারবোর্ডে টপ র‍্যাংক দখল করুন।
+              </p>
+            </div>
+
+            {/* Card 6 */}
+            <div className="p-6 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-cyan-500/40 backdrop-blur-md transition-all hover:translate-y-[-4px] space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-cyan-600/20 border border-cyan-500/30 text-cyan-400 flex items-center justify-center font-mono font-black text-lg">
+                06
+              </div>
+              <h3 className="text-base font-extrabold text-white">Monthly Guardian Report</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                প্রতি মাসে অভিভাবকের ইমেইলে শিক্ষার্থীর উপস্থিতি, অধ্যায় টেস্টের প্রগ্রেস এবং টিউশন ফি জমার ডিজিটাল মানি রিসিট পৌঁছে যাবে।
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================= */}
+      {/* SECTION 4: WHY RAYHAN'S LAB IS DIFFERENT (Clean Light Grid) */}
+      {/* ========================================================= */}
+      <section className="py-24 bg-slate-50 dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-xs font-mono font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-950 px-3.5 py-1 rounded-full border border-blue-200 dark:border-blue-800">
+              THE RAYHAN ADVANTAGE
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mt-4">
+              Why Rayhan's Science Lab is Different
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-2">
+              সাধারণ মুখস্থবিদ্যার বদলে লজিক্যাল অ্যানালাইসিস এবং টেকনোলজি-সাপোর্টেড প্রিমিয়াম লার্নিং
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="p-7 rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-md space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                <Cpu className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                CSE Engineer's Analytical Approach
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                কম্পিউটার সায়েন্স ইঞ্জিনিয়ারিং ব্যাকগ্রাউন্ডের শিক্ষক হিসেবে সায়েন্স ও আইসিটির প্রতিটি সূত্রকে রিয়েল-লাইফ লজিক ও প্রবলেম সলভিং মাইন্ডসেটে উপস্থাপন করা হয়।
+              </p>
+            </div>
+
+            <div className="p-7 rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-md space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                <FileText className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                Personalized Teacher Feedback
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                কেবল ক্লাস নেওয়াই নয়, প্রতিটি শিক্ষার্থীর খাতা দেখে তার দুর্বল অধ্যায়গুলো চিহ্নিত করে আলাদা ফিডব্যাক ও স্ট্র্যাটেজিক নোট প্রদান করা হয়।
+              </p>
+            </div>
+
+            <div className="p-7 rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-md space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <CheckCircle className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                Hassle-Free Monthly Billing
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                বিকাশ/নগদ-এ ফি পরিশোধের সাথে সাথে ট্রানজেকশন ট্র্যাক করা যায় এবং অনুমোদনের পর স্বয়ংক্রিয় ডিজিটাল PDF মানি রিসিট ডাউনলোড করা যায়।
+              </p>
+            </div>
+
+            <div className="p-7 rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-md space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                <MapPin className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                Offline + Online Hybrid Support
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                খুলনা ও বাগেরহাটের শিক্ষার্থীদের জন্য মুখোমুখি অফলাইন প্রাইভেট কোচিং এবং অসুস্থতা বা ছুটির দিনে ওয়েবসাইট থেকে ফুল অনলাইন ব্যাকআপ।
+              </p>
+            </div>
+
+            <div className="p-7 rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-md space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                <Award className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                Board Exam & Admission Focus
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                বোর্ড পরীক্ষার সৃজনশীল CQ ও বহুনির্বাচনী MCQ-এর পূর্ণাঙ্গ প্রস্তুতির পাশাপাশি বুয়েট ও মেডিকেল ভর্তি পরীক্ষার প্রাথমিক ভিত্তি তৈরি।
+              </p>
+            </div>
+
+            <div className="p-7 rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-md space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                <Smartphone className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                Anti-Distraction Learning Zone
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                সোশ্যাল মিডিয়ায় অপ্রয়োজনীয় সময় নষ্ট না করে শিক্ষার্থীরা ওয়েবসাইটেই কুইজ খেলে, ফর্মুলা রাফ করে ও স্ট্রিক তৈরি করে আনন্দের সাথে পড়বে।
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================= */}
+      {/* SECTION 5: DARK EVOLUTION ROADMAP BANNER (Dark Emerald/Teal)*/}
+      {/* ========================================================= */}
+      <section className="py-20 bg-gradient-to-r from-[#061a14] via-[#0d281e] to-[#082017] text-white border-y border-emerald-900/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Left Column (5 cols) */}
+            <div className="lg:col-span-5 space-y-3 text-center lg:text-left">
+              <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-800">
+                ACADEMIC ROADMAP
+              </span>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight">
+                From Board Basics to Engineering & Medical Foundation
+              </h2>
+              <p className="text-xs sm:text-sm text-emerald-200/80 leading-relaxed">
+                পরিকল্পিত ৪-ধাপের মাইলস্টোন যা ৯ম শ্রেণি থেকে শুরু করে বিশ্ববিদ্যালয় ভর্তি পরীক্ষা পর্যন্ত প্রতিটি সায়েন্স স্টুডেন্টকে আত্মবিশ্বাসী করে তোলে।
+              </p>
+            </div>
+
+            {/* Right Column: Connected Node Graph (7 cols) */}
+            <div className="lg:col-span-7">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-4 rounded-2xl bg-emerald-900/30 border border-emerald-500/30 text-center space-y-1.5 backdrop-blur-md">
+                  <span className="text-[10px] font-mono text-emerald-400 font-bold">STEP 01</span>
+                  <h4 className="text-xs font-black text-white">Class 9-10 Foundation</h4>
+                  <p className="text-[10px] text-emerald-300/70">মৌলিক ধারণা ও বোর্ডের সৃজনশীল সমাধান</p>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-slate-700/60 flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-600 font-bold flex items-center justify-center text-sm text-white">
-                    {rev.studentName.charAt(0)}
+                <div className="p-4 rounded-2xl bg-emerald-900/40 border border-emerald-500/40 text-center space-y-1.5 backdrop-blur-md">
+                  <span className="text-[10px] font-mono text-emerald-400 font-bold">STEP 02</span>
+                  <h4 className="text-xs font-black text-white">HSC Core Concepts</h4>
+                  <p className="text-[10px] text-emerald-300/70">গাণিতিক বিশ্লেষণ ও জটিল সূত্রের ব্যুৎপত্তি</p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-emerald-900/50 border border-emerald-400/60 text-center space-y-1.5 shadow-lg shadow-emerald-500/20 backdrop-blur-md">
+                  <span className="text-[10px] font-mono text-emerald-300 font-bold">STEP 03</span>
+                  <h4 className="text-xs font-black text-white">Board GPA 5.00</h4>
+                  <p className="text-[10px] text-emerald-200">ক্যাডেট কলেজ প্রশ্নব্যাংক ও টাইম ম্যানেজমেন্ট</p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-gradient-to-b from-emerald-600/40 to-teal-700/40 border border-emerald-300/80 text-center space-y-1.5 backdrop-blur-md">
+                  <span className="text-[10px] font-mono text-white font-bold">STEP 04</span>
+                  <h4 className="text-xs font-black text-white">BUET / Medical / Varsity</h4>
+                  <p className="text-[10px] text-emerald-100">অ্যাডভান্সড প্রবলেম সলভিং ও ভর্তি প্রস্তুতি</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================= */}
+      {/* SECTION 6: SUBJECTS & MODULES WE COVER (Pastel 6-Card Grid)*/}
+      {/* ========================================================= */}
+      <section id="subjects" className="py-24 bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-xs font-mono font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950 px-3.5 py-1 rounded-full border border-indigo-200 dark:border-indigo-800">
+              CURRICULUM COVERAGE
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mt-4">
+              Subjects & Modules We Cover
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-2">
+              বিজ্ঞান বিভাগের প্রতিটি বিষয়ে জাতীয় শিক্ষাক্রম অনুযায়ী থিওরি, গাণিতিক সমস্যা এবং সৃজনশীল প্রস্তুতি
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {subjects.map((sub) => {
+              const Icon = sub.icon;
+              return (
+                <div
+                  key={sub.code}
+                  className={`p-7 rounded-3xl border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${sub.color}`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${sub.tagColor}`}>
+                      {sub.badge}
+                    </span>
+                    <Icon className={`w-5 h-5 ${sub.iconColor}`} />
                   </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-white">{rev.studentName}</h4>
-                    <p className="text-[11px] text-blue-400 font-medium">{rev.badge} • {rev.college}</p>
+
+                  <h3 className="text-lg font-black mb-2">{sub.name}</h3>
+                  <p className="text-xs opacity-90 leading-relaxed mb-4">{sub.topics}</p>
+
+                  <div className="pt-3 border-t border-black/5 dark:border-white/10 flex items-center justify-between text-xs font-bold">
+                    <span>ফুল সিলেবাস কভারেজ</span>
+                    <Link
+                      to="/vault"
+                      className="inline-flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      <span>নোটস দেখুন</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
                   </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================= */}
+      {/* SECTION 7: 3-MIN DEMO VIDEOS & REVIEWS (Dark Carousel)    */}
+      {/* ========================================================= */}
+      <section id="demo-classes" className="py-24 bg-[#090d16] text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-xs font-mono font-bold uppercase tracking-widest text-blue-400 bg-blue-950/80 px-3.5 py-1 rounded-full border border-blue-800">
+              FREE DEMO LESSONS
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight mt-4">
+              Watch 3-Minute Free Concept Lessons
+            </h2>
+            <p className="text-sm sm:text-base text-slate-400 mt-2">
+              লগইন ছাড়াই দেখে নিন রায়হান স্যারের পড়ানোর স্টাইল এবং কনসেপ্ট বোঝানোর অভিনব কৌশল
+            </p>
+          </div>
+
+          {/* Videos Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+            {videos.map((vid: any) => (
+              <div
+                key={vid.id}
+                onClick={() => setSelectedVideo(vid)}
+                className="group cursor-pointer rounded-2xl bg-white/[0.04] border border-white/10 hover:border-blue-500/50 overflow-hidden shadow-lg transition-all hover:scale-[1.02]"
+              >
+                <div className="relative aspect-video overflow-hidden bg-slate-800">
+                  <img
+                    src={vid.thumbnailUrl}
+                    alt={vid.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 flex items-center justify-center transition-colors">
+                    <div className="w-11 h-11 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                      <Play className="w-5 h-5 fill-white ml-0.5" />
+                    </div>
+                  </div>
+                  <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-mono text-white">
+                    {vid.duration}
+                  </span>
+                </div>
+
+                <div className="p-4 space-y-2">
+                  <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">
+                    {vid.subject} • {vid.chapter}
+                  </span>
+                  <h4 className="text-xs font-bold text-slate-100 line-clamp-2 leading-snug group-hover:text-blue-300 transition-colors">
+                    {vid.title}
+                  </h4>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Student & Guardian Reviews Header */}
+          <div className="text-center max-w-2xl mx-auto mb-10 pt-8 border-t border-slate-800">
+            <h3 className="text-2xl font-black tracking-tight text-white">
+              Student & Guardian Experiences
+            </h3>
+            <p className="text-xs text-slate-400 mt-1">
+              খুলনা ও বাগেরহাটের শিক্ষার্থী ও অভিভাবকদের বাস্তব অভিজ্ঞতা
+            </p>
+          </div>
+
+          {/* Reviews Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {reviews.map((rev, i) => (
+              <div
+                key={i}
+                className="p-6 rounded-3xl bg-white/[0.04] border border-white/10 backdrop-blur-md space-y-3"
+              >
+                <div className="flex items-center space-x-1 text-yellow-400">
+                  {[...Array(rev.rating)].map((_, idx) => (
+                    <Star key={idx} className="w-4 h-4 fill-yellow-400" />
+                  ))}
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed italic">"{rev.comment}"</p>
+                <div className="pt-3 border-t border-white/10">
+                  <h5 className="text-xs font-black text-white">{rev.name}</h5>
+                  <p className="text-[10px] text-slate-400">{rev.level} • {rev.college}</p>
                 </div>
               </div>
             ))}
@@ -340,25 +766,130 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Call To Action Banner */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 rounded-3xl p-8 sm:p-12 text-white shadow-2xl relative overflow-hidden text-center lg:text-left flex flex-col lg:flex-row items-center justify-between gap-8">
-          <div className="space-y-3 max-w-2xl">
-            <h3 className="text-2xl sm:text-3xl font-extrabold">
-              বিজ্ঞান বিভাগের সেরা প্রস্তুতির জন্য আজই জয়েন করুন
-            </h3>
-            <p className="text-blue-100 text-sm sm:text-base leading-relaxed">
-              দেরি না করে আপনার বা আপনার সন্তানের উজ্জ্বল একাডেমিক ভবিষ্যতের জন্য রায়হান স্যারের স্পেশাল ব্যাচ পোর্টালে রেজিস্ট্রেশন করুন।
+      {/* ========================================================= */}
+      {/* SECTION 8: ACCORDION FAQ (Clean Light Menu)               */}
+      {/* ========================================================= */}
+      <section className="py-24 bg-slate-50 dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <span className="text-xs font-mono font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-950 px-3.5 py-1 rounded-full border border-blue-200 dark:border-blue-800">
+              FREQUENTLY ASKED QUESTIONS
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mt-4">
+              স্টুডেন্ট ও অভিভাবকদের সাধারণ প্রশ্নাবলী
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+              ভর্তি, ব্যাচের সময়সূচি বা পোর্টাল ব্যবহার নিয়ে যেকোনো তথ্যের সহজ উত্তর
             </p>
           </div>
-          <Link
-            to="/register"
-            className="px-8 py-4 bg-white text-blue-900 hover:bg-blue-50 font-extrabold rounded-2xl shadow-xl transition-all whitespace-nowrap text-base"
-          >
-            রেজিস্ট্রেশন করুন এখনই →
-          </Link>
+
+          <div className="space-y-3">
+            {faqs.map((faq, index) => {
+              const isOpen = openFaqIndex === index;
+              return (
+                <div
+                  key={index}
+                  className="rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 overflow-hidden shadow-sm transition-all"
+                >
+                  <button
+                    onClick={() => setOpenFaqIndex(isOpen ? null : index)}
+                    className="w-full flex items-center justify-between p-5 text-left text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white"
+                  >
+                    <span>{faq.q}</span>
+                    <ChevronDown
+                      className={`w-4 h-4 text-blue-600 dark:text-blue-400 transition-transform ${
+                        isOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+
+                  <AnimatePresence>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="px-5 pb-5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-700/60 pt-3"
+                      >
+                        {faq.a}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </section>
+
+      {/* ========================================================= */}
+      {/* SECTION 9: DIRECT CONNECT CTA BANNER                      */}
+      {/* ========================================================= */}
+      <section className="py-20 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white relative overflow-hidden">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6">
+          <span className="text-[11px] font-mono font-bold uppercase tracking-widest bg-white/20 px-3.5 py-1 rounded-full border border-white/30">
+            ADMISSIONS OPEN • SSC & HSC 2026-2027
+          </span>
+
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
+            Ready to Master Science with Rayhan Sir?
+          </h2>
+
+          <p className="text-sm sm:text-base text-blue-100 max-w-2xl mx-auto leading-relaxed">
+            খুলনা ও বাগেরহাটের বিজ্ঞান ব্যাচে আসন সংখ্যা সীমিত। যেকোনো তথ্যের জন্য এখনই সরাসরি কল করুন অথবা অনলাইনে আপনার ডিজিটাল আইডি তৈরি করে নিন।
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+            <Link
+              to="/register"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl font-black text-slate-900 bg-white hover:bg-slate-100 shadow-xl transition-all flex items-center justify-center space-x-2 text-sm"
+            >
+              <span>Join the Batch Now 🚀</span>
+              <ArrowRight className="w-4 h-4 text-blue-600" />
+            </Link>
+
+            <a
+              href="https://wa.me/8801779181871"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl font-black text-white bg-emerald-600 hover:bg-emerald-700 border border-emerald-400 shadow-xl transition-all flex items-center justify-center space-x-2 text-sm"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>WhatsApp: 01779-181871</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Video Modal Player */}
+      {selectedVideo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="relative w-full max-w-3xl bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
+            <div className="flex items-center justify-between p-4 bg-slate-800 text-white border-b border-slate-700">
+              <div>
+                <h4 className="text-sm font-bold truncate">{selectedVideo.title}</h4>
+                <p className="text-[11px] text-blue-400 font-mono">{selectedVideo.subject} • {selectedVideo.duration}</p>
+              </div>
+              <button
+                onClick={() => setSelectedVideo(null)}
+                className="p-1 rounded-full hover:bg-slate-700 text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="aspect-video w-full">
+              <iframe
+                src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+                title={selectedVideo.title}
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

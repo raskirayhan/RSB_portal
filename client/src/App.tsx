@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 // Layouts
 import { PublicLayout } from './layouts/PublicLayout';
@@ -31,42 +32,44 @@ import { AdminMaterialsPage } from './pages/admin/AdminMaterialsPage';
 
 export const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public Pages */}
-          <Route element={<PublicLayout />}>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          </Route>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Public Pages */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            </Route>
 
-          {/* Student Portal (Protected) */}
-          <Route element={<StudentLayout />}>
-            <Route path="/dashboard" element={<StudentDashboard />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/vault" element={<StudyVaultPage />} />
-            <Route path="/billing" element={<BillingPage />} />
-            <Route path="/games" element={<GamesPage />} />
-            <Route path="/feedback" element={<FeedbackPage />} />
-            <Route path="/devices" element={<DeviceSessionsPage />} />
-          </Route>
+            {/* Student Portal (Protected) */}
+            <Route element={<StudentLayout />}>
+              <Route path="/dashboard" element={<StudentDashboard />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/vault" element={<StudyVaultPage />} />
+              <Route path="/billing" element={<BillingPage />} />
+              <Route path="/games" element={<GamesPage />} />
+              <Route path="/feedback" element={<FeedbackPage />} />
+              <Route path="/sessions" element={<DeviceSessionsPage />} />
+            </Route>
 
-          {/* Super Admin Control Room (Protected for Rayhan Sir) */}
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="students" element={<AdminStudentsPage />} />
-            <Route path="payments" element={<AdminPaymentsPage />} />
-            <Route path="scanner" element={<AdminQRScannerPage />} />
-            <Route path="materials" element={<AdminMaterialsPage />} />
-          </Route>
+            {/* Admin Portal (Protected) */}
+            <Route element={<AdminLayout />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/students" element={<AdminStudentsPage />} />
+              <Route path="/admin/payments" element={<AdminPaymentsPage />} />
+              <Route path="/admin/scanner" element={<AdminQRScannerPage />} />
+              <Route path="/admin/materials" element={<AdminMaterialsPage />} />
+            </Route>
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+            {/* Catch-all redirect */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 
