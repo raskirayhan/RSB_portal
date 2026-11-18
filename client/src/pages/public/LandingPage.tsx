@@ -47,42 +47,58 @@ export const LandingPage: React.FC = () => {
       .catch((err) => console.error('Failed to load landing data', err));
   }, []);
 
+  const getYouTubeEmbedUrl = (urlOrId: string) => {
+    if (!urlOrId) return 'https://www.youtube.com/embed/fNk_zzaMoSs?autoplay=1&rel=0';
+    if (urlOrId.includes('embed/')) return `${urlOrId}?autoplay=1&rel=0`;
+    let videoId = urlOrId;
+    if (urlOrId.includes('v=')) {
+      videoId = urlOrId.split('v=')[1]?.split('&')[0];
+    } else if (urlOrId.includes('youtu.be/')) {
+      videoId = urlOrId.split('youtu.be/')[1]?.split('?')[0];
+    }
+    // Prevent accidental rickroll
+    if (videoId === 'dQw4w9WgXcQ') {
+      videoId = 'fNk_zzaMoSs';
+    }
+    return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+  };
+
   const fallbackVideos = [
     {
       id: 'demo-1',
-      title: 'ভেক্টরের ক্রস গুণন ও সামান্তরিক ক্ষেত্রফল নির্ণয়ের জাদু',
+      title: 'ভেক্টরের ত্রিমাত্রিক বিশ্লেষণ ও লিনিয়ার অ্যালজেব্রা (3D Vectors)',
       subject: 'Physics',
-      chapter: 'ভেক্টর (Vectors)',
-      duration: '৩:৪৫ মিনিট',
-      youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&auto=format&fit=crop&q=80',
+      chapter: 'ভেক্টর (Vectors in 3D)',
+      duration: '৪:২০ মিনিট',
+      youtubeUrl: 'https://www.youtube.com/watch?v=fNk_zzaMoSs',
+      thumbnailUrl: 'https://img.youtube.com/vi/fNk_zzaMoSs/hqdefault.jpg',
     },
     {
       id: 'demo-2',
-      title: 'জৈব রসায়নের মারকনিকভ নীতি ও বেনজিন চক্রের ইলেকট্রোফিলিক প্রতিস্থাপন',
+      title: 'পরমাণুর ৩ডি অরবিটাল ও ইলেকট্রন ক্লাউড (3D Orbitals & Hybridization)',
       subject: 'Chemistry',
-      chapter: 'জৈব যৌগ (Organic Chemistry)',
-      duration: '৪:১০ মিনিট',
-      youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&auto=format&fit=crop&q=80',
+      chapter: 'গুণগত রসায়ন ও অরবিটাল',
+      duration: '৩:৪৫ মিনিট',
+      youtubeUrl: 'https://www.youtube.com/watch?v=cPDptc0wUYI',
+      thumbnailUrl: 'https://img.youtube.com/vi/cPDptc0wUYI/hqdefault.jpg',
     },
     {
       id: 'demo-3',
-      title: 'কার্নো ম্যাপ (K-Map) ও লজিক গেট সরলীকরণের সহজ হ্যাকস',
+      title: 'সিপিইউ ও লজিক গেটের ৩ডি কার্যপ্রণালী (How CPUs Work in 3D)',
       subject: 'ICT',
-      chapter: 'ডিজিটাল লজিক (Digital Logic)',
-      duration: '৩:১৫ মিনিট',
-      youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80',
+      chapter: 'ডিজিটাল লজিক ও প্রসেসর',
+      duration: '৩:৩০ মিনিট',
+      youtubeUrl: 'https://www.youtube.com/watch?v=16zrEPOsIcI',
+      thumbnailUrl: 'https://img.youtube.com/vi/16zrEPOsIcI/hqdefault.jpg',
     },
     {
       id: 'demo-4',
-      title: 'অন্তরীকরণের চেইন রুল ও স্পর্শকের ঢাল নিমিষেই বের করার টেকনিক',
+      title: 'অন্তরীকরণ ও স্পর্শকের ৩ডি জ্যামিতিক তাৎপর্য (Visual Calculus Derivatives)',
       subject: 'Higher Math',
       chapter: 'অন্তরীকরণ (Calculus)',
-      duration: '৩:৫০ মিনিট',
-      youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=600&auto=format&fit=crop&q=80',
+      duration: '৪:১০ মিনিট',
+      youtubeUrl: 'https://www.youtube.com/watch?v=WUvTyaaNkzM',
+      thumbnailUrl: 'https://img.youtube.com/vi/WUvTyaaNkzM/hqdefault.jpg',
     },
   ];
 
@@ -878,9 +894,9 @@ export const LandingPage: React.FC = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="aspect-video w-full">
+            <div className="aspect-video w-full bg-black">
               <iframe
-                src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+                src={getYouTubeEmbedUrl(selectedVideo.youtubeUrl || selectedVideo.id)}
                 title={selectedVideo.title}
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

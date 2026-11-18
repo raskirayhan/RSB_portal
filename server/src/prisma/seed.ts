@@ -167,50 +167,48 @@ async function main() {
     }
   }
 
-  // 4. Seed Demo Videos
-  const demoCount = await prisma.demoVideo.count();
-  if (demoCount === 0) {
-    await prisma.demoVideo.createMany({
-      data: [
-        {
-          title: 'ভেক্টরের ক্রস গুণন ও ত্রিভুজ ক্ষেত্রফল নির্ণয়ের জাদু',
-          subject: 'Physics',
-          chapter: 'ভেক্টর',
-          duration: '৩:৪৫ মিনিট',
-          youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-          thumbnailUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&auto=format&fit=crop&q=80',
-          featured: true,
-        },
-        {
-          title: 'জৈব রসায়নের মারকনিকভ নীতি ও বেনজিন চক্রের ইলেকট্রোফিলিক প্রতিস্থাপন',
-          subject: 'Chemistry',
-          chapter: 'জৈব যৌগ',
-          duration: '৪:১০ মিনিট',
-          youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-          thumbnailUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&auto=format&fit=crop&q=80',
-          featured: true,
-        },
-        {
-          title: 'কার্নো ম্যাপ (K-Map) ও লজিক গেট সরলীকরণের সহজ ট্রিকস',
-          subject: 'ICT',
-          chapter: 'ডিজিটাল লজিক',
-          duration: '৩:১৫ মিনিট',
-          youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-          thumbnailUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80',
-          featured: true,
-        },
-        {
-          title: 'অন্তরীকরণের চেইন রুল ও স্পর্শকের ঢাল নিমিষেই বের করার উপায়',
-          subject: 'Higher Math',
-          chapter: 'অন্তরীকরণ',
-          duration: '৩:৫০ মিনিট',
-          youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-          thumbnailUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=600&auto=format&fit=crop&q=80',
-          featured: true,
-        },
-      ],
-    });
-  }
+  // 4. Seed Demo Videos (Real Faceless 3D Science Concept Lessons)
+  await prisma.demoVideo.deleteMany();
+  await prisma.demoVideo.createMany({
+    data: [
+      {
+        title: 'ভেক্টরের ত্রিমাত্রিক বিশ্লেষণ ও লিনিয়ার অ্যালজেব্রা (3D Vectors)',
+        subject: 'Physics',
+        chapter: 'ভেক্টর (Vectors in 3D)',
+        duration: '৪:২০ মিনিট',
+        youtubeUrl: 'https://www.youtube.com/watch?v=fNk_zzaMoSs',
+        thumbnailUrl: 'https://img.youtube.com/vi/fNk_zzaMoSs/hqdefault.jpg',
+        featured: true,
+      },
+      {
+        title: 'পরমাণুর ৩ডি অরবিটাল ও ইলেকট্রন ক্লাউড (3D Orbitals & Hybridization)',
+        subject: 'Chemistry',
+        chapter: 'গুণগত রসায়ন ও অরবিটাল',
+        duration: '৩:৪৫ মিনিট',
+        youtubeUrl: 'https://www.youtube.com/watch?v=cPDptc0wUYI',
+        thumbnailUrl: 'https://img.youtube.com/vi/cPDptc0wUYI/hqdefault.jpg',
+        featured: true,
+      },
+      {
+        title: 'সিপিইউ ও লজিক গেটের ৩ডি কার্যপ্রণালী (How CPUs Work in 3D)',
+        subject: 'ICT',
+        chapter: 'ডিজিটাল লজিক ও প্রসেসর',
+        duration: '৩:৩০ মিনিট',
+        youtubeUrl: 'https://www.youtube.com/watch?v=16zrEPOsIcI',
+        thumbnailUrl: 'https://img.youtube.com/vi/16zrEPOsIcI/hqdefault.jpg',
+        featured: true,
+      },
+      {
+        title: 'অন্তরীকরণ ও স্পর্শকের ৩ডি জ্যামিতিক তাৎপর্য (Visual Calculus Derivatives)',
+        subject: 'Higher Math',
+        chapter: 'অন্তরীকরণ (Calculus)',
+        duration: '৪:১০ মিনিট',
+        youtubeUrl: 'https://www.youtube.com/watch?v=WUvTyaaNkzM',
+        thumbnailUrl: 'https://img.youtube.com/vi/WUvTyaaNkzM/hqdefault.jpg',
+        featured: true,
+      },
+    ],
+  });
 
   // 5. Seed Test Student 1 (Completed Profile)
   const studentUser1 = await prisma.user.upsert({
