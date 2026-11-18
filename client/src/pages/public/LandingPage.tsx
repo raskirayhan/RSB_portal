@@ -66,43 +66,63 @@ export const LandingPage: React.FC = () => {
   const fallbackVideos = [
     {
       id: 'demo-1',
-      title: 'ভেক্টরের ত্রিমাত্রিক বিশ্লেষণ ও লিনিয়ার অ্যালজেব্রা (3D Vectors)',
+      title: 'ডপলার ক্রিয়া ও শব্দ তরঙ্গের ৩ডি বিশ্লেষণ (Doppler Effect in Sound Waves)',
       subject: 'Physics',
-      chapter: 'ভেক্টর (Vectors in 3D)',
-      duration: '৪:২০ মিনিট',
-      youtubeUrl: 'https://www.youtube.com/watch?v=fNk_zzaMoSs',
-      thumbnailUrl: 'https://img.youtube.com/vi/fNk_zzaMoSs/hqdefault.jpg',
+      chapter: 'তরঙ্গ ও শব্দ (Wave & Sound)',
+      duration: '৩:৩০ মিনিট',
+      youtubeUrl: 'https://www.youtube.com/watch?v=mv6C99LCcxg',
+      thumbnailUrl: 'https://img.youtube.com/vi/mv6C99LCcxg/hqdefault.jpg',
     },
     {
       id: 'demo-2',
-      title: 'পরমাণুর ৩ডি অরবিটাল ও ইলেকট্রন ক্লাউড (3D Orbitals & Hybridization)',
-      subject: 'Chemistry',
-      chapter: 'গুণগত রসায়ন ও অরবিটাল',
-      duration: '৩:৪৫ মিনিট',
-      youtubeUrl: 'https://www.youtube.com/watch?v=cPDptc0wUYI',
-      thumbnailUrl: 'https://img.youtube.com/vi/cPDptc0wUYI/hqdefault.jpg',
+      title: 'টর্ক ও ঘূর্ণন বলবিদ্যার ৩ডি মেকানিজম (What is Torque & Rotational Dynamics)',
+      subject: 'Physics',
+      chapter: 'নিউটনিয়ান বলবিদ্যা (Mechanics)',
+      duration: '৩:১৫ মিনিট',
+      youtubeUrl: 'https://www.youtube.com/watch?v=zXxrAJld9mo',
+      thumbnailUrl: 'https://img.youtube.com/vi/zXxrAJld9mo/hqdefault.jpg',
     },
     {
       id: 'demo-3',
-      title: 'সিপিইউ ও লজিক গেটের ৩ডি কার্যপ্রণালী (How CPUs Work in 3D)',
-      subject: 'ICT',
-      chapter: 'ডিজিটাল লজিক ও প্রসেসর',
-      duration: '৩:৩০ মিনিট',
-      youtubeUrl: 'https://www.youtube.com/watch?v=16zrEPOsIcI',
-      thumbnailUrl: 'https://img.youtube.com/vi/16zrEPOsIcI/hqdefault.jpg',
+      title: 'মুক্তিবেগ ও কৃত্রিম উপগ্রহের ৩ডি গতিপথ (Escape Velocity & Orbital Motion)',
+      subject: 'Physics',
+      chapter: 'মহাকর্ষ ও অভিকর্ষ (Gravitation)',
+      duration: '৩:২০ মিনিট',
+      youtubeUrl: 'https://www.youtube.com/watch?v=tgHsjvSWQe8',
+      thumbnailUrl: 'https://img.youtube.com/vi/tgHsjvSWQe8/hqdefault.jpg',
     },
     {
       id: 'demo-4',
-      title: 'অন্তরীকরণ ও স্পর্শকের ৩ডি জ্যামিতিক তাৎপর্য (Visual Calculus Derivatives)',
-      subject: 'Higher Math',
-      chapter: 'অন্তরীকরণ (Calculus)',
-      duration: '৪:১০ মিনিট',
-      youtubeUrl: 'https://www.youtube.com/watch?v=WUvTyaaNkzM',
-      thumbnailUrl: 'https://img.youtube.com/vi/WUvTyaaNkzM/hqdefault.jpg',
+      title: 'জারণ-বিজারণ ও ইলেকট্রন স্থানান্তরের ৩ডি মেকানিজম (Redox Reaction 3D Mechanism)',
+      subject: 'Chemistry',
+      chapter: 'জারণ-বিজারণ ও তড়িৎ রসায়ন',
+      duration: '৪:১৯ মিনিট',
+      youtubeUrl: 'https://www.youtube.com/watch?v=h3XTkpTDN-E',
+      thumbnailUrl: 'https://img.youtube.com/vi/h3XTkpTDN-E/hqdefault.jpg',
+    },
+    {
+      id: 'demo-5',
+      title: 'লা শাতেলিয়ের নীতি ও বিক্রিয়ার সাম্যাবস্থা (Le Chatelier’s Principle 3D)',
+      subject: 'Chemistry',
+      chapter: 'রাসায়নিক সাম্যাবস্থা (Chemical Equilibrium)',
+      duration: '৩:৪৫ মিনিট',
+      youtubeUrl: 'https://www.youtube.com/watch?v=iiO2PkL9jsg',
+      thumbnailUrl: 'https://img.youtube.com/vi/iiO2PkL9jsg/hqdefault.jpg',
+    },
+    {
+      id: 'demo-6',
+      title: 'মোলের ধারণা ও অ্যাভোগাড্রো সংখ্যা (What is a Mole Concept in 3D)',
+      subject: 'Chemistry',
+      chapter: 'মৌলের ধারণা ও রাসায়নিক গণনা',
+      duration: '৩:১০ মিনিট',
+      youtubeUrl: 'https://www.youtube.com/watch?v=zX918pF1HO0',
+      thumbnailUrl: 'https://img.youtube.com/vi/zX918pF1HO0/hqdefault.jpg',
     },
   ];
 
+  const [videoFilter, setVideoFilter] = useState<'ALL' | 'Physics' | 'Chemistry'>('ALL');
   const videos = landingData?.demoVideos?.length ? landingData.demoVideos : fallbackVideos;
+  const filteredVideos = videos.filter((v: any) => videoFilter === 'ALL' || v.subject === videoFilter);
 
   const faqs = [
     {
@@ -701,7 +721,7 @@ export const LandingPage: React.FC = () => {
       <section id="demo-classes" className="py-24 bg-[#090d16] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
-          <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="text-center max-w-3xl mx-auto mb-10">
             <span className="text-xs font-mono font-bold uppercase tracking-widest text-blue-400 bg-blue-950/80 px-3.5 py-1 rounded-full border border-blue-800">
               FREE DEMO LESSONS
             </span>
@@ -713,9 +733,43 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
 
+          {/* Topic Filter Pills */}
+          <div className="flex items-center justify-center gap-2 mb-10 flex-wrap">
+            <button
+              onClick={() => setVideoFilter('ALL')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                videoFilter === 'ALL'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                  : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 border border-white/10'
+              }`}
+            >
+              সব বিষয় (All Topics)
+            </button>
+            <button
+              onClick={() => setVideoFilter('Physics')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                videoFilter === 'Physics'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                  : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 border border-white/10'
+              }`}
+            >
+              পদার্থবিজ্ঞান (Physics 3D)
+            </button>
+            <button
+              onClick={() => setVideoFilter('Chemistry')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                videoFilter === 'Chemistry'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                  : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 border border-white/10'
+              }`}
+            >
+              রসায়ন (Chemistry 3D)
+            </button>
+          </div>
+
           {/* Videos Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
-            {videos.map((vid: any) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
+            {filteredVideos.map((vid: any) => (
               <div
                 key={vid.id}
                 onClick={() => setSelectedVideo(vid)}
