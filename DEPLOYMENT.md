@@ -28,24 +28,43 @@ A complete step-by-step guide to deploying **Rayhan Special Batch (RSB_portal)**
 1. Log in to [https://vercel.com](https://vercel.com).
 2. Click **Add New** -> **Project** -> Select `raskirayhan/RSB_portal`.
 3. Configure settings:
-   - **Root Directory**: `server`
+   - **Project Name**: `rsb-portal-server` (or any name you prefer)
+   - **Root Directory**: `server` (Click **Edit** -> select `server`)
    - **Framework Preset**: `Other`
-   - **Build Command**: `npm run vercel-build`
+   - **Build Command**: `npm run vercel-build` (or leave default)
    - **Output Directory**: Leave empty
-4. Add Environment Variables:
+4. Add the following **Environment Variables** (Copy & Paste directly):
 
-| Variable | Example Value | Purpose |
+| Key | Exact Value | Description |
 | :--- | :--- | :--- |
-| `DATABASE_URL` | `postgresql://...@neon.tech/neondb?sslmode=require` | Neon PostgreSQL Connection |
-| `NODE_ENV` | `production` | Environment mode |
+| `DATABASE_URL` | `postgresql://neondb_owner:REDACTED_SECRET@ep-sample-pooler.region.aws.neon.tech/neondb?sslmode=require&channel_binding=require&schema=rsb` | Live Neon DB with schema=rsb |
+| `NODE_ENV` | `production` | Production environment |
 | `PORT` | `5000` | Port |
-| `JWT_SECRET` | `super_secret_jwt_key_rsb_2026_xyz` | JWT Signing Secret |
+| `JWT_SECRET` | `dev_jwt_secret_placeholder` | JWT Signing Secret |
 | `JWT_EXPIRES_IN` | `7d` | Token Validity |
-| `REFRESH_TOKEN_SECRET`| `super_secret_refresh_token_rsb_2026` | Refresh Token Secret |
-| `CLIENT_URL` | `https://your-frontend.vercel.app` | Frontend Origin |
+| `REFRESH_TOKEN_SECRET`| `dev_refresh_token_secret_placeholder` | Refresh Token Secret |
+| `CLIENT_URL` | `https://client-xi-lac.vercel.app` | Frontend Origin (Live Vercel URL) |
 | `MAX_ALLOWED_DEVICES` | `2` | Dual-Device Session Limit |
+| `EMAIL_HOST` | `smtp.gmail.com` | Gmail SMTP |
+| `EMAIL_PORT` | `587` | SMTP Port |
+| `EMAIL_USER` | `raskirayhan@gmail.com` | Email Sender |
 
-5. Click **Deploy**. Your backend API will be live at `https://your-backend.vercel.app`.
+5. Click **Deploy**. Your backend API will be live at `https://<your-backend-project>.vercel.app` (e.g. `https://rsb-portal-server.vercel.app`).
+   - Test by opening: `https://<your-backend-project>.vercel.app/health`
+
+---
+
+## 3. Connect Live Frontend with Backend
+
+You already deployed the frontend at **`https://client-xi-lac.vercel.app/`**. Now connect it with your backend:
+
+1. In [https://vercel.com](https://vercel.com), open your frontend project: **`client-xi-lac`**.
+2. Go to **Settings** -> **Environment Variables**.
+3. Add:
+   - **Key**: `VITE_API_URL`
+   - **Value**: `https://<your-backend-project>.vercel.app/api` *(Your backend Vercel URL + `/api`)*
+4. Go to **Deployments** tab -> click the three dots (`...`) on the latest deployment -> **Redeploy**.
+5. Once redeployed, open `https://client-xi-lac.vercel.app/login` and click any **1-Click Test Login** button!
 
 ---
 
