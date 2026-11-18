@@ -68,6 +68,16 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const setMode = (newMode: LabThemeMode) => {
     setModeState(newMode);
     localStorage.setItem('rsb_lab_theme', newMode);
+    const active = computeIsDeepFocus(newMode);
+    setIsDeepFocus(active);
+    const root = document.documentElement;
+    if (active) {
+      root.classList.add('dark');
+      root.style.colorScheme = 'dark';
+    } else {
+      root.classList.remove('dark');
+      root.style.colorScheme = 'light';
+    }
   };
 
   const toggleSound = () => {

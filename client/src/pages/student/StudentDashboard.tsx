@@ -5,6 +5,7 @@ import { api } from '../../api/client';
 import { QRBadgeModal } from '../../components/QRBadgeModal';
 import { DailyRewardModal } from '../../components/DailyRewardModal';
 import { getUserGems, checkDailyLoginReward } from '../../utils/rewards';
+import { playPop } from '../../utils/soundFX';
 import {
   BookOpen,
   CreditCard,
@@ -21,7 +22,10 @@ import {
   ShieldCheck,
   TrendingUp,
   Gem,
-  Star
+  Star,
+  GraduationCap,
+  Layers,
+  DownloadCloud
 } from 'lucide-react';
 
 export const StudentDashboard: React.FC = () => {
@@ -33,6 +37,28 @@ export const StudentDashboard: React.FC = () => {
   const [isDailyRewardModalOpen, setIsDailyRewardModalOpen] = useState(false);
   const [gems, setGems] = useState<number>(() => getUserGems(user?.id, profile?.totalXp));
   const [rewardStatus, setRewardStatus] = useState(() => checkDailyLoginReward(user?.id, profile?.currentStreak));
+
+  // Determine active level: CLASS_8, SSC, or HSC
+  const getInitialLevel = (): 'CLASS_8' | 'SSC' | 'HSC' => {
+    const saved = localStorage.getItem('rsb_selected_academic_level');
+    if (saved === 'CLASS_8' || saved === 'SSC' || saved === 'HSC') return saved;
+    const lvl = (profile?.academicLevel || '').toUpperCase();
+    if (lvl.includes('8') || lvl.includes('JSC')) return 'CLASS_8';
+    if (lvl.includes('SSC')) return 'SSC';
+    return 'HSC';
+  };
+
+  const [activeLevel, setActiveLevel] = useState<'CLASS_8' | 'SSC' | 'HSC'>(getInitialLevel());
+
+  useEffect(() => {
+    // If profile changes, align active level if not manually selected
+    if (profile?.academicLevel) {
+      const lvl = profile.academicLevel.toUpperCase();
+      if (lvl.includes('8') || lvl.includes('JSC')) setActiveLevel('CLASS_8');
+      else if (lvl.includes('SSC')) setActiveLevel('SSC');
+      else setActiveLevel('HSC');
+    }
+  }, [profile?.academicLevel]);
 
   useEffect(() => {
     // Load student invoices
@@ -92,6 +118,13 @@ export const StudentDashboard: React.FC = () => {
   const latestInvoice = invoices[0];
   const isFeePaid = latestInvoice?.status === 'PAID';
 
+  const academicTitle =
+    activeLevel === 'CLASS_8'
+      ? '৮ম শ্রেণি (JSC) বিজ্ঞান ও গণিত ফাউন্ডেশন ব্যাচ'
+      : activeLevel === 'SSC'
+      ? 'এসএসসি (SSC Science) ২০২৬ এক্সিলেন্স ব্যাচ'
+      : 'এইচএসসি (HSC Science) উচ্চ মাধ্যমিক ব্যাচ';
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Welcome & Motivational Card */}
@@ -102,7 +135,7 @@ export const StudentDashboard: React.FC = () => {
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-blue-100 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>বিজ্ঞান বিভাগে A+ অর্জনের মিশন ২০২৬</span>
+              <span>{academicTitle}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
               হ্যালো, {user?.name}! প্রস্তুত তো আজকের ক্লাসের জন্য?
@@ -125,7 +158,7 @@ export const StudentDashboard: React.FC = () => {
               className="px-5 py-3 rounded-xl bg-blue-600/80 hover:bg-blue-600 border border-white/20 text-white font-bold text-sm transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
             >
               <BookOpen className="w-4 h-4" />
-              <span>নোটস ডাউনলোড</span>
+              <span>স্টাডি ভল্ট ও NCTB বই</span>
             </Link>
           </div>
         </div>
@@ -164,42 +197,42 @@ export const StudentDashboard: React.FC = () => {
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Profile Status */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">প্রোফাইল স্ট্যাটাস</p>
-            <h4 className="text-lg font-black text-slate-900 mt-1">
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">প্রোফাইল স্ট্যাটাস</p>
+            <h4 className="text-lg font-black text-slate-900 dark:text-white mt-1">
               {profile?.isCompleted ? '১০০% সম্পন্ন' : 'অসম্পূর্ণ (Incomplete)'}
             </h4>
             <Link to="/profile" className="text-xs text-blue-600 font-semibold hover:underline mt-1 inline-block">
               {profile?.isCompleted ? 'তথ্য দেখুন →' : 'এখনই তথ্য পূরণ করুন →'}
             </Link>
           </div>
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${profile?.isCompleted ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${profile?.isCompleted ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600' : 'bg-amber-100 dark:bg-amber-950 text-amber-600'}`}>
             {profile?.isCompleted ? <CheckCircle2 className="w-6 h-6" /> : <AlertTriangle className="w-6 h-6" />}
           </div>
         </div>
 
         {/* Monthly Tuition Fee */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">চলতি মাসের ফি</p>
-            <h4 className={`text-lg font-black mt-1 ${isFeePaid ? 'text-emerald-600' : 'text-amber-600'}`}>
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">চলতি মাসের ফি</p>
+            <h4 className={`text-lg font-black mt-1 ${isFeePaid ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
               {isFeePaid ? 'পরিশোধিত (PAID)' : 'বকেয়া (UNPAID)'}
             </h4>
             <Link to="/billing" className="text-xs text-blue-600 font-semibold hover:underline mt-1 inline-block">
               {isFeePaid ? 'মানি রিসিট ডাউনলোড →' : 'bKash-এ পেমেন্ট করুন →'}
             </Link>
           </div>
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isFeePaid ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isFeePaid ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600' : 'bg-amber-100 dark:bg-amber-950 text-amber-600'}`}>
             <CreditCard className="w-6 h-6" />
           </div>
         </div>
 
         {/* Gems Wallet */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Gems ওয়ালেট</p>
-            <h4 className="text-lg font-black text-cyan-600 mt-1 flex items-center space-x-1">
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Gems ওয়ালেট</p>
+            <h4 className="text-lg font-black text-cyan-600 dark:text-cyan-400 mt-1 flex items-center space-x-1">
               <Gem className="w-5 h-5 text-cyan-500" />
               <span>{gems}</span>
             </h4>
@@ -207,39 +240,39 @@ export const StudentDashboard: React.FC = () => {
               গেমস খেলে রত্ন বাড়ান →
             </Link>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-cyan-100 text-cyan-600 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-cyan-100 dark:bg-cyan-950 text-cyan-600 flex items-center justify-center">
             <Gem className="w-6 h-6" />
           </div>
         </div>
 
         {/* Total XP Points */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">মোট অর্জিত পয়েন্ট</p>
-            <h4 className="text-lg font-black text-purple-600 mt-1">
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">মোট অর্জিত পয়েন্ট</p>
+            <h4 className="text-lg font-black text-purple-600 dark:text-purple-400 mt-1">
               {profile?.totalXp || 0} XP
             </h4>
             <Link to="/games" className="text-xs text-purple-600 font-semibold hover:underline mt-1 inline-block">
               লিডারবোর্ড দেখুন →
             </Link>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-950 text-purple-600 flex items-center justify-center">
             <Award className="w-6 h-6" />
           </div>
         </div>
 
         {/* Daily Streak */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">লগইন স্ট্রিক</p>
-            <h4 className="text-lg font-black text-amber-600 mt-1">
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">লগইন স্ট্রিক</p>
+            <h4 className="text-lg font-black text-amber-600 dark:text-amber-400 mt-1">
               {profile?.currentStreak || 1} দিন টানা
             </h4>
-            <span className="text-xs text-slate-500 font-medium mt-1 inline-block">
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 inline-block">
               দৈনিক কুইজ খেলুন
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-600 flex items-center justify-center">
             <Flame className="w-6 h-6 fill-amber-500" />
           </div>
         </div>
@@ -247,101 +280,315 @@ export const StudentDashboard: React.FC = () => {
 
       {/* Main Grid: Study Vault Shortcuts & Teacher Feedback */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Subject Fast Vault (8 Cols) */}
+        {/* Left Column: Academic Segmented Subject Fast Vault (8 Cols) */}
         <div className="lg:col-span-8 space-y-6">
-          <div className="flex items-center justify-between">
+
+          {/* Academic Level Selector & Header */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">বিষয়ভিত্তিক স্টাডি ভল্ট (নোটস ও প্রশ্নব্যাংক)</h3>
-              <p className="text-xs text-slate-500">আপনার জন্য রিয়েল-টাইম ওয়াটারমার্কড পিডিএফ প্রস্তুত রয়েছে</p>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center space-x-2">
+                <GraduationCap className="w-5 h-5 text-blue-600" />
+                <span>আমার সিলেবাস ও বিষয়ভিত্তিক স্টাডি ভল্ট</span>
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                শিক্ষাস্তর অনুসারে সাজানো অধ্যায়, লেকচার শিট ও বোর্ড বই
+              </p>
             </div>
-            <Link to="/vault" className="text-xs font-bold text-blue-600 hover:underline">
-              সব নোট দেখুন →
-            </Link>
+
+            {/* Academic Level Toggle Chips */}
+            <div className="flex items-center space-x-1.5 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  playPop();
+                  setActiveLevel('CLASS_8');
+                  localStorage.setItem('rsb_selected_academic_level', 'CLASS_8');
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  activeLevel === 'CLASS_8'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                🏫 ৮ম (JSC)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  playPop();
+                  setActiveLevel('SSC');
+                  localStorage.setItem('rsb_selected_academic_level', 'SSC');
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  activeLevel === 'SSC'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                🎓 এসএসসি
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  playPop();
+                  setActiveLevel('HSC');
+                  localStorage.setItem('rsb_selected_academic_level', 'HSC');
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  activeLevel === 'HSC'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                🔬 এইচএসসি
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Link
-              to="/vault?subject=PHYSICS"
-              className="p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-blue-300 hover:shadow-md transition-all group"
-            >
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
-                  ⚡
+          {/* DYNAMIC SUBJECT CARDS PER ACADEMIC LEVEL */}
+          {activeLevel === 'CLASS_8' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Link
+                to="/vault?subject=CLASS_8_SCIENCE"
+                className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-lg">
+                    🧪
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-white group-hover:text-blue-600 transition-colors">
+                      বিজ্ঞান (Class 8 Science)
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">পরমাণুর গঠন, অম্ল-ক্ষারক-লবণ, আলো, বর্তনী</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-slate-800 group-hover:text-blue-600 transition-colors">
-                    পদার্থবিজ্ঞান (Physics)
-                  </h4>
-                  <p className="text-xs text-slate-500">ভেক্টর, গতিবিদ্যা, নিউটনীয় বলবিদ্যা</p>
+                <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <span>৮ম শ্রেণির কনসেপ্ট ও নোটস</span>
+                  <span className="font-bold text-blue-600">ভল্ট খুলুন →</span>
                 </div>
+              </Link>
+
+              <Link
+                to="/vault?subject=CLASS_8_MATH"
+                className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 flex items-center justify-center font-bold text-lg">
+                    📐
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-white group-hover:text-purple-600 transition-colors">
+                      গণিত (Class 8 Mathematics)
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">প্যাটার্ন, বীজগণিতীয় সূত্রাবলি, জ্যামিতি</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <span>অনুশীলনী সমাধান ও CQ শিট</span>
+                  <span className="font-bold text-purple-600">ভল্ট খুলুন →</span>
+                </div>
+              </Link>
+            </div>
+          )}
+
+          {activeLevel === 'SSC' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Link
+                to="/vault?subject=PHYSICS"
+                className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-lg">
+                    ⚡
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-white group-hover:text-blue-600 transition-colors">
+                      পদার্থবিজ্ঞান (SSC Physics)
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">গতি, বল, কাজ ক্ষমতা শক্তি, তরঙ্গ ও শব্দ</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <span>লেকচার শিট ও সূত্র</span>
+                  <span className="font-bold text-blue-600">ভল্ট খুলুন →</span>
+                </div>
+              </Link>
+
+              <Link
+                to="/vault?subject=CHEMISTRY"
+                className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold text-lg">
+                    ⚗️
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-white group-hover:text-emerald-600 transition-colors">
+                      রসায়ন (SSC Chemistry)
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">পদার্থের অবস্থা, পর্যায় সারণি, রাসায়নিক বন্ধন</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <span>বিক্রিয়া ও নোটস</span>
+                  <span className="font-bold text-emerald-600">ভল্ট খুলুন →</span>
+                </div>
+              </Link>
+
+              <Link
+                to="/vault?subject=HIGHER_MATH"
+                className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 flex items-center justify-center font-bold text-lg">
+                    📐
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-white group-hover:text-purple-600 transition-colors">
+                      উচ্চতর গণিত (SSC Higher Math)
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">সেট ও ফাংশন, বীজগণিতীয় রাশি, দ্বিপদী</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <span>শর্টকাট ট্রিকস ও CQ</span>
+                  <span className="font-bold text-purple-600">ভল্ট খুলুন →</span>
+                </div>
+              </Link>
+
+              <Link
+                to="/vault?subject=BIOLOGY"
+                className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-rose-300 dark:hover:border-rose-700 hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 flex items-center justify-center font-bold text-lg">
+                    🧬
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-white group-hover:text-rose-600 transition-colors">
+                      জীববিজ্ঞান (SSC Biology)
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">জীবন পাঠ, জীবকোষ ও টিস্যু, জীবনীশক্তি</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <span>চিত্রভিত্তিক লেকচার ও রিভিশন</span>
+                  <span className="font-bold text-rose-600">ভল্ট খুলুন →</span>
+                </div>
+              </Link>
+            </div>
+          )}
+
+          {activeLevel === 'HSC' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Link
+                to="/vault?subject=PHYSICS"
+                className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-lg">
+                    ⚡
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-white group-hover:text-blue-600 transition-colors">
+                      পদার্থবিজ্ঞান ১ম ও ২য় পত্র (HSC Physics)
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">ভেক্টর, নিউটোনিয়ান বলবিদ্যা, তাপগতিবিদ্যা, আলো</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <span>লেকচার শিট ও ফর্মুলা বুক</span>
+                  <span className="font-bold text-blue-600">ভল্ট খুলুন →</span>
+                </div>
+              </Link>
+
+              <Link
+                to="/vault?subject=CHEMISTRY"
+                className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold text-lg">
+                    ⚗️
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-white group-hover:text-emerald-600 transition-colors">
+                      রসায়ন ১ম ও ২য় পত্র (HSC Chemistry)
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">গুণগত রসায়ন, পর্যায়বৃত্ত ধর্ম, জৈব রসায়ন</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <span>বিক্রিয়া মেকানিজম ও নোটস</span>
+                  <span className="font-bold text-emerald-600">ভল্ট খুলুন →</span>
+                </div>
+              </Link>
+
+              <Link
+                to="/vault?subject=HIGHER_MATH"
+                className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 flex items-center justify-center font-bold text-lg">
+                    📐
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-white group-hover:text-purple-600 transition-colors">
+                      উচ্চতর গণিত ১ম ও ২য় পত্র (HSC Math)
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">ম্যাট্রিক্স, সরলরেখা, ক্যালকুলাস, ত্রিকোণমিতি</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <span>শর্টকাট ট্রিকস ও CQ শিট</span>
+                  <span className="font-bold text-purple-600">ভল্ট খুলুন →</span>
+                </div>
+              </Link>
+
+              <Link
+                to="/vault?subject=ICT"
+                className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700 hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-lg">
+                    💻
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-white group-hover:text-amber-600 transition-colors">
+                      তথ্য ও যোগাযোগ প্রযুক্তি (HSC ICT)
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">সংখ্যা পদ্ধতি, লজিক গেট, সি প্রোগ্রামিং, এইচটিএমএল</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 dark:border-slate-800 pt-3">
+                  <span>লজিক গেট সার্কিট ও কোড শিট</span>
+                  <span className="font-bold text-amber-600">ভল্ট খুলুন →</span>
+                </div>
+              </Link>
+            </div>
+          )}
+
+          {/* NCTB Textbooks Direct Card */}
+          <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-900/90 via-teal-900/90 to-slate-900 border border-emerald-500/30 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="inline-flex items-center space-x-2 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold uppercase">
+                <BookOpen className="w-3 h-3" />
+                <span>NCTB Official Textbooks</span>
               </div>
-              <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-3">
-                <span>লেকচার শিট ও সূত্র</span>
-                <span className="font-bold text-blue-600">ভল্ট খুলুন →</span>
-              </div>
-            </Link>
+              <h4 className="text-base font-extrabold text-white">
+                ৮ম শ্রেণি, এসএসসি ও এইচএসসি মূল বোর্ড বইসমূহ (PDF)
+              </h4>
+              <p className="text-xs text-emerald-100/80 max-w-xl">
+                জাতীয় শিক্ষাক্রম ও পাঠ্যপুস্তক বোর্ড (NCTB) অনুমোদিত বিজ্ঞান ও গণিত মূল বইগুলো এক ক্লিকে অনলাইনে পড়ুন বা ডাউনলোড করুন।
+              </p>
+            </div>
 
             <Link
-              to="/vault?subject=CHEMISTRY"
-              className="p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-emerald-300 hover:shadow-md transition-all group"
+              to="/vault"
+              className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center space-x-2 whitespace-nowrap active:scale-95"
             >
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                  ⚗️
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-800 group-hover:text-emerald-600 transition-colors">
-                    রসায়ন (Chemistry)
-                  </h4>
-                  <p className="text-xs text-slate-500">গুণগত রসায়ন, পর্যায়বৃত্ত ধর্ম, জৈব যৌগ</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-3">
-                <span>বিক্রিয়া ও নোটস</span>
-                <span className="font-bold text-emerald-600">ভল্ট খুলুন →</span>
-              </div>
-            </Link>
-
-            <Link
-              to="/vault?subject=HIGHER_MATH"
-              className="p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-purple-300 hover:shadow-md transition-all group"
-            >
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
-                  📐
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-800 group-hover:text-purple-600 transition-colors">
-                    উচ্চতর গণিত (Higher Math)
-                  </h4>
-                  <p className="text-xs text-slate-500">ম্যাট্রিক্স, সরলরেখা, ক্যালকুলাস</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-3">
-                <span>শর্টকাট ট্রিকস ও CQ</span>
-                <span className="font-bold text-purple-600">ভল্ট খুলুন →</span>
-              </div>
-            </Link>
-
-            <Link
-              to="/vault?subject=ICT"
-              className="p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-amber-300 hover:shadow-md transition-all group"
-            >
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
-                  💻
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-800 group-hover:text-amber-600 transition-colors">
-                    তথ্য ও যোগাযোগ প্রযুক্তি (ICT)
-                  </h4>
-                  <p className="text-xs text-slate-500">ডিজিটাল লজিক, সি প্রোগ্রামিং, এইচটিএমএল</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-3">
-                <span>লজিক গেট সার্কিট শিট</span>
-                <span className="font-bold text-amber-600">ভল্ট খুলুন →</span>
-              </div>
+              <DownloadCloud className="w-4 h-4" />
+              <span>বোর্ড বই ডাউনলোড করুন →</span>
             </Link>
           </div>
 
@@ -369,32 +616,32 @@ export const StudentDashboard: React.FC = () => {
         {/* Right Column: Teacher Academic Feedback & QR Quick View (4 Cols) */}
         <div className="lg:col-span-4 space-y-6">
           {/* Teacher Feedback Card */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
             <div className="flex items-center space-x-2 text-blue-600 mb-3">
               <MessageSquare className="w-5 h-5" />
-              <h3 className="font-bold text-slate-900 text-sm">রায়হান স্যারের পর্যবেক্ষণ</h3>
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm">রায়হান স্যারের পর্যবেক্ষণ</h3>
             </div>
 
             {feedback.length > 0 ? (
               <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-100 text-xs space-y-2">
-                  <p className="font-semibold text-slate-700 italic">
+                <div className="p-4 rounded-2xl bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700 text-xs space-y-2">
+                  <p className="font-semibold text-slate-700 dark:text-slate-200 italic">
                     "{feedback[0].remarks}"
                   </p>
                   {feedback[0].strengths && (
-                    <p className="text-emerald-700 font-medium">
+                    <p className="text-emerald-700 dark:text-emerald-400 font-medium">
                       ✓ শক্তি: {feedback[0].strengths}
                     </p>
                   )}
                   {feedback[0].areasToImprove && (
-                    <p className="text-rose-700 font-medium">
+                    <p className="text-rose-700 dark:text-rose-400 font-medium">
                       ⚠ উন্নতির ক্ষেত্র: {feedback[0].areasToImprove}
                     </p>
                   )}
                 </div>
                 <Link
                   to="/feedback"
-                  className="block text-center py-2 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                  className="block text-center py-2 text-xs font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-xl transition-colors"
                 >
                   স্যারের সাথে কথা বলুন / ডাউট জানান →
                 </Link>
@@ -408,6 +655,13 @@ export const StudentDashboard: React.FC = () => {
 
           {/* Quick ID Badge Card */}
           <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-md text-center">
+            {/* Avatar display on badge */}
+            {profile?.avatarUrl && (
+              <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-3 border-2 border-blue-400/70 shadow-md">
+                <img src={profile.avatarUrl} alt={user?.name} className="w-full h-full object-cover" />
+              </div>
+            )}
+
             <div className="w-24 h-24 bg-white p-2 rounded-xl mx-auto mb-3 shadow-md">
               {profile?.qrCodeDataUrl ? (
                 <img src={profile.qrCodeDataUrl} alt="Student QR Code" className="w-full h-full object-contain" />
@@ -417,7 +671,9 @@ export const StudentDashboard: React.FC = () => {
             </div>
             <h4 className="font-bold text-white text-base">{user?.name}</h4>
             <p className="text-xs text-blue-400 font-mono font-bold mt-0.5">{profile?.studentIdNumber}</p>
-            <p className="text-[11px] text-slate-400 mt-1">{profile?.batch?.name || profile?.academicLevel}</p>
+            <p className="text-[11px] text-slate-400 mt-1">
+              {profile?.batch?.name || (activeLevel === 'CLASS_8' ? '৮ম শ্রেণি (JSC)' : activeLevel === 'SSC' ? 'এসএসসি (SSC Science)' : 'এইচএসসি (HSC Science)')}
+            </p>
 
             <button
               onClick={() => setIsQrModalOpen(true)}
@@ -439,10 +695,11 @@ export const StudentDashboard: React.FC = () => {
             name: user?.name || '',
             studentId: profile.studentIdNumber,
             academicLevel: profile.academicLevel,
-            batchName: profile.batch?.name,
+            batchName: profile.batch?.name || (activeLevel === 'CLASS_8' ? '৮ম শ্রেণি (JSC)' : activeLevel === 'SSC' ? 'এসএসসি (SSC Science)' : 'এইচএসসি (HSC Science)'),
             institution: profile.institutionName,
             phone: profile.studentPhone,
             qrCodeDataUrl: profile.qrCodeDataUrl,
+            avatarUrl: profile.avatarUrl,
           }}
         />
       )}

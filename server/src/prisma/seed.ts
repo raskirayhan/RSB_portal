@@ -52,6 +52,20 @@ async function main() {
     },
   });
 
+  const batchClass8 = await prisma.batch.upsert({
+    where: { id: 'batch-class8-26' },
+    update: {},
+    create: {
+      id: 'batch-class8-26',
+      name: 'Class 8 (JSC) Science & Math Foundation Batch',
+      academicLevel: 'CLASS_8',
+      scheduleDays: 'শনি, সোম, বুধ',
+      timeSlot: 'বিকাল ৩:০০ - ৪:৩০',
+      monthlyFee: 1500.0,
+      isActive: true,
+    },
+  });
+
   // 3. Seed Subjects & Chapters
   const subjectsData = [
     {
@@ -100,6 +114,25 @@ async function main() {
       chapters: [
         { title: 'অধ্যায় ৩: সংখ্যা পদ্ধতি ও ডিজিটাল লজিক (Logic Gates)', chapterNumber: 3 },
         { title: 'অধ্যায় ৫: প্রোগ্রামিং ভাষা (C Programming)', chapterNumber: 5 },
+      ],
+    },
+    {
+      code: 'CLASS_8_SCIENCE',
+      name: 'Class 8 Science (বিজ্ঞান)',
+      academicLevel: 'CLASS_8',
+      chapters: [
+        { title: 'অধ্যায় ১: প্রাণিজগতের শ্রেণিবিন্যাস', chapterNumber: 1 },
+        { title: 'অধ্যায় ৮: রাসায়নিক বিক্রিয়া ও সমীকরণ', chapterNumber: 8 },
+        { title: 'অধ্যায় ৯: বর্তনী ও চলবিদ্যুৎ', chapterNumber: 9 },
+      ],
+    },
+    {
+      code: 'CLASS_8_MATH',
+      name: 'Class 8 Math (গণিত)',
+      academicLevel: 'CLASS_8',
+      chapters: [
+        { title: 'অধ্যায় ১: প্যাটার্ন ও সংখ্যাতত্ত্ব', chapterNumber: 1 },
+        { title: 'অধ্যায় ৪: বীজগণিতীয় সূত্রাবলী ও প্রয়োগ', chapterNumber: 4 },
       ],
     },
   ];

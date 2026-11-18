@@ -256,7 +256,7 @@ export const LandingPage: React.FC = () => {
                 className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-blue-100/90 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 text-xs font-black tracking-wide"
               >
                 <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                <span>SSC & HSC 2026-2027 SCIENCE BATCH • KHULNA & BAGERHAT</span>
+                <span>CLASS 8 (JSC), SSC & HSC 2026-2027 SCIENCE BATCH • KHULNA & BAGERHAT</span>
               </motion.div>
 
               <motion.h1
@@ -265,7 +265,7 @@ export const LandingPage: React.FC = () => {
                 transition={{ delay: 0.1 }}
                 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]"
               >
-                Master SSC & HSC Science with{' '}
+                Master Science (Class 8, SSC & HSC) with{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
                   Rayhan Sir
                 </span>{' '}

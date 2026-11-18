@@ -179,8 +179,12 @@ export const Navbar: React.FC = () => {
 
                 <div className="relative group">
                   <button className="flex items-center space-x-2 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-extrabold text-xs flex items-center justify-center">
-                      {user.name.charAt(0)}
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-extrabold text-xs flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700">
+                      {profile?.avatarUrl ? (
+                        <img src={profile.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                      ) : (
+                        user.name.charAt(0)
+                      )}
                     </div>
                   </button>
 

@@ -164,9 +164,10 @@ export const RegisterPage: React.FC = () => {
                 onChange={(e) => setAcademicLevel(e.target.value)}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="SSC_2026">SSC 2026 বিজ্ঞান বিভাগ</option>
-                <option value="HSC_2026">HSC 2026 বিজ্ঞান বিভাগ (১ম/২য় বর্ষ)</option>
-                <option value="HSC_2027">HSC 2027 বিজ্ঞান বিভাগ</option>
+                <option value="CLASS_8">🏫 ৮ম শ্রেণি (JSC) - বিজ্ঞান ও গণিত ফাউন্ডেশন</option>
+                <option value="SSC_2026">🎓 এসএসসি (SSC Science ২০২৬)</option>
+                <option value="HSC_2026">🔬 এইচএসসি (HSC Science ১ম/২য় বর্ষ ২০২৬)</option>
+                <option value="HSC_2027">🔬 এইচএসসি (HSC Science ২০২৭)</option>
               </select>
             </div>
 

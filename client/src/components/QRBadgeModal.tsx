@@ -75,6 +75,11 @@ export const QRBadgeModal: React.FC<QRBadgeModalProps> = ({ isOpen, onClose, stu
 
             {/* Student Info */}
             <div className="mt-3">
+              {student.avatarUrl && (
+                <div className="w-14 h-14 rounded-full overflow-hidden mx-auto mb-2 border-2 border-blue-400 shadow-md">
+                  <img src={student.avatarUrl} alt={student.name} className="w-full h-full object-cover" />
+                </div>
+              )}
               <h4 className="font-bold text-lg text-white">{student.name}</h4>
               <div className="inline-block px-3 py-1 bg-blue-600/40 rounded-lg text-blue-200 font-mono text-sm font-bold tracking-wider my-1 border border-blue-400/30">
                 {student.studentId}
