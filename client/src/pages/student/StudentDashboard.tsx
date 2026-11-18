@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import { QRBadgeModal } from '../../components/QRBadgeModal';
+import { DailyRewardModal } from '../../components/DailyRewardModal';
+import { getUserGems, checkDailyLoginReward } from '../../utils/rewards';
 import {
   BookOpen,
   CreditCard,
@@ -17,15 +19,20 @@ import {
   MessageSquare,
   Clock,
   ShieldCheck,
-  TrendingUp
+  TrendingUp,
+  Gem,
+  Star
 } from 'lucide-react';
 
 export const StudentDashboard: React.FC = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, updateProfileState } = useAuth();
   const [invoices, setInvoices] = useState<any[]>([]);
   const [feedback, setFeedback] = useState<any[]>([]);
   const [milestones, setMilestones] = useState<any>(null);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [isDailyRewardModalOpen, setIsDailyRewardModalOpen] = useState(false);
+  const [gems, setGems] = useState<number>(() => getUserGems(user?.id, profile?.totalXp));
+  const [rewardStatus, setRewardStatus] = useState(() => checkDailyLoginReward(user?.id, profile?.currentStreak));
 
   useEffect(() => {
     // Load student invoices
@@ -49,6 +56,38 @@ export const StudentDashboard: React.FC = () => {
       })
       .catch((err) => console.error(err));
   }, []);
+
+  useEffect(() => {
+    const status = checkDailyLoginReward(user?.id, profile?.currentStreak);
+    setRewardStatus(status);
+    setGems(getUserGems(user?.id, profile?.totalXp));
+
+    // Check if redirected from fresh login
+    const justLoggedIn = sessionStorage.getItem('rsb_show_daily_reward');
+    if (justLoggedIn === 'true') {
+      sessionStorage.removeItem('rsb_show_daily_reward');
+      if (status.canClaim) {
+        setIsDailyRewardModalOpen(true);
+      }
+    }
+
+    const handleGemsUpdate = (e: any) => {
+      if (e.detail?.gems !== undefined) setGems(e.detail.gems);
+    };
+    window.addEventListener('rsb_gems_updated', handleGemsUpdate);
+    return () => window.removeEventListener('rsb_gems_updated', handleGemsUpdate);
+  }, [user?.id, profile?.currentStreak, profile?.totalXp]);
+
+  const handleRewardClaimed = (gemsEarned: number, starsEarned: number, newStreak: number) => {
+    setRewardStatus({ ...rewardStatus, canClaim: false });
+    if (profile) {
+      updateProfileState({
+        ...profile,
+        totalXp: (profile.totalXp || 0) + starsEarned,
+        currentStreak: newStreak,
+      });
+    }
+  };
 
   const latestInvoice = invoices[0];
   const isFeePaid = latestInvoice?.status === 'PAID';
@@ -92,8 +131,38 @@ export const StudentDashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Daily Login Reward Claim Alert Banner */}
+      {rewardStatus.canClaim && (
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-purple-900/80 via-indigo-900/80 to-blue-900/80 border border-purple-500/40 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center space-x-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-500 via-pink-500 to-amber-400 flex items-center justify-center text-2xl shadow-lg shadow-purple-500/30 animate-bounce">
+              🎁
+            </div>
+            <div>
+              <h4 className="text-sm font-black text-white flex items-center space-x-2">
+                <span>আজকের দৈনিক লগইন বোনাস প্রস্তুত!</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 font-extrabold uppercase">
+                  Ready to Claim
+                </span>
+              </h4>
+              <p className="text-xs text-purple-200 mt-0.5">
+                লগইন স্ট্রিক বজায় রেখে সংগ্রহ করুন: <strong className="text-cyan-300">+{rewardStatus.gems} 💎 Gems</strong> ও <strong className="text-amber-300">+{rewardStatus.stars} ⭐ Stars</strong>
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setIsDailyRewardModalOpen(true)}
+            className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 whitespace-nowrap active:scale-95"
+          >
+            <span>রিওয়ার্ড ক্লেইম করুন 💎</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Profile Status */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
@@ -126,6 +195,23 @@ export const StudentDashboard: React.FC = () => {
           </div>
         </div>
 
+        {/* Gems Wallet */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Gems ওয়ালেট</p>
+            <h4 className="text-lg font-black text-cyan-600 mt-1 flex items-center space-x-1">
+              <Gem className="w-5 h-5 text-cyan-500" />
+              <span>{gems}</span>
+            </h4>
+            <Link to="/games" className="text-xs text-cyan-600 font-semibold hover:underline mt-1 inline-block">
+              গেমস খেলে রত্ন বাড়ান →
+            </Link>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-cyan-100 text-cyan-600 flex items-center justify-center">
+            <Gem className="w-6 h-6" />
+          </div>
+        </div>
+
         {/* Total XP Points */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div>
@@ -134,7 +220,7 @@ export const StudentDashboard: React.FC = () => {
               {profile?.totalXp || 0} XP
             </h4>
             <Link to="/games" className="text-xs text-purple-600 font-semibold hover:underline mt-1 inline-block">
-              গেমস খেলে XP বাড়ান →
+              লিডারবোর্ড দেখুন →
             </Link>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center">
@@ -150,7 +236,7 @@ export const StudentDashboard: React.FC = () => {
               {profile?.currentStreak || 1} দিন টানা
             </h4>
             <span className="text-xs text-slate-500 font-medium mt-1 inline-block">
-              প্রতিদিনের কুইজে অংশ নিন
+              দৈনিক কুইজ খেলুন
             </span>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center">
@@ -360,6 +446,16 @@ export const StudentDashboard: React.FC = () => {
           }}
         />
       )}
+
+      {/* Daily Reward Modal */}
+      <DailyRewardModal
+        isOpen={isDailyRewardModalOpen}
+        onClose={() => setIsDailyRewardModalOpen(false)}
+        userId={user?.id}
+        currentStreak={profile?.currentStreak || 1}
+        totalXp={profile?.totalXp || 0}
+        onRewardClaimed={handleRewardClaimed}
+      />
     </div>
   );
 };

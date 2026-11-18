@@ -20,14 +20,30 @@ import {
   Sparkles,
   ArrowRight,
   Menu,
-  X
+  X,
+  Gem,
+  Star
 } from 'lucide-react';
+import { getUserGems } from '../utils/rewards';
 
 export const Navbar: React.FC = () => {
   const { user, profile, logout } = useAuth();
   const { isDeepFocus, setMode, mode, isMuted, toggleSound } = useLabTheme();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [gems, setGems] = useState<number>(() => getUserGems(user?.id, profile?.totalXp));
+
+  React.useEffect(() => {
+    setGems(getUserGems(user?.id, profile?.totalXp));
+
+    const handleGemsUpdate = (e: any) => {
+      if (e.detail?.gems !== undefined) {
+        setGems(e.detail.gems);
+      }
+    };
+    window.addEventListener('rsb_gems_updated', handleGemsUpdate);
+    return () => window.removeEventListener('rsb_gems_updated', handleGemsUpdate);
+  }, [user?.id, profile?.totalXp]);
 
   const handleLogout = () => {
     logout();
@@ -135,13 +151,30 @@ export const Navbar: React.FC = () => {
                     <span className="hidden sm:inline">Admin</span>
                   </Link>
                 ) : (
-                  <Link
-                    to="/dashboard"
-                    className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-sm"
-                  >
-                    <LayoutDashboard className="w-4 h-4 text-blue-600" />
-                    <span className="hidden sm:inline">Dashboard</span>
-                  </Link>
+                  <>
+                    {/* Live Gems & XP Pill Widget */}
+                    <Link
+                      to="/games"
+                      title="আপনার অর্জিত Gems ও Stars — গেমস খেলুন"
+                      className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-purple-500/10 via-cyan-500/10 to-amber-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20 shadow-xs hover:border-cyan-500/40 transition-all group"
+                    >
+                      <Gem className="w-3.5 h-3.5 text-cyan-500 group-hover:scale-110 transition-transform" />
+                      <span>{gems}</span>
+                      <span className="text-slate-300 dark:text-slate-600">|</span>
+                      <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400 group-hover:rotate-12 transition-transform" />
+                      <span className="text-amber-600 dark:text-amber-400 font-extrabold">
+                        {profile?.totalXp || 0} XP
+                      </span>
+                    </Link>
+
+                    <Link
+                      to="/dashboard"
+                      className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shadow-sm"
+                    >
+                      <LayoutDashboard className="w-4 h-4 text-blue-600" />
+                      <span className="hidden sm:inline">Dashboard</span>
+                    </Link>
+                  </>
                 )}
 
                 <div className="relative group">

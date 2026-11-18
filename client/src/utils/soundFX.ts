@@ -141,3 +141,33 @@ export const playFanfare = (): void => {
     });
   } catch (e) {}
 };
+
+/**
+ * Sparkling crystal gem sound when collecting gems or stars
+ */
+export const playGemCollect = (): void => {
+  if (isSoundMuted()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const notes = [1318.51, 1567.98, 2093.0]; // E6, G6, C7
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.04);
+
+      gain.gain.setValueAtTime(0.07, ctx.currentTime + idx * 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.04 + 0.25);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(ctx.currentTime + idx * 0.04);
+      osc.stop(ctx.currentTime + idx * 0.04 + 0.25);
+    });
+  } catch (e) {}
+};
+
