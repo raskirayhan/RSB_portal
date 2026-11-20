@@ -1,10 +1,25 @@
 import axios from 'axios';
 
-export const API_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:5000/api'
-    : 'https://rsb-portal-server.vercel.app/api');
+export const getApiBaseUrl = (): string => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+
+    // In production (e.g. client-xi-lac.vercel.app), ALWAYS route to real production backend
+    if (!isLocalhost) {
+      const envUrl = import.meta.env.VITE_API_URL;
+      if (envUrl && envUrl.startsWith('https://')) {
+        return envUrl;
+      }
+      return 'https://rsb-portal-server.vercel.app/api';
+    }
+  }
+
+  // Local development
+  return import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
