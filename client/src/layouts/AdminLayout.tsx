@@ -10,7 +10,8 @@ import {
   BookOpen,
   LogOut,
   Sparkles,
-  ExternalLink
+  ExternalLink,
+  Trophy
 } from 'lucide-react';
 
 export const AdminLayout: React.FC = () => {
@@ -37,6 +38,7 @@ export const AdminLayout: React.FC = () => {
     { to: '/admin/payments', label: 'bKash পেমেন্ট ভেরিফিকেশন', icon: CreditCard },
     { to: '/admin/scanner', label: 'অফলাইন QR অ্যাটেনডেন্স স্ক্যানার', icon: QrCode },
     { to: '/admin/materials', label: 'স্টাডি মেটেরিয়াল ও ডেমো ভিডিও', icon: BookOpen },
+    { to: '/admin/championship', label: '২৪-ঘণ্টা MCQ চ্যাম্পিয়নশিপ', icon: Trophy },
   ];
 
   const handleLogout = () => {

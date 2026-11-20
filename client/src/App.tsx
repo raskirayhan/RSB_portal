@@ -29,6 +29,7 @@ import { AdminStudentsPage } from './pages/admin/AdminStudentsPage';
 import { AdminPaymentsPage } from './pages/admin/AdminPaymentsPage';
 import { AdminQRScannerPage } from './pages/admin/AdminQRScannerPage';
 import { AdminMaterialsPage } from './pages/admin/AdminMaterialsPage';
+import { AdminChampionshipPage } from './pages/admin/AdminChampionshipPage';
 
 export const App: React.FC = () => {
   return (
@@ -62,6 +63,7 @@ export const App: React.FC = () => {
               <Route path="/admin/payments" element={<AdminPaymentsPage />} />
               <Route path="/admin/scanner" element={<AdminQRScannerPage />} />
               <Route path="/admin/materials" element={<AdminMaterialsPage />} />
+              <Route path="/admin/championship" element={<AdminChampionshipPage />} />
             </Route>
 
             {/* Catch-all redirect */}

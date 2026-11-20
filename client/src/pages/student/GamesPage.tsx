@@ -5,6 +5,8 @@ import { GameVictoryModal } from '../../components/GameVictoryModal';
 import { getUserGems, processGameReward } from '../../utils/rewards';
 import { playSuccessChime, playPop, playFanfare } from '../../utils/soundFX';
 import confetti from 'canvas-confetti';
+import { ChampionSpotlightLeaderboard, type ChampionData } from '../../components/ChampionSpotlightLeaderboard';
+import { ChampionshipLiveArena } from '../../components/ChampionshipLiveArena';
 import {
   Gamepad2,
   Trophy,
@@ -24,13 +26,27 @@ import {
   Gift,
   Lock,
   Unlock,
-  CheckCircle2
+  CheckCircle2,
+  Crown
 } from 'lucide-react';
 
 export const GamesPage: React.FC = () => {
   const { user, profile, updateProfileState } = useAuth();
-  const [activeTab, setActiveTab] = useState<'GAMES' | 'LEADERBOARD' | 'BADGES' | 'PERKS'>('GAMES');
+  const [activeTab, setActiveTab] = useState<'CHAMPIONSHIP' | 'GAMES' | 'LEADERBOARD' | 'BADGES' | 'PERKS'>('CHAMPIONSHIP');
   const [selectedGame, setSelectedGame] = useState<'PERIODIC' | 'FORMULA' | 'MATH' | 'MCQ'>('PERIODIC');
+
+  const [champData, setChampData] = useState<{
+    champion: ChampionData | null;
+    podium: ChampionData[];
+    rankings: ChampionData[];
+    sessionTitle?: string;
+    expiresAt?: string;
+    totalParticipants?: number;
+  }>({
+    champion: null,
+    podium: [],
+    rankings: [],
+  });
 
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [badges, setBadges] = useState<any[]>([]);
@@ -63,7 +79,28 @@ export const GamesPage: React.FC = () => {
     totalGems: gems,
   });
 
+  const loadChampionshipData = async () => {
+    try {
+      const res = await api.get('/games/championship/leaderboard');
+      if (res.data.success && res.data.data) {
+        setChampData({
+          champion: res.data.data.champion,
+          podium: res.data.data.podium || [],
+          rankings: res.data.data.rankings || [],
+          sessionTitle: res.data.data.session?.title,
+          expiresAt: res.data.data.session?.expiresAt,
+          totalParticipants: res.data.data.session?.totalParticipants || 0,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load championship leaderboard', err);
+    }
+  };
+
   useEffect(() => {
+    // Load Championship Data
+    loadChampionshipData();
+
     // Load Leaderboard
     api.get('/games/leaderboard')
       .then((res) => {
@@ -196,35 +233,61 @@ export const GamesPage: React.FC = () => {
         </div>
       </div>
 
+      {/* 👑 #1 Champion Hero Card (Today's 24-Hour Science Champion) */}
+      <ChampionSpotlightLeaderboard
+        champion={champData.champion}
+        podium={[]}
+        rankings={[]}
+        sessionTitle={champData.sessionTitle}
+        expiresAt={champData.expiresAt}
+        totalParticipants={champData.totalParticipants}
+      />
+
       {/* Navigation Tabs */}
       <div className="flex items-center space-x-2 border-b border-slate-200 pb-2 overflow-x-auto">
         <button
+          onClick={() => setActiveTab('CHAMPIONSHIP')}
+          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+            activeTab === 'CHAMPIONSHIP'
+              ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-md shadow-amber-500/20 font-black'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+          }`}
+        >
+          <Crown className="w-4 h-4 text-amber-900 fill-amber-900" />
+          <span>২৪-ঘণ্টা লাইভ চ্যাম্পিয়নশিপ</span>
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+          </span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('GAMES')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
             activeTab === 'GAMES'
               ? 'bg-purple-600 text-white shadow-sm'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <Gamepad2 className="w-4 h-4" />
-          <span>সায়েন্স গেমস (৪টি)</span>
+          <span>আনলিমিটেড প্র্যাকটিস গেমস (৪টি)</span>
         </button>
 
         <button
           onClick={() => setActiveTab('LEADERBOARD')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
             activeTab === 'LEADERBOARD'
               ? 'bg-purple-600 text-white shadow-sm'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <Trophy className="w-4 h-4" />
-          <span>লাইভ লিডারবোর্ড</span>
+          <span>লাইভ লিডারবোর্ড ও র‍্যাঙ্কিং</span>
         </button>
 
         <button
           onClick={() => setActiveTab('BADGES')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
             activeTab === 'BADGES'
               ? 'bg-purple-600 text-white shadow-sm'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -236,7 +299,7 @@ export const GamesPage: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('PERKS')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
             activeTab === 'PERKS'
               ? 'bg-gradient-to-r from-purple-600 to-cyan-600 text-white shadow-sm'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -246,6 +309,11 @@ export const GamesPage: React.FC = () => {
           <span>রত্ন সুবিধা (Gems Perks)</span>
         </button>
       </div>
+
+      {/* Tab: Mode B — 24-Hour Live 25-MCQ Championship Arena */}
+      {activeTab === 'CHAMPIONSHIP' && (
+        <ChampionshipLiveArena onAttemptCompleted={loadChampionshipData} />
+      )}
 
       {/* Tab 1: Games Hub */}
       {activeTab === 'GAMES' && (
@@ -339,16 +407,42 @@ export const GamesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Tab 2: Leaderboard */}
+      {/* Tab: Leaderboard */}
       {activeTab === 'LEADERBOARD' && (
-        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-slate-900 text-base">ব্যাচের লাইভ লিডারবোর্ড (টপ স্কোরার)</h3>
-              <p className="text-xs text-slate-500">প্রতিটি কুইজ ও গেমসে অর্জিত মোট XP পয়েন্টের ভিত্তিতে র‍্যাঙ্ক নির্ধারিত হয়</p>
+        <div className="space-y-8">
+          {/* 24-Hour Live Science Championship Standings */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-lg flex items-center gap-2">
+                  <Crown className="w-5 h-5 text-amber-500 fill-amber-500" />
+                  <span>আজকের ২৪-ঘণ্টা সায়েন্স চ্যাম্পিয়নশিপ স্ট্যান্ডিংস</span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  সর্বোচ্চ স্কোর (Score DESC) এবং দ্রুততম সমাধান সময় (Time Taken ASC) এর ভিত্তিতে স্বয়ংক্রিয় টাই-ব্রেকার র‍্যাঙ্কিং
+                </p>
+              </div>
             </div>
-            <Trophy className="w-6 h-6 text-amber-500" />
+
+            <ChampionSpotlightLeaderboard
+              champion={champData.champion}
+              podium={champData.podium}
+              rankings={champData.rankings}
+              sessionTitle={champData.sessionTitle}
+              expiresAt={champData.expiresAt}
+              totalParticipants={champData.totalParticipants}
+            />
           </div>
+
+          {/* Overall Batch XP Leaderboard */}
+          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-slate-900 text-base">ব্যাচের অল-টাইম ও সাপ্তাহিক লাইভ লিডারবোর্ড</h3>
+                <p className="text-xs text-slate-500">প্রতিটি কুইজ ও গেমসে অর্জিত মোট XP পয়েন্টের ভিত্তিতে সার্বিক র‍্যাঙ্ক</p>
+              </div>
+              <Trophy className="w-6 h-6 text-amber-500" />
+            </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm text-slate-600">
@@ -412,6 +506,7 @@ export const GamesPage: React.FC = () => {
             </table>
           </div>
         </div>
+      </div>
       )}
 
       {/* Tab 3: Badges */}

@@ -96,6 +96,7 @@ model User {
   feedbacks       StudentFeedback[]
   gameScores      GameScore[]
   badges          UserBadge[]
+  championshipAttempts ChampionshipAttempt[]
 }
 
 model DeviceSession {
@@ -297,4 +298,41 @@ model UserBadge {
   awardedAt  DateTime @default(now())
 
   @@unique([userId, badgeCode])
+}
+
+model ChampionshipSession {
+  id               String                 @id @default(uuid())
+  title            String
+  subject          String                 // e.g. "Physics", "Chemistry", "Biology"
+  chapter          String?
+  totalQuestions   Int                    @default(25)
+  timeLimitMinutes Int                    @default(12)
+  questions        Json                   // Array of 25 MCQ objects
+  startsAt         DateTime               @default(now())
+  expiresAt        DateTime               // now + 24 hours
+  isActive         Boolean                @default(true)
+  createdBy        String?
+  createdAt        DateTime               @default(now())
+
+  attempts         ChampionshipAttempt[]
+
+  @@index([isActive, expiresAt])
+}
+
+model ChampionshipAttempt {
+  id               String               @id @default(uuid())
+  sessionId        String
+  session          ChampionshipSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score            Int                  // e.g. 23 (out of 25)
+  totalQuestions   Int                  @default(25)
+  timeTakenSec     Int                  // e.g. 380 (06:20) for tie-breaker
+  tabSwitches      Int                  @default(0) // anti-cheat detection count
+  answers          Json                 // student chosen options map
+  xpEarned         Int                  @default(0)
+  completedAt      DateTime             @default(now())
+
+  @@unique([userId, sessionId])
+  @@index([sessionId, score, timeTakenSec])
 }

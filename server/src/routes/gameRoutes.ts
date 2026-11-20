@@ -4,10 +4,17 @@ import { authenticateJWT } from '../middleware/auth.js';
 
 const router = Router();
 
-router.use(authenticateJWT);
+// Mode A: Casual practice mini-games
+router.post('/score', authenticateJWT, GameController.submitScore);
+router.get('/leaderboard', authenticateJWT, GameController.getLeaderboard);
+router.get('/badges', authenticateJWT, GameController.getBadges);
 
-router.post('/score', GameController.submitScore);
-router.get('/leaderboard', GameController.getLeaderboard);
-router.get('/badges', GameController.getBadges);
+// Mode B: 24-Hour Live 25-MCQ Science Championship
+router.get('/championship/active', authenticateJWT, GameController.getActiveChampionship);
+router.post('/championship/submit', authenticateJWT, GameController.submitChampionshipAttempt);
+router.get('/championship/leaderboard', GameController.getChampionshipLeaderboard);
+router.get('/championship/presets', GameController.getChampionshipPresets);
+router.post('/championship/create', authenticateJWT, GameController.createChampionship);
+router.post('/championship/deactivate', authenticateJWT, GameController.deactivateChampionship);
 
 export default router;
