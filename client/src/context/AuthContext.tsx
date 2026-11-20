@@ -13,8 +13,10 @@ export interface StudentProfile {
   id: string;
   studentIdNumber: string;
   academicLevel: string;
+  fullName?: string;
   institutionName?: string;
   batchId?: string;
+  batchName?: string;
   batch?: { name: string; monthlyFee: number };
   fatherName?: string;
   motherName?: string;
@@ -24,6 +26,8 @@ export interface StudentProfile {
   avatarUrl?: string;
   qrCodeDataUrl?: string;
   isCompleted: boolean;
+  isProfileComplete?: boolean;
+  verificationStatus?: 'UNVERIFIED' | 'VERIFIED';
   totalXp: number;
   currentStreak: number;
 }

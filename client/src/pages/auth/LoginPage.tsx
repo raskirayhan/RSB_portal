@@ -49,6 +49,8 @@ export const LoginPage: React.FC = () => {
 
         if (user.role === 'SUPER_ADMIN') {
           navigate('/admin');
+        } else if (profile && !profile.isProfileComplete) {
+          navigate('/complete-profile');
         } else {
           navigate(from === '/login' ? '/dashboard' : from);
         }
@@ -96,7 +98,14 @@ export const LoginPage: React.FC = () => {
         login(tokens.accessToken, user, profile);
         sessionStorage.setItem('rsb_show_daily_reward', 'true');
         playSuccessChime();
-        navigate(from === '/login' ? '/dashboard' : from);
+        if (user.role === 'SUPER_ADMIN') {
+          navigate('/admin');
+        } else if (profile?.isProfileComplete) {
+          navigate(from === '/login' ? '/dashboard' : from);
+        } else {
+          // Mandatory onboarding gatekeeper
+          navigate('/complete-profile');
+        }
       }
     } catch (err: any) {
       setError(err.response?.data?.message || `${provider} লগইন ব্যর্থ হয়েছে।`);

@@ -404,8 +404,10 @@ export class AuthController {
             profile: { include: { batch: true } },
           },
         });
+      }
 
-        // Create student profile
+      // Ensure linked StudentProfile exists (guarantees no missing-document crash)
+      if (!user.profile) {
         const currentYearShort = new Date().getFullYear().toString().slice(-2);
         const studentCount = await prisma.studentProfile.count();
         const studentIdNumber = `RSB-${currentYearShort}-${(studentCount + 1).toString().padStart(3, '0')}`;
@@ -418,8 +420,11 @@ export class AuthController {
             studentIdNumber,
             academicLevel: classLevel,
             avatarUrl: avatarUrl || null,
+            fullName: user.name,
             qrCodeDataUrl,
             isCompleted: false,
+            isProfileComplete: false,
+            verificationStatus: 'UNVERIFIED',
           },
           include: { batch: true },
         });
@@ -632,7 +637,7 @@ export class AuthController {
    */
   static async getMe(req: AuthenticatedRequest, res: Response) {
     try {
-      const user = await prisma.user.findUnique({
+      let user = await prisma.user.findUnique({
         where: { id: req.user!.userId },
         include: {
           profile: {
@@ -643,6 +648,31 @@ export class AuthController {
 
       if (!user) {
         return sendError(res, 'User not found.', 404);
+      }
+
+      // Self-healing: Ensure every user has a linked StudentProfile
+      if (!user.profile) {
+        const currentYearShort = new Date().getFullYear().toString().slice(-2);
+        const studentCount = await prisma.studentProfile.count();
+        const studentIdNumber = `RSB-${currentYearShort}-${(studentCount + 1).toString().padStart(3, '0')}`;
+        const qrPayload = QrService.generateBadgePayload(studentIdNumber, user.id, user.name, 'HSC_11');
+        const qrCodeDataUrl = await QrService.generateQrDataUrl(qrPayload);
+
+        const profile = await prisma.studentProfile.create({
+          data: {
+            userId: user.id,
+            studentIdNumber,
+            academicLevel: 'HSC_11',
+            fullName: user.name,
+            qrCodeDataUrl,
+            isCompleted: false,
+            isProfileComplete: false,
+            verificationStatus: 'UNVERIFIED',
+          },
+          include: { batch: true },
+        });
+
+        user = { ...user, profile };
       }
 
       const activeSessions = await SessionService.getUserSessions(user.id);
@@ -685,6 +715,22 @@ export class AuthController {
       return sendSuccess(res, null, 'ডিভাইস সেশন বন্ধ করা হয়েছে।');
     } catch (error: any) {
       return sendError(res, 'Failed to terminate session.', 500);
+    }
+  }
+
+  /**
+   * 9. Google OAuth Callback Redirect
+   */
+  static async googleOAuthCallback(req: Request, res: Response) {
+    try {
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+      const token = req.query.token as string;
+      if (token) {
+        return res.redirect(`${clientUrl}/oauth-callback?token=${encodeURIComponent(token)}`);
+      }
+      return res.redirect(`${clientUrl}/login?error=no_token`);
+    } catch (err: any) {
+      return sendError(res, 'OAuth redirect failed.', 500);
     }
   }
 }

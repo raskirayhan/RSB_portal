@@ -12,6 +12,7 @@ router.post('/login', AuthController.login);
 
 // 3. Social Authentication (Google / Facebook)
 router.post('/social', AuthController.socialAuth);
+router.get('/google/callback', AuthController.googleOAuthCallback);
 
 // 4. Session & Me Management
 router.get('/me', authenticateJWT, AuthController.getMe);

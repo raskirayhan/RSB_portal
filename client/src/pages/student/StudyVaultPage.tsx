@@ -23,7 +23,16 @@ import {
   FolderOpen,
   RefreshCw,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Zap,
+  FlaskConical,
+  Calculator,
+  Compass,
+  Dna,
+  Laptop,
+  ChevronRight,
+  BookmarkCheck,
+  Award
 } from 'lucide-react';
 
 interface StudyNote {
@@ -43,7 +52,7 @@ interface StudyNote {
 
 export const StudyVaultPage: React.FC = () => {
   const { user, profile } = useAuth();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Determine student's default level (SSC or HSC)
   const getInitialLevel = (): 'SSC' | 'HSC' => {
@@ -111,49 +120,170 @@ export const StudyVaultPage: React.FC = () => {
     fetchNotes();
   }, [activeLevel, selectedSubject, searchQuery]);
 
-  // Subject Tabs for SSC vs HSC
+  // Subject Configurations
   const sscSubjects = [
-    { key: 'ALL', label: 'সকল বিষয় (All)' },
-    { key: 'PHYSICS', label: 'পদার্থবিজ্ঞান', color: 'bg-blue-600' },
-    { key: 'CHEMISTRY', label: 'রসায়ন', color: 'bg-emerald-600' },
-    { key: 'HIGHER_MATH', label: 'উচ্চতর গণিত', color: 'bg-indigo-600' },
-    { key: 'GENERAL_MATH', label: 'সাধারণ গণিত', color: 'bg-amber-600' },
-    { key: 'BIOLOGY', label: 'জীববিজ্ঞান', color: 'bg-rose-600' },
+    {
+      key: 'ALL',
+      label: 'সব বিষয়',
+      shortName: 'সকল বিষয়',
+      icon: Layers,
+      gradient: 'from-slate-800 to-slate-900',
+      accentColor: 'text-blue-400',
+      description: 'এসএসসি বিজ্ঞান শাখার সকল বিষয় এক নজরে',
+    },
+    {
+      key: 'PHYSICS',
+      label: 'পদার্থবিজ্ঞান',
+      shortName: 'পদার্থ',
+      icon: Zap,
+      gradient: 'from-blue-600 via-indigo-600 to-blue-800',
+      accentColor: 'text-blue-400',
+      borderColor: 'border-blue-500/30',
+      badgeColor: 'bg-blue-500/15 text-blue-600 dark:text-blue-300 border-blue-500/30',
+      description: 'গতি, বল, কাজ-ক্ষমতা-শক্তি ও আধুনিক ইলেকট্রনিক্স',
+    },
+    {
+      key: 'CHEMISTRY',
+      label: 'রসায়ন',
+      shortName: 'রসায়ন',
+      icon: FlaskConical,
+      gradient: 'from-emerald-600 via-teal-600 to-emerald-800',
+      accentColor: 'text-emerald-400',
+      borderColor: 'border-emerald-500/30',
+      badgeColor: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border-emerald-500/30',
+      description: 'পদার্থের অবস্থা, রাসায়নিক বন্ধন ও বোর্ড প্রশ্নব্যাংক',
+    },
+    {
+      key: 'HIGHER_MATH',
+      label: 'উচ্চতর গণিত',
+      shortName: 'হায়ার ম্যাথ',
+      icon: Calculator,
+      gradient: 'from-indigo-600 via-purple-600 to-indigo-800',
+      accentColor: 'text-indigo-400',
+      borderColor: 'border-indigo-500/30',
+      badgeColor: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border-indigo-500/30',
+      description: 'সেট ও ফাংশন, বীজগণিত, সূচক-লগ ও পরিমিতি সলভ',
+    },
+    {
+      key: 'GENERAL_MATH',
+      label: 'সাধারণ গণিত',
+      shortName: 'গণিত',
+      icon: Compass,
+      gradient: 'from-amber-600 via-orange-600 to-amber-800',
+      accentColor: 'text-amber-400',
+      borderColor: 'border-amber-500/30',
+      badgeColor: 'bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-500/30',
+      description: 'বোর্ড প্রশ্নব্যাংক, জ্যামিতি ও গাণিতিক সমাধান',
+    },
+    {
+      key: 'BIOLOGY',
+      label: 'জীববিজ্ঞান',
+      shortName: 'বায়োলজি',
+      icon: Dna,
+      gradient: 'from-rose-600 via-pink-600 to-rose-800',
+      accentColor: 'text-rose-400',
+      borderColor: 'border-rose-500/30',
+      badgeColor: 'bg-rose-500/15 text-rose-600 dark:text-rose-300 border-rose-500/30',
+      description: 'জীবকোষ ও টিস্যু, বংশগতি ও বিবর্তন স্পেশাল শিট',
+    },
   ];
 
   const hscSubjects = [
-    { key: 'ALL', label: 'সকল বিষয় (All)' },
-    { key: 'ICT', label: 'ICT (তথ্য ও প্রযুক্তি)', color: 'bg-cyan-600' },
-    { key: 'PHYSICS', label: 'পদার্থবিজ্ঞান', color: 'bg-blue-600' },
-    { key: 'CHEMISTRY', label: 'রসায়ন', color: 'bg-emerald-600' },
-    { key: 'HIGHER_MATH', label: 'উচ্চতর গণিত', color: 'bg-indigo-600' },
-    { key: 'BIOLOGY', label: 'জীববিজ্ঞান', color: 'bg-rose-600' },
+    {
+      key: 'ALL',
+      label: 'সব বিষয়',
+      shortName: 'সকল বিষয়',
+      icon: Layers,
+      gradient: 'from-slate-800 to-slate-900',
+      accentColor: 'text-cyan-400',
+      description: 'এইচএসসি বিজ্ঞান ও আইসিটি সকল বিষয় এক নজরে',
+    },
+    {
+      key: 'ICT',
+      label: 'তথ্য ও প্রযুক্তি (ICT)',
+      shortName: 'ICT',
+      icon: Laptop,
+      gradient: 'from-cyan-600 via-blue-600 to-indigo-800',
+      accentColor: 'text-cyan-400',
+      borderColor: 'border-cyan-500/30',
+      badgeColor: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border-cyan-500/30',
+      description: 'সংখ্যা পদ্ধতি, ডিজিটাল লজিক, C প্রোগ্রামিং ও DBMS',
+    },
+    {
+      key: 'PHYSICS',
+      label: 'পদার্থবিজ্ঞান',
+      shortName: 'পদার্থ',
+      icon: Zap,
+      gradient: 'from-blue-600 via-indigo-600 to-blue-800',
+      accentColor: 'text-blue-400',
+      borderColor: 'border-blue-500/30',
+      badgeColor: 'bg-blue-500/15 text-blue-600 dark:text-blue-300 border-blue-500/30',
+      description: 'ভেক্টর, গতিবিদ্যা, বলবিদ্যা ও তাপগতিবিদ্যা',
+    },
+    {
+      key: 'CHEMISTRY',
+      label: 'রসায়ন',
+      shortName: 'রসায়ন',
+      icon: FlaskConical,
+      gradient: 'from-emerald-600 via-teal-600 to-emerald-800',
+      accentColor: 'text-emerald-400',
+      borderColor: 'border-emerald-500/30',
+      badgeColor: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border-emerald-500/30',
+      description: 'জৈব যৌগ, গুণগত রসায়ন ও পর্যায়বৃত্ত ধর্ম',
+    },
+    {
+      key: 'HIGHER_MATH',
+      label: 'উচ্চতর গণিত',
+      shortName: 'হায়ার ম্যাথ',
+      icon: Calculator,
+      gradient: 'from-indigo-600 via-purple-600 to-indigo-800',
+      accentColor: 'text-indigo-400',
+      borderColor: 'border-indigo-500/30',
+      badgeColor: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border-indigo-500/30',
+      description: 'ম্যাট্রিক্স ও নির্ণায়ক, সরলরেখা, ক্যালকুলাস সলভ',
+    },
+    {
+      key: 'BIOLOGY',
+      label: 'জীববিজ্ঞান',
+      shortName: 'বায়োলজি',
+      icon: Dna,
+      gradient: 'from-rose-600 via-pink-600 to-rose-800',
+      accentColor: 'text-rose-400',
+      borderColor: 'border-rose-500/30',
+      badgeColor: 'bg-rose-500/15 text-rose-600 dark:text-rose-300 border-rose-500/30',
+      description: 'কোষ বিভাজন, জিনতত্ত্ব ও মানব শারীরতত্ত্ব',
+    },
   ];
 
   const currentSubjectList = activeLevel === 'SSC' ? sscSubjects : hscSubjects;
 
-  // Format Subject Label & Color Badge
-  const getSubjectBadge = (subj: string) => {
-    switch (subj.toUpperCase()) {
-      case 'PHYSICS':
-        return { label: 'পদার্থবিজ্ঞান', bg: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30' };
-      case 'CHEMISTRY':
-        return { label: 'রসায়ন', bg: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' };
-      case 'HIGHER_MATH':
-        return { label: 'উচ্চতর গণিত', bg: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30' };
-      case 'GENERAL_MATH':
-        return { label: 'সাধারণ গণিত', bg: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30' };
-      case 'BIOLOGY':
-        return { label: 'জীববিজ্ঞান', bg: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30' };
-      case 'ICT':
-        return { label: 'ICT', bg: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30' };
-      default:
-        return { label: subj, bg: 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/30' };
-    }
+  const getSubjectMeta = (subjKey: string) => {
+    return currentSubjectList.find((s) => s.key === subjKey.toUpperCase()) || {
+      key: subjKey,
+      label: subjKey,
+      shortName: subjKey,
+      icon: FileText,
+      gradient: 'from-slate-700 to-slate-800',
+      accentColor: 'text-blue-400',
+      borderColor: 'border-slate-500/30',
+      badgeColor: 'bg-slate-500/15 text-slate-600 dark:text-slate-300 border-slate-500/30',
+      description: 'স্পেশাল স্টাডি শিট ও সমাধান',
+    };
   };
 
-  // Group Notes By Chapter
-  const groupedNotes = notes.reduce((acc, note) => {
+  // Partition Notes into Section A (Chapter-wise 1..98) and Section B (Model Tests & Board QBs: 0 & 99)
+  const isAllSubjectsActive = selectedSubject === 'ALL' && !searchQuery.trim();
+
+  const chapterWiseNotes = notes
+    .filter((n) => n.chapterNumber > 0 && n.chapterNumber < 99)
+    .sort((a, b) => a.chapterNumber - b.chapterNumber);
+
+  const specialNotes = notes
+    .filter((n) => n.chapterNumber === 0 || n.chapterNumber >= 99)
+    .sort((a, b) => a.chapterNumber - b.chapterNumber);
+
+  // Group chapter-wise notes by chapter
+  const groupedChapterNotes = chapterWiseNotes.reduce((acc, note) => {
     const key = `${note.chapterNumber}:::${note.chapterName}`;
     if (!acc[key]) {
       acc[key] = {
@@ -166,18 +296,13 @@ export const StudyVaultPage: React.FC = () => {
     return acc;
   }, {} as Record<string, { chapterNumber: number; chapterName: string; items: StudyNote[] }>);
 
-  // Sort groups: Ch 0 (Question banks) first, 1..98, then Ch 99 (Model tests)
-  const sortedChapterKeys = Object.keys(groupedNotes).sort((a, b) => {
-    const numA = groupedNotes[a].chapterNumber;
-    const numB = groupedNotes[b].chapterNumber;
-    if (numA === 0) return -1;
-    if (numB === 0) return 1;
-    return numA - numB;
+  const sortedChapterKeys = Object.keys(groupedChapterNotes).sort((a, b) => {
+    return groupedChapterNotes[a].chapterNumber - groupedChapterNotes[b].chapterNumber;
   });
 
   // Admin: Delete Note
-  const handleDeleteNote = async (id: string, title: string) => {
-    if (!window.confirm(`আপনি কি নিশ্চিত যে "${title}" নোটটি মুছে ফেলতে চান?`)) return;
+  const handleDeleteNote = async (id: string, noteTitle: string) => {
+    if (!window.confirm(`আপনি কি নিশ্চিত যে "${noteTitle}" নোটটি মুছে ফেলতে চান?`)) return;
     setActionLoading(true);
     try {
       const res = await api.delete(`/study-vault/admin/notes/${id}`);
@@ -240,19 +365,21 @@ export const StudyVaultPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in pb-16">
-      {/* Top Academic Class Switcher (SSC vs HSC) */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-xl">
+    <div className="space-y-6 sm:space-y-8 animate-fade-in pb-16 overflow-x-hidden">
+      {/* 1. Mobile-First Academic Class Switcher (SSC vs HSC) */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 sm:p-5 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-xl">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400">
+          <div className="w-10 h-10 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400 flex-shrink-0">
             <GraduationCap className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
               শ্রেণি / শিক্ষাস্তর নির্বাচন:
             </span>
-            <span className="text-sm font-extrabold text-white">
-              {activeLevel === 'SSC' ? 'এসএসসি বিজ্ঞান বিভাগ (SSC 2026/2027)' : 'এইচএসসি বিজ্ঞান ও আইসিটি (HSC 2026/2027)'}
+            <span className="text-xs sm:text-sm font-extrabold text-white">
+              {activeLevel === 'SSC'
+                ? 'এসএসসি বিজ্ঞান বিভাগ (SSC 2026/2027)'
+                : 'এইচএসসি বিজ্ঞান ও আইসিটি (HSC 2026/2027)'}
             </span>
           </div>
         </div>
@@ -265,7 +392,7 @@ export const StudyVaultPage: React.FC = () => {
               setSelectedSubject('ALL');
               localStorage.setItem('rsb_selected_academic_level', 'SSC');
             }}
-            className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all text-center flex items-center justify-center space-x-2 ${
+            className={`min-h-[42px] px-4 py-2 rounded-2xl text-xs sm:text-sm font-black transition-all text-center flex items-center justify-center space-x-1.5 ${
               activeLevel === 'SSC'
                 ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
                 : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
@@ -282,7 +409,7 @@ export const StudyVaultPage: React.FC = () => {
               setSelectedSubject('ALL');
               localStorage.setItem('rsb_selected_academic_level', 'HSC');
             }}
-            className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all text-center flex items-center justify-center space-x-2 ${
+            className={`min-h-[42px] px-4 py-2 rounded-2xl text-xs sm:text-sm font-black transition-all text-center flex items-center justify-center space-x-1.5 ${
               activeLevel === 'HSC'
                 ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/30'
                 : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
@@ -295,20 +422,20 @@ export const StudyVaultPage: React.FC = () => {
       </div>
 
       {/* Primary Vault Navigation Tabs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 border-b border-slate-200 dark:border-slate-800 pb-2">
         <button
           onClick={() => {
             playPop();
             setActiveVaultTab('NOTES');
           }}
-          className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
+          className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-all min-h-[44px] ${
             activeVaultTab === 'NOTES'
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
               : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <FileText className="w-4 h-4 flex-shrink-0" />
-          <span>অধ্যায়ভিত্তিক নোটস, প্রশ্নব্যাংক ও সমাধান (Drive/PDF)</span>
+          <span className="truncate">অধ্যায়ভিত্তিক নোটস ও মডেল টেস্ট (Drive/PDF)</span>
         </button>
 
         <button
@@ -316,14 +443,14 @@ export const StudyVaultPage: React.FC = () => {
             playPop();
             setActiveVaultTab('NCTB_BOOKS');
           }}
-          className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
+          className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-all min-h-[44px] ${
             activeVaultTab === 'NCTB_BOOKS'
               ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20'
               : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <BookOpen className="w-4 h-4 flex-shrink-0" />
-          <span>NCTB মূল পাঠ্যপুস্তক ভল্ট (Official Textbooks)</span>
+          <span className="truncate">NCTB মূল পাঠ্যপুস্তক ভল্ট (Official Textbooks)</span>
         </button>
       </div>
 
@@ -333,31 +460,31 @@ export const StudyVaultPage: React.FC = () => {
       {/* Tab 1: Rayhan Sir's Study Notes & PDFs Vault */}
       {activeVaultTab === 'NOTES' && (
         <div className="space-y-6">
-          {/* Hero Banner with Actions */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 rounded-3xl border border-indigo-500/30 shadow-2xl">
-            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          {/* Responsive Top Banner */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-5 sm:p-8 rounded-3xl border border-indigo-500/30 shadow-2xl">
+            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
               <div className="space-y-2">
-                <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-bold">
+                <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[11px] font-bold">
                   <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                   <span>Rayhan Sir's Verified Study Materials</span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                <h1 className="text-xl sm:text-3xl font-black tracking-tight text-white">
                   স্মার্ট স্টাডি ভল্ট — {activeLevel === 'SSC' ? 'এসএসসি' : 'এইচএসসি'}
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-                  রায়হান স্যারের গুগল ড্রাইভের সকল বোর্ড স্ট্যান্ডার্ড লেকচার শিট, হ্যান্ডনোট, ক্যাডেট কলেজ CQ+MCQ প্রশ্নব্যাংক ও পূর্ণাঙ্গ মডেল টেস্ট সলভ। এক ক্লিকে যেকোনো ডিভাইসে প্রিভিউ করুন বা ডাউনলোড করুন।
+                  বোর্ড স্ট্যান্ডার্ড লেকচার শিট, হ্যান্ডনোট, ক্যাডেট কলেজ CQ+MCQ প্রশ্নব্যাংক ও পূর্ণাঙ্গ মডেল টেস্ট সলভ। যেকোনো ডিভাইসে এক ক্লিকে সরাসরি পড়ুন অথবা ডাউনলোড করুন।
                 </p>
               </div>
 
               {/* Admin Actions */}
               {isAdmin && (
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
                   <button
                     onClick={() => {
                       playPop();
                       setShowAddModal(true);
                     }}
-                    className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-md shadow-blue-500/30"
+                    className="min-h-[40px] px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-md shadow-blue-500/30"
                   >
                     <Plus className="w-4 h-4" />
                     <span>নতুন ড্রাইভ নোট যোগ করুন</span>
@@ -365,7 +492,7 @@ export const StudyVaultPage: React.FC = () => {
                   <button
                     onClick={handleRestoreSeeds}
                     disabled={actionLoading}
-                    className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/30 rounded-2xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 disabled:opacity-50"
+                    className="min-h-[40px] px-4 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/30 rounded-2xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 disabled:opacity-50"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${actionLoading ? 'animate-spin' : ''}`} />
                     <span>২১টি মাস্টার নোট রিস্টোর</span>
@@ -378,7 +505,7 @@ export const StudyVaultPage: React.FC = () => {
           {/* Feedback Alert */}
           {feedbackMsg && (
             <div
-              className={`p-4 rounded-2xl border text-xs sm:text-sm flex items-center justify-between ${
+              className={`p-3.5 rounded-2xl border text-xs sm:text-sm flex items-center justify-between ${
                 feedbackMsg.type === 'success'
                   ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
                   : 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300'
@@ -386,9 +513,9 @@ export const StudyVaultPage: React.FC = () => {
             >
               <div className="flex items-center space-x-2">
                 {feedbackMsg.type === 'success' ? (
-                  <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                  <CheckCircle className="w-4 h-4 flex-shrink-0" />
                 ) : (
-                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 )}
                 <span className="font-semibold">{feedbackMsg.text}</span>
               </div>
@@ -398,37 +525,42 @@ export const StudyVaultPage: React.FC = () => {
             </div>
           )}
 
-          {/* Subject Pills & Search Filter */}
-          <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-            {/* Subject Tabs */}
-            <div className="flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar">
-              {currentSubjectList.map((subj) => (
-                <button
-                  key={subj.key}
-                  onClick={() => {
-                    playPop();
-                    setSelectedSubject(subj.key);
-                  }}
-                  className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap flex items-center space-x-1.5 ${
-                    selectedSubject === subj.key
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 scale-102'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
-                >
-                  <span>{subj.label}</span>
-                </button>
-              ))}
+          {/* Mobile-First Sticky / Smooth Horizontal Scrollable Subject Pills & Search */}
+          <div className="bg-white dark:bg-slate-900 p-3 sm:p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+            {/* Horizontal Swipeable Subject Pills (no-scrollbar, mobile friendly touch targets) */}
+            <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar py-1">
+              {currentSubjectList.map((subj) => {
+                const IconComponent = subj.icon;
+                const isSelected = selectedSubject === subj.key;
+                return (
+                  <button
+                    key={subj.key}
+                    onClick={() => {
+                      playPop();
+                      setSelectedSubject(subj.key);
+                    }}
+                    className={`min-h-[40px] px-3.5 sm:px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap flex items-center space-x-2 flex-shrink-0 ${
+                      isSelected
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30 scale-102'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    <IconComponent className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{subj.label}</span>
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Search Bar */}
+            {/* Responsive Search Input */}
             <div className="relative pt-1 border-t border-slate-100 dark:border-slate-800/80">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-4" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="নোটের নাম, অধ্যায় বা বিষয়ের নাম লিখে খুঁজুন (যেমন: গতি, ভেক্টর, ICT, বোর্ড প্রশ্ন...)"
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-400"
+                placeholder="নোটের নাম বা অধ্যায় লিখে খুঁজুন (যেমন: গতি, ভেক্টর, ICT, বোর্ড প্রশ্ন...)"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-400"
               />
             </div>
           </div>
@@ -456,179 +588,256 @@ export const StudyVaultPage: React.FC = () => {
                 </button>
               )}
             </div>
-          ) : (
-            /* Grouped Chapters & Notes */
-            <div className="space-y-8">
-              {sortedChapterKeys.map((key) => {
-                const group = groupedNotes[key];
-                const isBoardBank = group.chapterNumber === 0;
-                const isModelTest = group.chapterNumber === 99;
+          ) : isAllSubjectsActive ? (
+            /* ======================================================== */
+            /* 2. SUBJECT-FIRST BENTO OVERVIEW (Default "সব বিষয়" View) */
+            /* ======================================================== */
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                    বিষয়ভিত্তিক স্টাডি ভল্ট (Subject Bento Overview)
+                  </h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    যে বিষয়ের নোটস ও মডেল টেস্ট পড়তে চান, সেই বিষয়ে ক্লিক করুন
+                  </p>
+                </div>
+                <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
+                  মোট {notes.length}টি শিট
+                </span>
+              </div>
 
-                return (
-                  <div key={key} className="space-y-4">
-                    {/* Chapter Header */}
-                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
-                      <div className="flex items-center space-x-2.5">
-                        <span className="text-xl">
-                          {isBoardBank ? '🏛️' : isModelTest ? '🏆' : '📑'}
-                        </span>
-                        <div>
-                          <h2 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
-                            {isBoardBank
-                              ? 'বোর্ড প্রশ্ন ব্যাংক ও স্পেশাল সমাধান'
-                              : isModelTest
-                              ? 'পূর্ণাঙ্গ ফাইনাল মডেল টেস্ট (Final Model Tests)'
-                              : `অধ্যায় ${String(group.chapterNumber).padStart(2, '0')}: ${group.chapterName}`}
-                          </h2>
-                          <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                            {group.items.length}টি লেকচার শিট ও সমাধান
+              {/* Subject Bento Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {currentSubjectList
+                  .filter((s) => s.key !== 'ALL')
+                  .map((subj) => {
+                    const IconComp = subj.icon;
+                    const subjectNotes = notes.filter((n) => n.subject.toUpperCase() === subj.key);
+                    const chapterCount = new Set(
+                      subjectNotes.filter((n) => n.chapterNumber > 0 && n.chapterNumber < 99).map((n) => n.chapterNumber)
+                    ).size;
+                    const specialCount = subjectNotes.filter(
+                      (n) => n.chapterNumber === 0 || n.chapterNumber >= 99
+                    ).length;
+
+                    return (
+                      <motion.div
+                        key={subj.key}
+                        whileHover={{ y: -3 }}
+                        onClick={() => {
+                          playPop();
+                          setSelectedSubject(subj.key);
+                        }}
+                        className={`group cursor-pointer rounded-3xl p-5 bg-gradient-to-br ${subj.gradient} text-white shadow-lg hover:shadow-2xl transition-all border border-white/10 flex flex-col justify-between`}
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+                              <IconComp className="w-5 h-5" />
+                            </div>
+                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-white border border-white/20">
+                              {subjectNotes.length}টি শিট
+                            </span>
+                          </div>
+
+                          <div>
+                            <h3 className="text-lg font-black text-white tracking-tight">
+                              {subj.label}
+                            </h3>
+                            <p className="text-xs text-white/80 line-clamp-2 mt-1">
+                              {subj.description}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-white/15 mt-4 flex items-center justify-between text-xs font-bold">
+                          <span className="text-[11px] text-white/90">
+                            {chapterCount > 0 ? `${chapterCount}টি অধ্যায়` : 'বোর্ড প্রশ্নব্যাংক'}
+                            {specialCount > 0 ? ` • ${specialCount}টি টেস্ট` : ''}
+                          </span>
+                          <span className="inline-flex items-center space-x-1 text-white group-hover:translate-x-1 transition-transform">
+                            <span>Explore Notes</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
                           </span>
                         </div>
-                      </div>
+                      </motion.div>
+                    );
+                  })}
+              </div>
+            </div>
+          ) : (
+            /* ======================================================== */
+            /* 3. CLEAN CHAPTER & MODEL TEST GROUPING (Filtered View)   */
+            /* ======================================================== */
+            <div className="space-y-8">
+              {/* Back to All Subjects pill when a subject is filtered */}
+              {selectedSubject !== 'ALL' && (
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => {
+                      playPop();
+                      setSelectedSubject('ALL');
+                    }}
+                    className="inline-flex items-center space-x-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    <span>← সকল বিষয়ের ভিউতে ফিরে যান</span>
+                  </button>
+
+                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300">
+                    ফিল্টারকৃত: {notes.length}টি লেকচার শিট
+                  </span>
+                </div>
+              )}
+
+              {/* SECTION A: অধ্যায়ভিত্তিক লেকচার ও সলভ শিট (Chapter-Wise Sheets: 1..98) */}
+              {chapterWiseNotes.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2.5 border-b border-slate-200 dark:border-slate-800 pb-2.5">
+                    <BookmarkCheck className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <h2 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
+                        সেকশন A: অধ্যায়ভিত্তিক লেকচার ও সলভ শিট (Chapter-Wise Sheets)
+                      </h2>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        ক্রম অনুসারে সাজানো প্রতিটি অধ্যায়ের কনসেপ্ট শিট ও ক্যাডেট কলেজ CQ সলভ
+                      </p>
                     </div>
+                  </div>
 
-                    {/* Notes Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                      {group.items.map((note) => {
-                        const badge = getSubjectBadge(note.subject);
-                        return (
-                          <div
-                            key={note.id}
-                            className="group relative bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs hover:shadow-xl hover:border-blue-400 dark:hover:border-blue-500 transition-all flex flex-col justify-between"
-                          >
-                            <div>
-                              {/* Card Header: Subject & File Format Badge */}
-                              <div className="flex items-center justify-between mb-3">
-                                <span
-                                  className={`text-[10px] font-black px-2.5 py-1 rounded-xl border ${badge.bg}`}
-                                >
-                                  {badge.label}
-                                </span>
+                  {/* Chapter-wise Subsections */}
+                  <div className="space-y-6">
+                    {sortedChapterKeys.map((key) => {
+                      const group = groupedChapterNotes[key];
+                      return (
+                        <div key={key} className="space-y-3">
+                          <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
+                            <span className="inline-flex items-center space-x-2">
+                              <span className="w-2 h-2 rounded-full bg-blue-500" />
+                              <span className="font-extrabold text-slate-900 dark:text-white">
+                                অধ্যায় {String(group.chapterNumber).padStart(2, '0')}: {group.chapterName}
+                              </span>
+                            </span>
+                            <span className="text-[11px] text-slate-400">
+                              {group.items.length}টি শিট
+                            </span>
+                          </div>
 
-                                <span
-                                  className={`text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center space-x-1 ${
-                                    note.isGoogleDoc
-                                      ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
-                                      : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
-                                  }`}
-                                >
-                                  <span>{note.isGoogleDoc ? '📝 Google Doc' : '📑 PDF'}</span>
-                                </span>
-                              </div>
-
-                              {/* Title */}
-                              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug line-clamp-2 mb-2">
-                                {note.title}
-                              </h3>
-
-                              <div className="flex items-center space-x-1.5 text-[11px] text-slate-400 mb-4">
-                                <Clock className="w-3.5 h-3.5" />
-                                <span>বোর্ড স্ট্যান্ডার্ড • সম্পূর্ণ সলভ সহ</span>
-                              </div>
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
-                              {/* 1. Read PDF (In-App Preview Modal) */}
-                              <button
-                                onClick={() => {
+                          {/* Responsive Document Cards (Mobile: Stacked with 2-col full width buttons | Desktop: Sleek horizontal row) */}
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+                            {group.items.map((note) => (
+                              <DocumentCard
+                                key={note.id}
+                                note={note}
+                                meta={getSubjectMeta(note.subject)}
+                                isAdmin={isAdmin}
+                                onRead={() => {
                                   playPop();
                                   setPreviewNote(note);
                                 }}
-                                className="flex-1 py-2 px-3 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 border border-blue-200 dark:border-blue-900"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                                <span>পড়ুন 👁️</span>
-                              </button>
-
-                              {/* 2. Download PDF (Instant 1-Click) */}
-                              <a
-                                href={note.downloadUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-sm hover:shadow-md"
-                              >
-                                <Download className="w-3.5 h-3.5" />
-                                <span>ডাউনলোড ⬇️</span>
-                              </a>
-
-                              {/* Admin Delete Action */}
-                              {isAdmin && (
-                                <button
-                                  onClick={() => handleDeleteNote(note.id, note.title)}
-                                  disabled={actionLoading}
-                                  title="নোট মুছুন"
-                                  className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-all"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              )}
-                            </div>
+                                onDelete={() => handleDeleteNote(note.id, note.title)}
+                              />
+                            ))}
                           </div>
-                        );
-                      })}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION B: ফাইনাল মডেল টেস্ট ও বোর্ড প্রশ্নব্যাংক (Model Tests & Board QBs: 0 & 99) */}
+              {specialNotes.length > 0 && (
+                <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+                  <div className="flex items-center space-x-2.5 border-b border-slate-200 dark:border-slate-800 pb-2.5">
+                    <Award className="w-5 h-5 text-amber-500" />
+                    <div>
+                      <h2 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
+                        সেকশন B: ফাইনাল মডেল টেস্ট ও বোর্ড প্রশ্নব্যাংক (Model Tests & Board QBs)
+                      </h2>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        বোর্ড প্রশ্নব্যাংক (২০২২–২০২৬) ও পূর্ণাঙ্গ রিভিশন মডেল টেস্ট সমাধান
+                      </p>
                     </div>
                   </div>
-                );
-              })}
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+                    {specialNotes.map((note) => (
+                      <DocumentCard
+                        key={note.id}
+                        note={note}
+                        meta={getSubjectMeta(note.subject)}
+                        isAdmin={isAdmin}
+                        isSpecial
+                        onRead={() => {
+                          playPop();
+                          setPreviewNote(note);
+                        }}
+                        onDelete={() => handleDeleteNote(note.id, note.title)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
       )}
 
-      {/* In-App PDF / Document Reader Modal */}
+      {/* Responsive PDF Reader Modal (Mobile: full-screen w-full h-[90vh] | Desktop: max-w-4xl h-[85vh]) */}
       <AnimatePresence>
         {previewNote && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 bg-black/80 backdrop-blur-md animate-fade-in">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-5xl h-[88vh] bg-white dark:bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl flex flex-col overflow-hidden"
+              className="w-full sm:max-w-4xl h-[92vh] sm:h-[86vh] bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-700 shadow-2xl flex flex-col overflow-hidden"
             >
               {/* Modal Top Header */}
-              <div className="p-4 sm:p-5 bg-slate-900 text-white border-b border-slate-800 flex items-center justify-between gap-3">
-                <div className="flex items-center space-x-3 overflow-hidden">
-                  <div className="w-9 h-9 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center flex-shrink-0">
-                    <BookOpen className="w-5 h-5" />
+              <div className="p-3.5 sm:p-5 bg-slate-900 text-white border-b border-slate-800 flex items-center justify-between gap-3">
+                <div className="flex items-center space-x-2.5 overflow-hidden">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center flex-shrink-0">
+                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <div className="truncate">
-                    <h3 className="text-sm sm:text-base font-extrabold truncate text-white">
+                    <h3 className="text-xs sm:text-sm font-extrabold truncate text-white">
                       {previewNote.title}
                     </h3>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[10px] text-slate-400">
                       {previewNote.chapterName} • {previewNote.subject}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-2 flex-shrink-0">
-                  {/* Download Link */}
+                  {/* Direct Download Button in Header */}
                   <a
                     href={previewNote.downloadUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hidden sm:flex items-center space-x-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all"
+                    className="flex items-center space-x-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    <span>ডাউনলোড</span>
+                    <span className="hidden sm:inline">ডাউনলোড</span>
                   </a>
 
-                  {/* Open in Drive directly */}
+                  {/* External Drive link */}
                   <a
                     href={previewNote.driveFileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     title="ড্রাইভে খুলুন"
-                    className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+                    className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all"
                   >
                     <ExternalLink className="w-4 h-4" />
                   </a>
 
-                  {/* Close Modal */}
+                  {/* Close Modal (✕) */}
                   <button
                     onClick={() => setPreviewNote(null)}
-                    className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all"
+                    className="p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all"
+                    title="বন্ধ করুন"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -755,7 +964,7 @@ export const StudyVaultPage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Google Drive অথবা Docs শেয়ারিং লিংক
+                    Google Drive অথবা Docs লিংক
                   </label>
                   <input
                     type="url"
@@ -792,6 +1001,104 @@ export const StudyVaultPage: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+    </div>
+  );
+};
+
+/**
+ * Mobile-First Responsive Document Card
+ * - On Mobile (< 640px): Stacked vertical layout with full-width side-by-side touch buttons at bottom.
+ * - On Desktop (>= 640px): Sleek horizontal row card with PDF icon & details on left, action buttons on right.
+ */
+interface DocumentCardProps {
+  note: StudyNote;
+  meta: any;
+  isAdmin: boolean;
+  isSpecial?: boolean;
+  onRead: () => void;
+  onDelete: () => void;
+}
+
+const DocumentCard: React.FC<DocumentCardProps> = ({
+  note,
+  meta,
+  isAdmin,
+  isSpecial = false,
+  onRead,
+  onDelete,
+}) => {
+  return (
+    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 shadow-xs hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500 transition-all flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Left: Info */}
+      <div className="space-y-1.5 flex-1 min-w-0">
+        <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+          <span
+            className={`text-[10px] font-black px-2.5 py-0.5 rounded-lg border ${meta.badgeColor}`}
+          >
+            {meta.shortName}
+          </span>
+
+          <span
+            className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${
+              isSpecial
+                ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+            }`}
+          >
+            {note.chapterNumber === 0
+              ? 'বোর্ড প্রশ্নব্যাংক'
+              : note.chapterNumber === 99
+              ? 'ফাইনাল মডেল টেস্ট'
+              : `অধ্যায় ${String(note.chapterNumber).padStart(2, '0')}`}
+          </span>
+
+          <span className="text-[10px] font-semibold text-slate-400">
+            {note.isGoogleDoc ? '📝 Google Doc' : '📑 PDF'}
+          </span>
+        </div>
+
+        <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white leading-snug line-clamp-2">
+          {note.title}
+        </h3>
+
+        <p className="text-[11px] text-slate-400 truncate">
+          {note.chapterName} • সম্পূর্ণ সলভ সহ
+        </p>
+      </div>
+
+      {/* Right / Bottom: Action Buttons */}
+      <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800/80">
+        {/* Read Button */}
+        <button
+          onClick={onRead}
+          className="min-h-[40px] px-3.5 py-2 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 border border-blue-200 dark:border-blue-900 flex-1 sm:flex-initial"
+        >
+          <Eye className="w-3.5 h-3.5" />
+          <span>পড়ুন 👁️</span>
+        </button>
+
+        {/* Instant Download Button */}
+        <a
+          href={note.downloadUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="min-h-[40px] px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-sm hover:shadow-md flex-1 sm:flex-initial text-center"
+        >
+          <Download className="w-3.5 h-3.5" />
+          <span>ডাউনলোড ⬇️</span>
+        </a>
+
+        {/* Admin Delete */}
+        {isAdmin && (
+          <button
+            onClick={onDelete}
+            title="মুছে ফেলুন"
+            className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-all col-span-2 sm:col-span-1 flex items-center justify-center"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     </div>
   );
 };

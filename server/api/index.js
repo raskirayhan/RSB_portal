@@ -3,7 +3,7 @@ import express from "express";
 import cors from "cors";
 
 // src/routes/index.ts
-import { Router as Router11 } from "express";
+import { Router as Router12 } from "express";
 
 // src/routes/authRoutes.ts
 import { Router } from "express";
@@ -698,6 +698,8 @@ var AuthController = class {
             profile: { include: { batch: true } }
           }
         });
+      }
+      if (!user.profile) {
         const currentYearShort = (/* @__PURE__ */ new Date()).getFullYear().toString().slice(-2);
         const studentCount = await prisma.studentProfile.count();
         const studentIdNumber = `RSB-${currentYearShort}-${(studentCount + 1).toString().padStart(3, "0")}`;
@@ -709,8 +711,11 @@ var AuthController = class {
             studentIdNumber,
             academicLevel: classLevel,
             avatarUrl: avatarUrl || null,
+            fullName: user.name,
             qrCodeDataUrl,
-            isCompleted: false
+            isCompleted: false,
+            isProfileComplete: false,
+            verificationStatus: "UNVERIFIED"
           },
           include: { batch: true }
         });
@@ -885,7 +890,7 @@ var AuthController = class {
    */
   static async getMe(req, res) {
     try {
-      const user = await prisma.user.findUnique({
+      let user = await prisma.user.findUnique({
         where: { id: req.user.userId },
         include: {
           profile: {
@@ -895,6 +900,27 @@ var AuthController = class {
       });
       if (!user) {
         return sendError(res, "User not found.", 404);
+      }
+      if (!user.profile) {
+        const currentYearShort = (/* @__PURE__ */ new Date()).getFullYear().toString().slice(-2);
+        const studentCount = await prisma.studentProfile.count();
+        const studentIdNumber = `RSB-${currentYearShort}-${(studentCount + 1).toString().padStart(3, "0")}`;
+        const qrPayload = QrService.generateBadgePayload(studentIdNumber, user.id, user.name, "HSC_11");
+        const qrCodeDataUrl = await QrService.generateQrDataUrl(qrPayload);
+        const profile = await prisma.studentProfile.create({
+          data: {
+            userId: user.id,
+            studentIdNumber,
+            academicLevel: "HSC_11",
+            fullName: user.name,
+            qrCodeDataUrl,
+            isCompleted: false,
+            isProfileComplete: false,
+            verificationStatus: "UNVERIFIED"
+          },
+          include: { batch: true }
+        });
+        user = { ...user, profile };
       }
       const activeSessions = await SessionService.getUserSessions(user.id);
       return sendSuccess(res, {
@@ -933,6 +959,21 @@ var AuthController = class {
       return sendSuccess(res, null, "\u09A1\u09BF\u09AD\u09BE\u0987\u09B8 \u09B8\u09C7\u09B6\u09A8 \u09AC\u09A8\u09CD\u09A7 \u0995\u09B0\u09BE \u09B9\u09DF\u09C7\u099B\u09C7\u0964");
     } catch (error) {
       return sendError(res, "Failed to terminate session.", 500);
+    }
+  }
+  /**
+   * 9. Google OAuth Callback Redirect
+   */
+  static async googleOAuthCallback(req, res) {
+    try {
+      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+      const token = req.query.token;
+      if (token) {
+        return res.redirect(`${clientUrl}/oauth-callback?token=${encodeURIComponent(token)}`);
+      }
+      return res.redirect(`${clientUrl}/login?error=no_token`);
+    } catch (err) {
+      return sendError(res, "OAuth redirect failed.", 500);
     }
   }
 };
@@ -996,6 +1037,7 @@ var router = Router();
 router.post("/register", AuthController.register);
 router.post("/login", AuthController.login);
 router.post("/social", AuthController.socialAuth);
+router.get("/google/callback", AuthController.googleOAuthCallback);
 router.get("/me", authenticateJWT, AuthController.getMe);
 router.get("/sessions", authenticateJWT, AuthController.getActiveSessions);
 router.delete("/sessions/:sessionId", authenticateJWT, AuthController.terminateSession);
@@ -1180,11 +1222,163 @@ var ProfileController = class {
   }
 };
 
+// src/controllers/studentController.ts
+import { z } from "zod";
+import { VerificationStatus } from "@prisma/client";
+var onboardingSchema = z.object({
+  fullName: z.string().min(2, "\u09B6\u09BF\u0995\u09CD\u09B7\u09BE\u09B0\u09CD\u09A5\u09C0\u09B0 \u09AA\u09C2\u09B0\u09CD\u09A3 \u09A8\u09BE\u09AE \u0995\u09AE\u09AA\u0995\u09CD\u09B7\u09C7 \u09E8 \u0985\u0995\u09CD\u09B7\u09B0\u09C7\u09B0 \u09B9\u09A4\u09C7 \u09B9\u09AC\u09C7\u0964"),
+  phone: z.string().regex(/^(?:\+88|88)?(01[3-9]\d{8})$/, "\u09B8\u09A0\u09BF\u0995 \u09E7\u09E7 \u09A1\u09BF\u099C\u09BF\u099F\u09C7\u09B0 \u09AC\u09BE\u0982\u09B2\u09BE\u09A6\u09C7\u09B6\u09C0 \u09AE\u09CB\u09AC\u09BE\u0987\u09B2 \u09A8\u09AE\u09CD\u09AC\u09B0 \u09A6\u09BF\u09A8 (\u09AF\u09C7\u09AE\u09A8: 017XXXXXXXX)"),
+  classLevel: z.string().min(1, "\u09B6\u09CD\u09B0\u09C7\u09A3\u09BF \u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09A8 \u0986\u09AC\u09B6\u09CD\u09AF\u0995\u0964"),
+  batchName: z.string().min(1, "\u09AC\u09CD\u09AF\u09BE\u099A \u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09A8 \u0986\u09AC\u09B6\u09CD\u09AF\u0995\u0964"),
+  institution: z.string().min(2, "\u09B8\u09CD\u0995\u09C1\u09B2 \u09AC\u09BE \u0995\u09B2\u09C7\u099C\u09C7\u09B0 \u09A8\u09BE\u09AE \u09AA\u09CD\u09B0\u09A6\u09BE\u09A8 \u0995\u09B0\u09C1\u09A8\u0964"),
+  fatherName: z.string().min(2, "\u09AA\u09BF\u09A4\u09BE\u09B0 \u09A8\u09BE\u09AE \u09AA\u09CD\u09B0\u09A6\u09BE\u09A8 \u0995\u09B0\u09C1\u09A8\u0964"),
+  guardianPhone: z.string().regex(/^(?:\+88|88)?(01[3-9]\d{8})$/, "\u09B8\u09A0\u09BF\u0995 \u09E7\u09E7 \u09A1\u09BF\u099C\u09BF\u099F\u09C7\u09B0 \u0985\u09AD\u09BF\u09AD\u09BE\u09AC\u0995\u09C7\u09B0 \u09AE\u09CB\u09AC\u09BE\u0987\u09B2 \u09A8\u09AE\u09CD\u09AC\u09B0 \u09A6\u09BF\u09A8 (\u09AF\u09C7\u09AE\u09A8: 017XXXXXXXX)"),
+  batchSecretCode: z.string().optional()
+});
+var StudentController = class {
+  /**
+   * Mandatory Student Onboarding Submit
+   * Sets isProfileComplete = true, verificationStatus = 'VERIFIED'
+   */
+  static async completeOnboarding(req, res) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        return sendError(res, "\u0985\u09A8\u09C1\u09AE\u09CB\u09A6\u09A8\u09B9\u09C0\u09A8 \u0985\u09CD\u09AF\u09BE\u0995\u09CD\u09B8\u09C7\u09B8 (Unauthorized).", 401);
+      }
+      const parseResult = onboardingSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        const errorMsg = parseResult.error.errors.map((e) => e.message).join(", ");
+        return sendError(res, errorMsg, 400);
+      }
+      const {
+        fullName,
+        phone,
+        classLevel,
+        batchName,
+        institution,
+        fatherName,
+        guardianPhone,
+        batchSecretCode
+      } = parseResult.data;
+      const normalizedPhone = phone.replace(/^(\+88|88)/, "").trim();
+      const normalizedGuardianPhone = guardianPhone.replace(/^(\+88|88)/, "").trim();
+      let activeSetting = await prisma.systemSetting.findUnique({
+        where: { key: "BATCH_SECRET_CODE" }
+      });
+      if (!activeSetting) {
+        activeSetting = await prisma.systemSetting.create({
+          data: { key: "BATCH_SECRET_CODE", value: "RSB26" }
+        });
+      }
+      const requiredCode = activeSetting.value.trim().toUpperCase();
+      const submittedCode = (batchSecretCode || "").trim().toUpperCase();
+      const isCodeMatched = submittedCode === requiredCode;
+      const verificationStatus = VerificationStatus.VERIFIED;
+      let batch = await prisma.batch.findFirst({
+        where: {
+          name: { equals: batchName.trim(), mode: "insensitive" }
+        }
+      });
+      if (!batch) {
+        batch = await prisma.batch.create({
+          data: {
+            name: batchName.trim(),
+            academicLevel: classLevel,
+            scheduleDays: "\u09B0\u09AC\u09BF-\u09AE\u0999\u09CD\u0997\u09B2-\u09AC\u09C3\u09B9\u09B8\u09CD\u09AA\u09A4\u09BF",
+            timeSlot: "\u09B8\u0995\u09BE\u09B2 \u09EE:\u09E6\u09E6 - \u09E7\u09E6:\u09E6\u09E6",
+            monthlyFee: 2e3,
+            isActive: true
+          }
+        });
+      }
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { profile: true }
+      });
+      if (!user) {
+        return sendError(res, "\u09AC\u09CD\u09AF\u09AC\u09B9\u09BE\u09B0\u0995\u09BE\u09B0\u09C0 \u09AA\u09BE\u0993\u09DF\u09BE \u09AF\u09BE\u09DF\u09A8\u09BF\u0964", 404);
+      }
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          name: fullName.trim(),
+          phone: normalizedPhone
+        }
+      });
+      const currentYearShort = (/* @__PURE__ */ new Date()).getFullYear().toString().slice(-2);
+      let studentIdNumber = user.profile?.studentIdNumber;
+      if (!studentIdNumber) {
+        const studentCount = await prisma.studentProfile.count();
+        studentIdNumber = `RSB-${currentYearShort}-${(studentCount + 1).toString().padStart(3, "0")}`;
+      }
+      const qrPayload = QrService.generateBadgePayload(studentIdNumber, user.id, fullName, classLevel);
+      const qrCodeDataUrl = await QrService.generateQrDataUrl(qrPayload);
+      const updatedProfile = await prisma.studentProfile.upsert({
+        where: { userId },
+        create: {
+          userId,
+          studentIdNumber,
+          academicLevel: classLevel,
+          fullName: fullName.trim(),
+          institutionName: institution.trim(),
+          batchId: batch.id,
+          batchName: batch.name,
+          studentPhone: normalizedPhone,
+          guardianPhone: normalizedGuardianPhone,
+          fatherName: fatherName.trim(),
+          qrCodeDataUrl,
+          isCompleted: true,
+          isProfileComplete: true,
+          verificationStatus
+        },
+        update: {
+          academicLevel: classLevel,
+          fullName: fullName.trim(),
+          institutionName: institution.trim(),
+          batchId: batch.id,
+          batchName: batch.name,
+          studentPhone: normalizedPhone,
+          guardianPhone: normalizedGuardianPhone,
+          fatherName: fatherName.trim(),
+          qrCodeDataUrl,
+          isCompleted: true,
+          isProfileComplete: true,
+          verificationStatus
+        },
+        include: {
+          batch: true
+        }
+      });
+      return sendSuccess(
+        res,
+        {
+          user: {
+            id: user.id,
+            name: fullName.trim(),
+            email: user.email,
+            phone: normalizedPhone,
+            role: user.role
+          },
+          profile: updatedProfile,
+          verified: true,
+          codeMatched: isCodeMatched
+        },
+        "\u09B6\u09BF\u0995\u09CD\u09B7\u09BE\u09B0\u09CD\u09A5\u09C0 \u09AD\u09C7\u09B0\u09BF\u09AB\u09BF\u0995\u09C7\u09B6\u09A8 \u09B8\u09AB\u09B2 \u09B9\u09DF\u09C7\u099B\u09C7! \u09B8\u09CD\u09AC\u09BE\u0997\u09A4\u09AE Rayhan Special Batch-\u098F\u0964"
+      );
+    } catch (error) {
+      console.error("[Complete Onboarding Error]", error);
+      return sendError(res, "\u0985\u09A8\u09AC\u09CB\u09B0\u09CD\u09A1\u09BF\u0982 \u09A4\u09A5\u09CD\u09AF \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09A3 \u0995\u09B0\u09A4\u09C7 \u09B8\u09AE\u09B8\u09CD\u09AF\u09BE \u09B9\u09DF\u09C7\u099B\u09C7\u0964", 500, error.message);
+    }
+  }
+};
+
 // src/routes/profileRoutes.ts
 var router2 = Router2();
 router2.use(authenticateJWT);
 router2.get("/", ProfileController.getProfile);
 router2.put("/", ProfileController.updateProfile);
+router2.post("/complete-onboarding", StudentController.completeOnboarding);
 router2.get("/qr-badge", ProfileController.getQrBadge);
 router2.get("/milestones", ProfileController.getMilestones);
 var profileRoutes_default = router2;
@@ -3107,7 +3301,7 @@ var AdminController = class {
       const students = await prisma.studentProfile.findMany({
         include: {
           user: {
-            select: { id: true, name: true, email: true, status: true, createdAt: true }
+            select: { id: true, name: true, email: true, phone: true, status: true, createdAt: true }
           },
           batch: true
         },
@@ -3357,6 +3551,84 @@ var AdminController = class {
       return sendError(res, "Failed to run billing job.", 500);
     }
   }
+  /**
+   * 11. Toggle or Set Student Verification Status (UNVERIFIED <-> VERIFIED)
+   */
+  static async toggleStudentVerification(req, res) {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const profile = await prisma.studentProfile.findUnique({
+        where: { id }
+      });
+      if (!profile) {
+        return sendError(res, "\u09B6\u09BF\u0995\u09CD\u09B7\u09BE\u09B0\u09CD\u09A5\u09C0 \u09AA\u09CD\u09B0\u09CB\u09AB\u09BE\u0987\u09B2 \u09AA\u09BE\u0993\u09DF\u09BE \u09AF\u09BE\u09DF\u09A8\u09BF\u0964", 404);
+      }
+      const newStatus = status || (profile.verificationStatus === "VERIFIED" ? "UNVERIFIED" : "VERIFIED");
+      const isComplete = newStatus === "VERIFIED" ? true : profile.isProfileComplete;
+      const updated = await prisma.studentProfile.update({
+        where: { id },
+        data: {
+          verificationStatus: newStatus,
+          isProfileComplete: isComplete,
+          isCompleted: isComplete
+        },
+        include: {
+          user: true,
+          batch: true
+        }
+      });
+      return sendSuccess(
+        res,
+        updated,
+        `\u09B6\u09BF\u0995\u09CD\u09B7\u09BE\u09B0\u09CD\u09A5\u09C0 \u09B8\u09CD\u099F\u09CD\u09AF\u09BE\u099F\u09BE\u09B8 \u09B8\u09AB\u09B2\u09AD\u09BE\u09AC\u09C7 "${newStatus}" \u0995\u09B0\u09BE \u09B9\u09DF\u09C7\u099B\u09C7\u0964`
+      );
+    } catch (error) {
+      console.error("[Toggle Verification Error]", error);
+      return sendError(res, "\u09AD\u09C7\u09B0\u09BF\u09AB\u09BF\u0995\u09C7\u09B6\u09A8 \u09B8\u09CD\u099F\u09CD\u09AF\u09BE\u099F\u09BE\u09B8 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u0995\u09B0\u09A4\u09C7 \u09B8\u09AE\u09B8\u09CD\u09AF\u09BE \u09B9\u09DF\u09C7\u099B\u09C7\u0964", 500);
+    }
+  }
+  /**
+   * 12. Get Active Batch Secret Code
+   */
+  static async getBatchSecretCode(req, res) {
+    try {
+      let setting = await prisma.systemSetting.findUnique({
+        where: { key: "BATCH_SECRET_CODE" }
+      });
+      if (!setting) {
+        setting = await prisma.systemSetting.create({
+          data: { key: "BATCH_SECRET_CODE", value: "RSB26" }
+        });
+      }
+      return sendSuccess(res, { batchSecretCode: setting.value });
+    } catch (error) {
+      return sendError(res, "Failed to fetch batch secret code.", 500);
+    }
+  }
+  /**
+   * 13. Update Batch Secret Code
+   */
+  static async updateBatchSecretCode(req, res) {
+    try {
+      const { code } = req.body;
+      if (!code || !code.trim()) {
+        return sendError(res, "\u09B8\u09BF\u0995\u09CD\u09B0\u09C7\u099F \u0995\u09CB\u09A1 \u09AA\u09CD\u09B0\u09A6\u09BE\u09A8 \u0995\u09B0\u09BE \u0986\u09AC\u09B6\u09CD\u09AF\u0995\u0964");
+      }
+      const updated = await prisma.systemSetting.upsert({
+        where: { key: "BATCH_SECRET_CODE" },
+        update: { value: code.trim().toUpperCase() },
+        create: { key: "BATCH_SECRET_CODE", value: code.trim().toUpperCase() }
+      });
+      return sendSuccess(
+        res,
+        { batchSecretCode: updated.value },
+        "\u09AC\u09CD\u09AF\u09BE\u099A \u09B8\u09BF\u0995\u09CD\u09B0\u09C7\u099F \u0995\u09CB\u09A1 \u09B8\u09AB\u09B2\u09AD\u09BE\u09AC\u09C7 \u0986\u09AA\u09A1\u09C7\u099F \u0995\u09B0\u09BE \u09B9\u09DF\u09C7\u099B\u09C7!"
+      );
+    } catch (error) {
+      return sendError(res, "Failed to update batch secret code.", 500);
+    }
+  }
 };
 
 // src/routes/adminRoutes.ts
@@ -3374,6 +3646,10 @@ router7.post("/payments/review", AdminController.reviewPayment);
 router7.post("/attendance/scan-qr", AdminController.scanQrAttendance);
 router7.post("/feedback", AdminController.postFeedback);
 router7.post("/billing/trigger", AdminController.triggerMonthlyBilling);
+router7.patch("/students/:id/verification", AdminController.toggleStudentVerification);
+router7.post("/students/:id/verification", AdminController.toggleStudentVerification);
+router7.get("/settings/batch-code", AdminController.getBatchSecretCode);
+router7.post("/settings/batch-code", AdminController.updateBatchSecretCode);
 var adminRoutes_default = router7;
 
 // src/routes/publicRoutes.ts
@@ -4748,19 +5024,26 @@ router10.delete("/admin/notes/:id", authenticateJWT, requireRole([Role5.SUPER_AD
 router10.post("/admin/seed-notes", authenticateJWT, requireRole([Role5.SUPER_ADMIN]), StudyVaultController.seedDefaultNotes);
 var studyVaultRoutes_default = router10;
 
-// src/routes/index.ts
+// src/routes/studentRoutes.ts
+import { Router as Router11 } from "express";
 var router11 = Router11();
-router11.use("/public", publicRoutes_default);
-router11.use("/auth", authRoutes_default);
-router11.use("/profile", profileRoutes_default);
-router11.use("/vault", vaultRoutes_default);
-router11.use("/study-vault", studyVaultRoutes_default);
-router11.use("/billing", billingRoutes_default);
-router11.use("/games", gameRoutes_default);
-router11.use("/feedback", feedbackRoutes_default);
-router11.use("/admin", adminRoutes_default);
-router11.use("/hsc-ict", hscIctRoutes_default);
-var routes_default = router11;
+router11.post("/complete-onboarding", authenticateJWT, StudentController.completeOnboarding);
+var studentRoutes_default = router11;
+
+// src/routes/index.ts
+var router12 = Router12();
+router12.use("/public", publicRoutes_default);
+router12.use("/auth", authRoutes_default);
+router12.use("/student", studentRoutes_default);
+router12.use("/profile", profileRoutes_default);
+router12.use("/vault", vaultRoutes_default);
+router12.use("/study-vault", studyVaultRoutes_default);
+router12.use("/billing", billingRoutes_default);
+router12.use("/games", gameRoutes_default);
+router12.use("/feedback", feedbackRoutes_default);
+router12.use("/admin", adminRoutes_default);
+router12.use("/hsc-ict", hscIctRoutes_default);
+var routes_default = router12;
 
 // src/middlewares/globalErrorHandler.ts
 import { ZodError } from "zod";

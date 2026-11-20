@@ -115,7 +115,11 @@ export const RegisterPage: React.FC = () => {
         login(tokens.accessToken, user, profile);
         localStorage.setItem('rsb_selected_academic_level', classLevel);
         playSuccessChime();
-        navigate('/dashboard');
+        if (profile?.isProfileComplete) {
+          navigate('/dashboard');
+        } else {
+          navigate('/complete-profile');
+        }
       }
     } catch (err: any) {
       setError(err.response?.data?.message || `${provider} অথেনটিকেশন ব্যর্থ হয়েছে।`);

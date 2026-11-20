@@ -47,6 +47,11 @@ export const StudentLayout: React.FC = () => {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
+  // Mandatory Gatekeeper: Redirect incomplete student profiles to verification form
+  if (user.role !== 'SUPER_ADMIN' && profile && !profile.isProfileComplete) {
+    return <Navigate to="/complete-profile" replace />;
+  }
+
   const navLinks = [
     { to: '/dashboard', label: 'ওভারভিউ', icon: LayoutDashboard },
     { to: '/vault', label: 'স্টাডি ভল্ট (নোটস)', icon: BookOpen },

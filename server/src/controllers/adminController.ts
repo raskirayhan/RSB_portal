@@ -64,7 +64,7 @@ export class AdminController {
       const students = await prisma.studentProfile.findMany({
         include: {
           user: {
-            select: { id: true, name: true, email: true, status: true, createdAt: true },
+            select: { id: true, name: true, email: true, phone: true, status: true, createdAt: true },
           },
           batch: true,
         },
@@ -356,6 +356,96 @@ export class AdminController {
       );
     } catch (error: any) {
       return sendError(res, 'Failed to run billing job.', 500);
+    }
+  }
+
+  /**
+   * 11. Toggle or Set Student Verification Status (UNVERIFIED <-> VERIFIED)
+   */
+  static async toggleStudentVerification(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      const { status } = req.body; // optional override 'VERIFIED' | 'UNVERIFIED'
+
+      const profile = await prisma.studentProfile.findUnique({
+        where: { id },
+      });
+
+      if (!profile) {
+        return sendError(res, 'শিক্ষার্থী প্রোফাইল পাওয়া যায়নি।', 404);
+      }
+
+      const newStatus = status || (profile.verificationStatus === 'VERIFIED' ? 'UNVERIFIED' : 'VERIFIED');
+      const isComplete = newStatus === 'VERIFIED' ? true : profile.isProfileComplete;
+
+      const updated = await prisma.studentProfile.update({
+        where: { id },
+        data: {
+          verificationStatus: newStatus,
+          isProfileComplete: isComplete,
+          isCompleted: isComplete,
+        },
+        include: {
+          user: true,
+          batch: true,
+        },
+      });
+
+      return sendSuccess(
+        res,
+        updated,
+        `শিক্ষার্থী স্ট্যাটাস সফলভাবে "${newStatus}" করা হয়েছে।`
+      );
+    } catch (error: any) {
+      console.error('[Toggle Verification Error]', error);
+      return sendError(res, 'ভেরিফিকেশন স্ট্যাটাস পরিবর্তন করতে সমস্যা হয়েছে।', 500);
+    }
+  }
+
+  /**
+   * 12. Get Active Batch Secret Code
+   */
+  static async getBatchSecretCode(req: AuthenticatedRequest, res: Response) {
+    try {
+      let setting = await prisma.systemSetting.findUnique({
+        where: { key: 'BATCH_SECRET_CODE' },
+      });
+
+      if (!setting) {
+        setting = await prisma.systemSetting.create({
+          data: { key: 'BATCH_SECRET_CODE', value: 'RSB26' },
+        });
+      }
+
+      return sendSuccess(res, { batchSecretCode: setting.value });
+    } catch (error: any) {
+      return sendError(res, 'Failed to fetch batch secret code.', 500);
+    }
+  }
+
+  /**
+   * 13. Update Batch Secret Code
+   */
+  static async updateBatchSecretCode(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { code } = req.body;
+      if (!code || !code.trim()) {
+        return sendError(res, 'সিক্রেট কোড প্রদান করা আবশ্যক।');
+      }
+
+      const updated = await prisma.systemSetting.upsert({
+        where: { key: 'BATCH_SECRET_CODE' },
+        update: { value: code.trim().toUpperCase() },
+        create: { key: 'BATCH_SECRET_CODE', value: code.trim().toUpperCase() },
+      });
+
+      return sendSuccess(
+        res,
+        { batchSecretCode: updated.value },
+        'ব্যাচ সিক্রেট কোড সফলভাবে আপডেট করা হয়েছে!'
+      );
+    } catch (error: any) {
+      return sendError(res, 'Failed to update batch secret code.', 500);
     }
   }
 }

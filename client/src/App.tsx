@@ -13,6 +13,8 @@ import { LandingPage } from './pages/public/LandingPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { OAuthCallbackPage } from './pages/auth/OAuthCallbackPage';
+import { CompleteProfilePage } from './pages/auth/CompleteProfilePage';
 
 // Student Pages
 import { StudentDashboard } from './pages/student/StudentDashboard';
@@ -44,6 +46,10 @@ export const App: React.FC = () => {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             </Route>
+
+            {/* OAuth Callback & Verification Routes */}
+            <Route path="/oauth-callback" element={<OAuthCallbackPage />} />
+            <Route path="/complete-profile" element={<CompleteProfilePage />} />
 
             {/* Student Portal (Protected) */}
             <Route element={<StudentLayout />}>

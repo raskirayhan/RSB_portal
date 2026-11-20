@@ -18,5 +18,9 @@ router.post('/payments/review', AdminController.reviewPayment);
 router.post('/attendance/scan-qr', AdminController.scanQrAttendance);
 router.post('/feedback', AdminController.postFeedback);
 router.post('/billing/trigger', AdminController.triggerMonthlyBilling);
+router.patch('/students/:id/verification', AdminController.toggleStudentVerification);
+router.post('/students/:id/verification', AdminController.toggleStudentVerification);
+router.get('/settings/batch-code', AdminController.getBatchSecretCode);
+router.post('/settings/batch-code', AdminController.updateBatchSecretCode);
 
 export default router;

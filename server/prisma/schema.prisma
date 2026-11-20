@@ -73,6 +73,11 @@ enum GameType {
   MCQ_BATTLE
 }
 
+enum VerificationStatus {
+  UNVERIFIED
+  VERIFIED
+}
+
 model User {
   id              String            @id @default(uuid())
   email           String?           @unique
@@ -147,26 +152,36 @@ model Batch {
 }
 
 model StudentProfile {
-  id               String    @id @default(uuid())
-  userId           String    @unique
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  studentIdNumber  String    @unique // e.g. RSB-26-001
-  academicLevel    String    // SSC_2026, HSC_2026, HSC_2027
-  institutionName  String?
-  batchId          String?
-  batch            Batch?    @relation(fields: [batchId], references: [id])
-  fatherName       String?
-  motherName       String?
-  studentPhone     String?
-  guardianPhone    String?
-  guardianEmail    String?
-  avatarUrl        String?
-  qrCodeDataUrl    String?   @db.Text
-  isCompleted      Boolean   @default(false)
-  currentStreak    Int       @default(1)
-  totalXp          Int       @default(0)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id                 String             @id @default(uuid())
+  userId             String             @unique
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studentIdNumber    String             @unique // e.g. RSB-26-001
+  academicLevel      String             // SSC_2026, HSC_2026, HSC_2027, SSC_9, SSC_10, HSC_11, HSC_12
+  fullName           String?
+  institutionName    String?
+  batchId            String?
+  batch              Batch?             @relation(fields: [batchId], references: [id])
+  batchName          String?
+  fatherName         String?
+  motherName         String?
+  studentPhone       String?
+  guardianPhone      String?
+  guardianEmail      String?
+  avatarUrl          String?
+  qrCodeDataUrl      String?            @db.Text
+  isCompleted        Boolean            @default(false)
+  isProfileComplete  Boolean            @default(false)
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  currentStreak      Int                @default(1)
+  totalXp            Int                @default(0)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
 }
 
 model Subject {

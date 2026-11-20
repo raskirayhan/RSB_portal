@@ -9,11 +9,13 @@ import adminRoutes from './adminRoutes.js';
 import publicRoutes from './publicRoutes.js';
 import hscIctRoutes from './hscIctRoutes.js';
 import studyVaultRoutes from './studyVaultRoutes.js';
+import studentRoutes from './studentRoutes.js';
 
 const router = Router();
 
 router.use('/public', publicRoutes);
 router.use('/auth', authRoutes);
+router.use('/student', studentRoutes);
 router.use('/profile', profileRoutes);
 router.use('/vault', vaultRoutes);
 router.use('/study-vault', studyVaultRoutes);
