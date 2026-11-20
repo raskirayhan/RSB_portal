@@ -11,6 +11,7 @@ router.post('/register', AuthController.register);
 router.post('/login', AuthController.login);
 
 // 3. Social Authentication (Google / Facebook)
+router.post('/google', AuthController.googleAuth);
 router.post('/social', AuthController.socialAuth);
 router.get('/google/callback', AuthController.googleOAuthCallback);
 

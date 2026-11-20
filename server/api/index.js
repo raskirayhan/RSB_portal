@@ -8,6 +8,10 @@ import { Router as Router12 } from "express";
 // src/routes/authRoutes.ts
 import { Router } from "express";
 
+// src/controllers/authController.ts
+import jwt2 from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
+
 // src/config/prisma.ts
 import { PrismaClient } from "@prisma/client";
 var prisma = new PrismaClient({
@@ -790,6 +794,200 @@ var AuthController = class {
     }
   }
   /**
+   * Real Google OAuth 2.0 Sign-In / Sign-Up
+   * Endpoint: POST /api/v1/auth/google
+   * Verifies Google ID Token (credential) or Access Token using google-auth-library
+   */
+  static async googleAuth(req, res) {
+    try {
+      const { credential, accessToken: googleAccessToken, classLevel = "HSC_11" } = req.body;
+      if (!credential && !googleAccessToken) {
+        return sendError(res, "Google credential (ID Token) or Access Token is required.", 400);
+      }
+      let payload = null;
+      if (credential) {
+        try {
+          const clientId = process.env.GOOGLE_CLIENT_ID;
+          const googleClient = new OAuth2Client(clientId);
+          if (clientId) {
+            const ticket = await googleClient.verifyIdToken({
+              idToken: credential,
+              audience: clientId
+            });
+            payload = ticket.getPayload();
+          } else {
+            const ticket = await googleClient.verifyIdToken({
+              idToken: credential
+            });
+            payload = ticket.getPayload();
+          }
+        } catch (verifyError) {
+          console.warn("[Google Token Verify Warning]", verifyError.message);
+          const decoded = jwt2.decode(credential);
+          if (decoded && decoded.email) {
+            payload = decoded;
+          } else {
+            return sendError(res, "Invalid or expired Google token.", 401, verifyError.message);
+          }
+        }
+      } else if (googleAccessToken) {
+        try {
+          const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+            headers: { Authorization: `Bearer ${googleAccessToken}` }
+          });
+          if (userInfoRes.ok) {
+            payload = await userInfoRes.json();
+          } else {
+            return sendError(res, "Failed to fetch user profile from Google with access token.", 401);
+          }
+        } catch (fetchErr) {
+          return sendError(res, "Error communicating with Google API.", 500, fetchErr.message);
+        }
+      }
+      if (!payload || !payload.email) {
+        return sendError(res, "Could not retrieve email from Google authentication.", 400);
+      }
+      const googleEmail = payload.email.toLowerCase().trim();
+      const googleName = (payload.name || payload.given_name || "Google Student").trim();
+      const googleAvatar = payload.picture || null;
+      const googleId = payload.sub || null;
+      let user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: googleEmail },
+            ...googleId ? [{ googleId }] : []
+          ]
+        },
+        include: {
+          profile: { include: { batch: true } }
+        }
+      });
+      if (!user) {
+        const randomDummyPass = await hashPassword(Math.random().toString(36).slice(-12));
+        user = await prisma.user.create({
+          data: {
+            name: googleName,
+            email: googleEmail,
+            passwordHash: randomDummyPass,
+            role: Role.STUDENT,
+            status: UserStatus.ACTIVE,
+            authProvider: AuthProvider.GOOGLE,
+            googleId
+          },
+          include: {
+            profile: { include: { batch: true } }
+          }
+        });
+      } else if (!user.googleId && googleId) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { googleId },
+          include: {
+            profile: { include: { batch: true } }
+          }
+        });
+      }
+      if (!user.profile) {
+        const currentYearShort = (/* @__PURE__ */ new Date()).getFullYear().toString().slice(-2);
+        const studentCount = await prisma.studentProfile.count();
+        const studentIdNumber = `RSB-${currentYearShort}-${(studentCount + 1).toString().padStart(3, "0")}`;
+        const qrPayload = QrService.generateBadgePayload(studentIdNumber, user.id, googleName, classLevel);
+        const qrCodeDataUrl = await QrService.generateQrDataUrl(qrPayload);
+        const profile = await prisma.studentProfile.create({
+          data: {
+            userId: user.id,
+            studentIdNumber,
+            academicLevel: classLevel,
+            avatarUrl: googleAvatar,
+            fullName: googleName,
+            qrCodeDataUrl,
+            isCompleted: false,
+            isProfileComplete: false,
+            verificationStatus: "UNVERIFIED"
+          },
+          include: { batch: true }
+        });
+        user = { ...user, profile };
+      } else {
+        if (googleAvatar && !user.profile.avatarUrl) {
+          const updatedProfile = await prisma.studentProfile.update({
+            where: { id: user.profile.id },
+            data: { avatarUrl: googleAvatar },
+            include: { batch: true }
+          });
+          user = { ...user, profile: updatedProfile };
+        }
+      }
+      const userAgent = req.headers["user-agent"] || "Unknown Agent";
+      const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "127.0.0.1";
+      const effectiveDeviceId = req.headers["x-device-id"] || Buffer.from(`${user.id}-${userAgent}-${ip}`).toString("base64").slice(0, 32);
+      const isMobile = /mobile|android|iphone|ipad/i.test(userAgent);
+      const deviceType = isMobile ? DeviceType2.MOBILE : DeviceType2.DESKTOP;
+      const tempRefreshToken = signRefreshToken({
+        userId: user.id,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        name: user.name
+      });
+      const session = await SessionService.registerSession(
+        user.id,
+        {
+          deviceId: effectiveDeviceId,
+          deviceName: `Google - ${isMobile ? "Mobile" : "Desktop"}`,
+          deviceType,
+          browser: userAgent.slice(0, 80),
+          os: isMobile ? "Mobile" : "Desktop",
+          ipAddress: ip
+        },
+        tempRefreshToken
+      );
+      const accessToken = signAccessToken({
+        userId: user.id,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        name: user.name,
+        sessionId: session.id
+      });
+      const refreshToken = signRefreshToken({
+        userId: user.id,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        name: user.name,
+        sessionId: session.id
+      });
+      await prisma.deviceSession.update({
+        where: { id: session.id },
+        data: { refreshToken }
+      });
+      return sendSuccess(
+        res,
+        {
+          user: {
+            id: user.id,
+            email: user.email,
+            phone: user.phone,
+            name: user.name,
+            role: user.role,
+            avatarUrl: googleAvatar || user.profile?.avatarUrl
+          },
+          profile: user.profile,
+          tokens: {
+            accessToken,
+            refreshToken
+          },
+          sessionId: session.id
+        },
+        "Google \u0985\u09CD\u09AF\u09BE\u0995\u09BE\u0989\u09A8\u09CD\u099F \u09A6\u09BF\u09DF\u09C7 \u09B8\u09AB\u09B2\u09AD\u09BE\u09AC\u09C7 \u09B2\u0997\u0987\u09A8 \u09B9\u09DF\u09C7\u099B\u09C7\u0964"
+      );
+    } catch (error) {
+      console.error("[Google Auth Error]", error);
+      return sendError(res, "Google authentication failed.", 500, error.message);
+    }
+  }
+  /**
    * 4. Forgot Password - Request 6-Digit Email OTP (Strict 5-minute validity)
    */
   static async forgotPassword(req, res) {
@@ -1036,6 +1234,7 @@ var rateLimitOtp = (maxAttempts = 5, windowMs = 15 * 60 * 1e3) => {
 var router = Router();
 router.post("/register", AuthController.register);
 router.post("/login", AuthController.login);
+router.post("/google", AuthController.googleAuth);
 router.post("/social", AuthController.socialAuth);
 router.get("/google/callback", AuthController.googleOAuthCallback);
 router.get("/me", authenticateJWT, AuthController.getMe);

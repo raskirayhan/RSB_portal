@@ -121,7 +121,7 @@ export const CompleteProfilePage: React.FC = () => {
               স্বাগতম, Rayhan's Science Lab-এ!
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto mt-1 leading-relaxed">
-              আপনার ডিজিটাল কিউআর আইডি কার্ড, লাইভ এক্সাম এরিনা ও স্টাডি ভল্ট আনলক করতে নিচের তথ্যগুলো নির্ভুলভাবে পূরণ করুন।
+              আপনার ডিজিটাল কিউআর আইডি কার্ড, লাইভ এক্সাম এরিনা ও নোটস এবং পিডিএফ লাইব্রেরি আনলক করতে নিচের তথ্যগুলো নির্ভুলভাবে পূরণ করুন।
             </p>
           </div>
 
