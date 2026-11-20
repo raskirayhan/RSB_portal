@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, Printer, ShieldCheck, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Printer, ShieldCheck, Sparkles, Download, Check } from 'lucide-react';
 
 interface QRBadgeModalProps {
   isOpen: boolean;
@@ -17,10 +17,109 @@ interface QRBadgeModalProps {
 }
 
 export const QRBadgeModal: React.FC<QRBadgeModalProps> = ({ isOpen, onClose, student }) => {
+  const [downloading, setDownloading] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
+
   if (!isOpen) return null;
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownload = () => {
+    if (!student.qrCodeDataUrl) return;
+    setDownloading(true);
+
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 600;
+      canvas.height = 800;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        setDownloading(false);
+        return;
+      }
+
+      // Card Background
+      const grad = ctx.createLinearGradient(0, 0, 600, 800);
+      grad.addColorStop(0, '#0f172a');
+      grad.addColorStop(0.5, '#1e1b4b');
+      grad.addColorStop(1, '#0f172a');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 600, 800);
+
+      // Card Border
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(6, 6, 588, 788);
+
+      // Header Brand
+      ctx.fillStyle = '#60a5fa';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('RAYHAN SPECIAL BATCH', 300, 65);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 26px sans-serif';
+      ctx.fillText('STUDENT IDENTIFICATION CARD', 300, 105);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '16px sans-serif';
+      ctx.fillText('SSC & HSC Science Coaching • Khulna & Bagerhat', 300, 135);
+
+      // Load QR Code Image
+      const img = new Image();
+      img.onload = () => {
+        // QR Code Background White Box
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(150, 160, 300, 300);
+        ctx.drawImage(img, 160, 170, 280, 280);
+
+        // Student Full Name
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 30px sans-serif';
+        ctx.fillText(student.name || 'Student Name', 300, 500);
+
+        // Student ID Pill
+        ctx.fillStyle = '#2563eb';
+        ctx.fillRect(160, 520, 280, 50);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px monospace';
+        ctx.fillText(student.studentId || 'RSB-26-XXX', 300, 554);
+
+        // Batch & Class
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = 'bold 20px sans-serif';
+        ctx.fillText(student.batchName || student.academicLevel || '', 300, 615);
+
+        if (student.institution) {
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '18px sans-serif';
+          ctx.fillText(student.institution, 300, 650);
+        }
+
+        // Footer
+        ctx.fillStyle = '#64748b';
+        ctx.font = '16px sans-serif';
+        ctx.fillText('Rayhan Sir Verified • Offline Digital Pass', 300, 740);
+
+        // Save Link
+        const link = document.createElement('a');
+        link.download = `${student.studentId || 'RSB-Student'}-ID-Card.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+
+        setDownloading(false);
+        setDownloaded(true);
+        setTimeout(() => setDownloaded(false), 2500);
+      };
+      img.onerror = () => {
+        setDownloading(false);
+      };
+      img.src = student.qrCodeDataUrl;
+    } catch {
+      setDownloading(false);
+    }
   };
 
   return (
@@ -106,12 +205,20 @@ export const QRBadgeModal: React.FC<QRBadgeModalProps> = ({ isOpen, onClose, stu
         </div>
 
         {/* Modal Actions */}
-        <div className="flex items-center justify-end space-x-2.5 px-5 py-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 flex-shrink-0">
+        <div className="flex flex-wrap items-center justify-end gap-2 px-5 py-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 flex-shrink-0">
           <button
             onClick={onClose}
             className="px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors"
           >
             বন্ধ করুন
+          </button>
+          <button
+            onClick={handleDownload}
+            disabled={downloading || !student.qrCodeDataUrl}
+            className="flex items-center space-x-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-800 dark:text-white bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-xl shadow-xs transition-all disabled:opacity-50"
+          >
+            {downloaded ? <Check className="w-4 h-4 text-emerald-500" /> : <Download className="w-4 h-4" />}
+            <span>{downloaded ? 'ডাউনলোড হয়েছে!' : downloading ? 'ডাউনলোড হচ্ছে...' : 'কার্ড ডাউনলোড'}</span>
           </button>
           <button
             onClick={handlePrint}

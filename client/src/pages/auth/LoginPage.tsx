@@ -156,11 +156,13 @@ export const LoginPage: React.FC = () => {
           {/* Email OR Phone Number Field */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-              ইমেইল অথবা মোবাইল নম্বর (Email or Phone)
+              ইমেইল, মোবাইল নম্বর অথবা স্টুডেন্ট আইডি (Email, Phone or Student ID)
             </label>
             <div className="relative">
               {identifier.includes('@') ? (
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+              ) : identifier.toUpperCase().includes('RSB') ? (
+                <GraduationCap className="w-4 h-4 text-blue-500 absolute left-3.5 top-3.5" />
               ) : (
                 <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
               )}
@@ -169,8 +171,8 @@ export const LoginPage: React.FC = () => {
                 required
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="017XXXXXXXX বা student@example.com"
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
+                placeholder="017XXXXXXXX বা RSB-26-001 বা student@example.com"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-all font-medium"
               />
             </div>
           </div>

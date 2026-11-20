@@ -564,13 +564,19 @@ var AuthController = class {
         return sendError(res, "\u0987\u09AE\u09C7\u0987\u09B2/\u09AB\u09CB\u09A8 \u09A8\u09AE\u09CD\u09AC\u09B0 \u098F\u09AC\u0982 \u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1 \u09A6\u09C7\u0993\u09DF\u09BE \u0986\u09AC\u09B6\u09CD\u09AF\u0995\u0964");
       }
       const isEmail = rawInput.includes("@");
+      const isStudentId = /^RSB/i.test(rawInput) || rawInput.includes("-") && !isEmail;
       const normalizedEmail = isEmail ? rawInput.toLowerCase() : null;
-      const normalizedPhone = !isEmail ? rawInput.replace(/[^0-9+]/g, "") : null;
+      const normalizedPhone = !isEmail && !isStudentId ? rawInput.replace(/[^0-9+]/g, "") : null;
       const user = await prisma.user.findFirst({
-        where: isEmail ? { email: { equals: normalizedEmail, mode: "insensitive" } } : {
+        where: isEmail ? { email: { equals: normalizedEmail, mode: "insensitive" } } : isStudentId ? {
+          profile: {
+            studentIdNumber: { equals: rawInput, mode: "insensitive" }
+          }
+        } : {
           OR: [
-            { phone: normalizedPhone },
-            { profile: { studentPhone: normalizedPhone } }
+            ...normalizedPhone ? [{ phone: normalizedPhone }] : [],
+            ...normalizedPhone ? [{ profile: { studentPhone: normalizedPhone } }] : [],
+            { profile: { studentIdNumber: { equals: rawInput, mode: "insensitive" } } }
           ]
         },
         include: {
@@ -580,7 +586,7 @@ var AuthController = class {
         }
       });
       if (!user) {
-        return sendError(res, "\u09AD\u09C1\u09B2 \u0987\u09AE\u09C7\u0987\u09B2/\u09AB\u09CB\u09A8 \u0985\u09A5\u09AC\u09BE \u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1\u0964", 401);
+        return sendError(res, "\u09AD\u09C1\u09B2 \u0987\u09AE\u09C7\u0987\u09B2/\u09AB\u09CB\u09A8/\u09B8\u09CD\u099F\u09C1\u09A1\u09C7\u09A8\u09CD\u099F \u0986\u0987\u09A1\u09BF \u0985\u09A5\u09AC\u09BE \u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1\u0964", 401);
       }
       if (user.status === UserStatus.SUSPENDED) {
         return sendError(res, "\u0986\u09AA\u09A8\u09BE\u09B0 \u0985\u09CD\u09AF\u09BE\u0995\u09BE\u0989\u09A8\u09CD\u099F\u099F\u09BF \u09B8\u09CD\u09A5\u0997\u09BF\u09A4 \u09B0\u09BE\u0996\u09BE \u09B9\u09DF\u09C7\u099B\u09C7\u0964 \u0985\u09A8\u09C1\u0997\u09CD\u09B0\u09B9 \u0995\u09B0\u09C7 \u09B0\u09BE\u09DF\u09B9\u09BE\u09A8 \u09B8\u09CD\u09AF\u09BE\u09B0\u09C7\u09B0 \u09B8\u09BE\u09A5\u09C7 \u09AF\u09CB\u0997\u09BE\u09AF\u09CB\u0997 \u0995\u09B0\u09C1\u09A8\u0964", 403);
@@ -634,6 +640,40 @@ var AuthController = class {
         data: { refreshToken }
       });
       const activeSessions = await SessionService.getUserSessions(user.id);
+      let effectiveProfile = user.profile;
+      if (user.role === Role.STUDENT) {
+        if (!effectiveProfile) {
+          const currentYearShort = (/* @__PURE__ */ new Date()).getFullYear().toString().slice(-2);
+          const studentCount = await prisma.studentProfile.count();
+          const studentIdNumber = `RSB-${currentYearShort}-${(studentCount + 1).toString().padStart(3, "0")}`;
+          const qrPayload = QrService.generateBadgePayload(studentIdNumber, user.id, user.name, "HSC_11");
+          const qrCodeDataUrl = await QrService.generateQrDataUrl(qrPayload);
+          effectiveProfile = await prisma.studentProfile.create({
+            data: {
+              userId: user.id,
+              studentIdNumber,
+              academicLevel: "HSC_11",
+              fullName: user.name,
+              qrCodeDataUrl,
+              isCompleted: false,
+              isProfileComplete: false,
+              verificationStatus: "UNVERIFIED"
+            },
+            include: { batch: true }
+          });
+        } else if (!effectiveProfile.studentIdNumber || !effectiveProfile.qrCodeDataUrl) {
+          const currentYearShort = (/* @__PURE__ */ new Date()).getFullYear().toString().slice(-2);
+          const studentCount = await prisma.studentProfile.count();
+          const studentIdNumber = effectiveProfile.studentIdNumber || `RSB-${currentYearShort}-${(studentCount + 1).toString().padStart(3, "0")}`;
+          const qrPayload = QrService.generateBadgePayload(studentIdNumber, user.id, effectiveProfile.fullName || user.name, effectiveProfile.academicLevel || "HSC_11");
+          const qrCodeDataUrl = effectiveProfile.qrCodeDataUrl || await QrService.generateQrDataUrl(qrPayload);
+          effectiveProfile = await prisma.studentProfile.update({
+            where: { id: effectiveProfile.id },
+            data: { studentIdNumber, qrCodeDataUrl },
+            include: { batch: true }
+          });
+        }
+      }
       return sendSuccess(
         res,
         {
@@ -644,7 +684,7 @@ var AuthController = class {
             name: user.name,
             role: user.role
           },
-          profile: user.profile,
+          profile: effectiveProfile,
           tokens: {
             accessToken,
             refreshToken
@@ -909,7 +949,23 @@ var AuthController = class {
         });
         user = { ...user, profile };
       } else {
-        if (googleAvatar && !user.profile.avatarUrl) {
+        if (!user.profile.studentIdNumber || !user.profile.qrCodeDataUrl) {
+          const currentYearShort = (/* @__PURE__ */ new Date()).getFullYear().toString().slice(-2);
+          const studentCount = await prisma.studentProfile.count();
+          const studentIdNumber = user.profile.studentIdNumber || `RSB-${currentYearShort}-${(studentCount + 1).toString().padStart(3, "0")}`;
+          const qrPayload = QrService.generateBadgePayload(studentIdNumber, user.id, user.profile.fullName || googleName, user.profile.academicLevel || classLevel);
+          const qrCodeDataUrl = user.profile.qrCodeDataUrl || await QrService.generateQrDataUrl(qrPayload);
+          const updatedProfile = await prisma.studentProfile.update({
+            where: { id: user.profile.id },
+            data: {
+              studentIdNumber,
+              qrCodeDataUrl,
+              ...googleAvatar && !user.profile.avatarUrl ? { avatarUrl: googleAvatar } : {}
+            },
+            include: { batch: true }
+          });
+          user = { ...user, profile: updatedProfile };
+        } else if (googleAvatar && !user.profile.avatarUrl) {
           const updatedProfile = await prisma.studentProfile.update({
             where: { id: user.profile.id },
             data: { avatarUrl: googleAvatar },
@@ -3639,22 +3695,66 @@ var AdminController = class {
     try {
       const { qrPayload } = req.body;
       if (!qrPayload) {
-        return sendError(res, "QR code payload is required.");
+        return sendError(res, "QR \u0995\u09CB\u09A1 \u09AC\u09BE \u09B8\u09CD\u099F\u09C1\u09A1\u09C7\u09A8\u09CD\u099F \u0986\u0987\u09A1\u09BF \u09A6\u09C7\u0993\u09DF\u09BE \u0986\u09AC\u09B6\u09CD\u09AF\u0995\u0964", 400);
       }
+      let parsedStudentId = "";
+      let parsedUserId = "";
       const verification = QrService.verifyBadgePayload(qrPayload);
-      if (!verification.valid || !verification.data) {
-        return sendError(res, "Invalid or forged QR Code! Attendance rejected.", 400);
+      if (verification.valid && verification.data) {
+        parsedStudentId = verification.data.studentId;
+        parsedUserId = verification.data.userId;
+      } else {
+        try {
+          const parsed = typeof qrPayload === "string" ? JSON.parse(qrPayload) : qrPayload;
+          parsedStudentId = parsed.studentId || parsed.studentIdNumber || "";
+          parsedUserId = parsed.userId || "";
+        } catch {
+          parsedStudentId = typeof qrPayload === "string" ? qrPayload.trim() : "";
+        }
       }
-      const { studentId, userId, name, academicLevel } = verification.data;
-      const profile = await prisma.studentProfile.findUnique({
-        where: { userId },
+      const profile = await prisma.studentProfile.findFirst({
+        where: {
+          OR: [
+            ...parsedStudentId ? [{ studentIdNumber: { equals: parsedStudentId, mode: "insensitive" } }] : [],
+            ...parsedUserId ? [{ userId: parsedUserId }] : []
+          ]
+        },
         include: {
           batch: true,
           user: true
         }
       });
-      if (!profile || !profile.batchId) {
-        return sendError(res, `Student ${name} (${studentId}) is not enrolled in an active batch.`, 400);
+      if (!profile) {
+        return sendError(res, `\u09B8\u09CD\u099F\u09C1\u09A1\u09C7\u09A8\u09CD\u099F \u0986\u0987\u09A1\u09BF (${parsedStudentId || qrPayload}) \u09A6\u09BF\u09DF\u09C7 \u0995\u09CB\u09A8\u09CB \u09B6\u09BF\u0995\u09CD\u09B7\u09BE\u09B0\u09CD\u09A5\u09C0 \u09AA\u09BE\u0993\u09DF\u09BE \u09AF\u09BE\u09DF\u09A8\u09BF\u0964`, 404);
+      }
+      const name = profile.fullName || profile.user?.name || "\u09B6\u09BF\u0995\u09CD\u09B7\u09BE\u09B0\u09CD\u09A5\u09C0";
+      const studentId = profile.studentIdNumber || parsedStudentId || "RSB-26-XXX";
+      const academicLevel = profile.academicLevel || "HSC_11";
+      const userId = profile.userId;
+      let batchId = profile.batchId;
+      let batchName = profile.batch?.name || profile.batchName;
+      if (!batchId) {
+        let defaultBatch = await prisma.batch.findFirst({
+          where: { isActive: true }
+        });
+        if (!defaultBatch) {
+          defaultBatch = await prisma.batch.create({
+            data: {
+              name: "Science Master Batch",
+              academicLevel,
+              scheduleDays: "\u09B0\u09AC\u09BF-\u09AE\u0999\u09CD\u0997\u09B2-\u09AC\u09C3\u09B9\u09B8\u09CD\u09AA\u09A4\u09BF",
+              timeSlot: "\u09B8\u0995\u09BE\u09B2 \u09EE:\u09E6\u09E6 - \u09E7\u09E6:\u09E6\u09E6",
+              monthlyFee: 2e3,
+              isActive: true
+            }
+          });
+        }
+        batchId = defaultBatch.id;
+        batchName = defaultBatch.name;
+        await prisma.studentProfile.update({
+          where: { id: profile.id },
+          data: { batchId, batchName }
+        });
       }
       const todayStart = /* @__PURE__ */ new Date();
       todayStart.setHours(0, 0, 0, 0);
@@ -3670,17 +3770,17 @@ var AdminController = class {
             name,
             studentId,
             academicLevel,
-            batch: profile.batch?.name || "Science Batch",
+            batch: batchName || "Science Batch",
             avatarUrl: profile.avatarUrl
           },
           alreadyMarked: true,
-          message: `${name} (${studentId}) has already been marked PRESENT today.`
+          message: `${name} (${studentId})-\u098F\u09B0 \u0986\u099C\u0995\u09C7\u09B0 \u0989\u09AA\u09B8\u09CD\u09A5\u09BF\u09A4\u09BF \u0987\u09A4\u09BF\u09AE\u09A7\u09CD\u09AF\u09C7 \u09B0\u09C7\u0995\u09B0\u09CD\u09A1 \u0995\u09B0\u09BE \u09B9\u09DF\u09C7\u099B\u09C7\u0964`
         });
       }
       await prisma.attendance.create({
         data: {
           userId,
-          batchId: profile.batchId,
+          batchId,
           status: AttendanceStatus.PRESENT,
           scannedVia: "CAMERA_QR_SCANNER"
         }
@@ -3694,7 +3794,7 @@ var AdminController = class {
           name,
           studentId,
           academicLevel,
-          batch: profile.batch?.name || "Science Batch",
+          batch: batchName || "Science Batch",
           avatarUrl: profile.avatarUrl
         },
         feeStatus: invoice?.status || "UNPAID",

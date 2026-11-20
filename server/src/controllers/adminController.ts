@@ -231,28 +231,79 @@ export class AdminController {
       const { qrPayload } = req.body;
 
       if (!qrPayload) {
-        return sendError(res, 'QR code payload is required.');
+        return sendError(res, 'QR কোড বা স্টুডেন্ট আইডি দেওয়া আবশ্যক।', 400);
       }
 
-      // Verify cryptographic signature
+      let parsedStudentId = '';
+      let parsedUserId = '';
+
+      // 1. Try cryptographic verification
       const verification = QrService.verifyBadgePayload(qrPayload);
-      if (!verification.valid || !verification.data) {
-        return sendError(res, 'Invalid or forged QR Code! Attendance rejected.', 400);
+      if (verification.valid && verification.data) {
+        parsedStudentId = verification.data.studentId;
+        parsedUserId = verification.data.userId;
+      } else {
+        // 2. Try JSON payload parse (e.g. from simulator or scanner app)
+        try {
+          const parsed = typeof qrPayload === 'string' ? JSON.parse(qrPayload) : qrPayload;
+          parsedStudentId = parsed.studentId || parsed.studentIdNumber || '';
+          parsedUserId = parsed.userId || '';
+        } catch {
+          // 3. Raw Student ID text (e.g. "RSB-26-001")
+          parsedStudentId = typeof qrPayload === 'string' ? qrPayload.trim() : '';
+        }
       }
-
-      const { studentId, userId, name, academicLevel } = verification.data;
 
       // Find student and batch
-      const profile = await prisma.studentProfile.findUnique({
-        where: { userId },
+      const profile = await prisma.studentProfile.findFirst({
+        where: {
+          OR: [
+            ...(parsedStudentId ? [{ studentIdNumber: { equals: parsedStudentId, mode: 'insensitive' as const } }] : []),
+            ...(parsedUserId ? [{ userId: parsedUserId }] : []),
+          ],
+        },
         include: {
           batch: true,
           user: true,
         },
       });
 
-      if (!profile || !profile.batchId) {
-        return sendError(res, `Student ${name} (${studentId}) is not enrolled in an active batch.`, 400);
+      if (!profile) {
+        return sendError(res, `স্টুডেন্ট আইডি (${parsedStudentId || qrPayload}) দিয়ে কোনো শিক্ষার্থী পাওয়া যায়নি।`, 404);
+      }
+
+      const name = profile.fullName || profile.user?.name || 'শিক্ষার্থী';
+      const studentId = profile.studentIdNumber || parsedStudentId || 'RSB-26-XXX';
+      const academicLevel = profile.academicLevel || 'HSC_11';
+      const userId = profile.userId;
+
+      // Auto-assign batch if not assigned
+      let batchId = profile.batchId;
+      let batchName = profile.batch?.name || profile.batchName;
+
+      if (!batchId) {
+        let defaultBatch = await prisma.batch.findFirst({
+          where: { isActive: true },
+        });
+        if (!defaultBatch) {
+          defaultBatch = await prisma.batch.create({
+            data: {
+              name: 'Science Master Batch',
+              academicLevel,
+              scheduleDays: 'রবি-মঙ্গল-বৃহস্পতি',
+              timeSlot: 'সকাল ৮:০০ - ১০:০০',
+              monthlyFee: 2000.0,
+              isActive: true,
+            },
+          });
+        }
+        batchId = defaultBatch.id;
+        batchName = defaultBatch.name;
+
+        await prisma.studentProfile.update({
+          where: { id: profile.id },
+          data: { batchId, batchName },
+        });
       }
 
       // Check today's attendance
@@ -272,11 +323,11 @@ export class AdminController {
             name,
             studentId,
             academicLevel,
-            batch: profile.batch?.name || 'Science Batch',
+            batch: batchName || 'Science Batch',
             avatarUrl: profile.avatarUrl,
           },
           alreadyMarked: true,
-          message: `${name} (${studentId}) has already been marked PRESENT today.`,
+          message: `${name} (${studentId})-এর আজকের উপস্থিতি ইতিমধ্যে রেকর্ড করা হয়েছে।`,
         });
       }
 
@@ -284,7 +335,7 @@ export class AdminController {
       await prisma.attendance.create({
         data: {
           userId,
-          batchId: profile.batchId,
+          batchId,
           status: AttendanceStatus.PRESENT,
           scannedVia: 'CAMERA_QR_SCANNER',
         },
@@ -301,7 +352,7 @@ export class AdminController {
           name,
           studentId,
           academicLevel,
-          batch: profile.batch?.name || 'Science Batch',
+          batch: batchName || 'Science Batch',
           avatarUrl: profile.avatarUrl,
         },
         feeStatus: invoice?.status || 'UNPAID',

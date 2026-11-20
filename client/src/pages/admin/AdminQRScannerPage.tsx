@@ -79,19 +79,18 @@ export const AdminQRScannerPage: React.FC = () => {
     }, 200);
   };
 
+  const [manualId, setManualId] = useState('');
+
   // Quick Simulation Test
   const handleSimulateQuickTest = (student: any) => {
-    // Extract payload from student QR or generate standard
-    const payload = JSON.stringify({
-      studentId: student.studentIdNumber,
-      userId: student.userId,
-      name: student.user?.name,
-      academicLevel: student.academicLevel,
-      signature: 'demo_sig',
-      generatedAt: new Date().toISOString(),
-    });
+    handleProcessScan(student.studentIdNumber);
+  };
 
-    handleProcessScan(payload);
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualId.trim()) return;
+    handleProcessScan(manualId.trim());
+    setManualId('');
   };
 
   return (
@@ -118,6 +117,29 @@ export const AdminQRScannerPage: React.FC = () => {
           <Camera className="w-5 h-5" />
           <span>ক্যামেরা স্ক্যানার চালু করুন</span>
         </button>
+      </div>
+
+      {/* Manual ID Input Card */}
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <form onSubmit={handleManualSubmit} className="flex flex-col sm:flex-row gap-3 items-center">
+          <div className="relative flex-1 w-full">
+            <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+            <input
+              type="text"
+              value={manualId}
+              onChange={(e) => setManualId(e.target.value)}
+              placeholder="স্টুডেন্ট আইডি লিখুন (যেমন: RSB-26-001)"
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono font-bold"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={!manualId.trim()}
+            className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-all whitespace-nowrap"
+          >
+            উপস্থিতি মার্ক করুন ⚡
+          </button>
+        </form>
       </div>
 
       {/* Camera View Area */}

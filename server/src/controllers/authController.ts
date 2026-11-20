@@ -239,17 +239,25 @@ export class AuthController {
       }
 
       const isEmail = rawInput.includes('@');
+      const isStudentId = /^RSB/i.test(rawInput) || (rawInput.includes('-') && !isEmail);
       const normalizedEmail = isEmail ? rawInput.toLowerCase() : null;
-      const normalizedPhone = !isEmail ? rawInput.replace(/[^0-9+]/g, '') : null;
+      const normalizedPhone = (!isEmail && !isStudentId) ? rawInput.replace(/[^0-9+]/g, '') : null;
 
-      // Find user by Email OR Phone
+      // Find user by Email, Official Student ID, OR Phone
       const user = await prisma.user.findFirst({
         where: isEmail
           ? { email: { equals: normalizedEmail!, mode: 'insensitive' } }
+          : isStudentId
+          ? {
+              profile: {
+                studentIdNumber: { equals: rawInput, mode: 'insensitive' },
+              },
+            }
           : {
               OR: [
-                { phone: normalizedPhone! },
-                { profile: { studentPhone: normalizedPhone! } },
+                ...(normalizedPhone ? [{ phone: normalizedPhone }] : []),
+                ...(normalizedPhone ? [{ profile: { studentPhone: normalizedPhone } }] : []),
+                { profile: { studentIdNumber: { equals: rawInput, mode: 'insensitive' } } },
               ],
             },
         include: {
@@ -260,7 +268,7 @@ export class AuthController {
       });
 
       if (!user) {
-        return sendError(res, 'ভুল ইমেইল/ফোন অথবা পাসওয়ার্ড।', 401);
+        return sendError(res, 'ভুল ইমেইল/ফোন/স্টুডেন্ট আইডি অথবা পাসওয়ার্ড।', 401);
       }
 
       if (user.status === UserStatus.SUSPENDED) {
@@ -330,6 +338,42 @@ export class AuthController {
 
       const activeSessions = await SessionService.getUserSessions(user.id);
 
+      // Auto-heal student profile if studentIdNumber or QR code is missing
+      let effectiveProfile = user.profile;
+      if (user.role === Role.STUDENT) {
+        if (!effectiveProfile) {
+          const currentYearShort = new Date().getFullYear().toString().slice(-2);
+          const studentCount = await prisma.studentProfile.count();
+          const studentIdNumber = `RSB-${currentYearShort}-${(studentCount + 1).toString().padStart(3, '0')}`;
+          const qrPayload = QrService.generateBadgePayload(studentIdNumber, user.id, user.name, 'HSC_11');
+          const qrCodeDataUrl = await QrService.generateQrDataUrl(qrPayload);
+          effectiveProfile = await prisma.studentProfile.create({
+            data: {
+              userId: user.id,
+              studentIdNumber,
+              academicLevel: 'HSC_11',
+              fullName: user.name,
+              qrCodeDataUrl,
+              isCompleted: false,
+              isProfileComplete: false,
+              verificationStatus: 'UNVERIFIED',
+            },
+            include: { batch: true },
+          });
+        } else if (!effectiveProfile.studentIdNumber || !effectiveProfile.qrCodeDataUrl) {
+          const currentYearShort = new Date().getFullYear().toString().slice(-2);
+          const studentCount = await prisma.studentProfile.count();
+          const studentIdNumber = effectiveProfile.studentIdNumber || `RSB-${currentYearShort}-${(studentCount + 1).toString().padStart(3, '0')}`;
+          const qrPayload = QrService.generateBadgePayload(studentIdNumber, user.id, effectiveProfile.fullName || user.name, effectiveProfile.academicLevel || 'HSC_11');
+          const qrCodeDataUrl = effectiveProfile.qrCodeDataUrl || (await QrService.generateQrDataUrl(qrPayload));
+          effectiveProfile = await prisma.studentProfile.update({
+            where: { id: effectiveProfile.id },
+            data: { studentIdNumber, qrCodeDataUrl },
+            include: { batch: true },
+          });
+        }
+      }
+
       return sendSuccess(
         res,
         {
@@ -340,7 +384,7 @@ export class AuthController {
             name: user.name,
             role: user.role,
           },
-          profile: user.profile,
+          profile: effectiveProfile,
           tokens: {
             accessToken,
             refreshToken,
@@ -643,8 +687,24 @@ export class AuthController {
 
         user = { ...user, profile };
       } else {
-        // If profile exists, sync avatar from Google if not set
-        if (googleAvatar && !user.profile.avatarUrl) {
+        // Ensure studentIdNumber and qrCodeDataUrl are present, and sync Google avatar
+        if (!user.profile.studentIdNumber || !user.profile.qrCodeDataUrl) {
+          const currentYearShort = new Date().getFullYear().toString().slice(-2);
+          const studentCount = await prisma.studentProfile.count();
+          const studentIdNumber = user.profile.studentIdNumber || `RSB-${currentYearShort}-${(studentCount + 1).toString().padStart(3, '0')}`;
+          const qrPayload = QrService.generateBadgePayload(studentIdNumber, user.id, user.profile.fullName || googleName, user.profile.academicLevel || classLevel);
+          const qrCodeDataUrl = user.profile.qrCodeDataUrl || (await QrService.generateQrDataUrl(qrPayload));
+          const updatedProfile = await prisma.studentProfile.update({
+            where: { id: user.profile.id },
+            data: {
+              studentIdNumber,
+              qrCodeDataUrl,
+              ...(googleAvatar && !user.profile.avatarUrl ? { avatarUrl: googleAvatar } : {}),
+            },
+            include: { batch: true },
+          });
+          user = { ...user, profile: updatedProfile };
+        } else if (googleAvatar && !user.profile.avatarUrl) {
           const updatedProfile = await prisma.studentProfile.update({
             where: { id: user.profile.id },
             data: { avatarUrl: googleAvatar },

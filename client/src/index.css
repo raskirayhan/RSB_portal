@@ -65,3 +65,27 @@
   margin: 0 auto !important;
 }
 
+/* Official Student ID Card Print Styles */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #student-id-card,
+  #student-id-card * {
+    visibility: visible !important;
+  }
+  #student-id-card {
+    position: fixed !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 360px !important;
+    max-width: 90vw !important;
+    margin: 0 auto !important;
+    box-shadow: none !important;
+    border: 2px solid #2563eb !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+

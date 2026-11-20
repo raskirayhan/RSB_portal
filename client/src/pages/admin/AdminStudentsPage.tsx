@@ -113,8 +113,8 @@ export const AdminStudentsPage: React.FC = () => {
 
   const filtered = students.filter((s) => {
     const matchesSearch =
-      s.user?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.studentIdNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (s.user?.name || s.fullName || '')?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (s.studentIdNumber || '')?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.institutionName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.studentPhone?.includes(searchQuery) ||
       s.guardianPhone?.includes(searchQuery);
