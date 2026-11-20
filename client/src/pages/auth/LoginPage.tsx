@@ -111,11 +111,6 @@ export const LoginPage: React.FC = () => {
     setError('Google সাইন-ইন বাতিল করা হয়েছে বা পপআপ বন্ধ করা হয়েছে।');
   };
 
-  const handleFacebookAuth = () => {
-    playPop();
-    setError('Facebook লগইন বর্তমানে রক্ষণাবেক্ষণে আছে। অনুগ্রহ করে Google অ্যাকাউন্ট দিয়ে সাইন-ইন করুন।');
-  };
-
   return (
     <div className="min-h-[85vh] bg-slate-50 dark:bg-slate-950 flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8 transition-colors">
       <div className="max-w-md w-full space-y-5 bg-white dark:bg-slate-900 p-5 sm:p-10 rounded-3xl shadow-xl border border-slate-200/80 dark:border-slate-800 transition-all">
@@ -227,32 +222,17 @@ export const LoginPage: React.FC = () => {
           <div className="flex-grow border-t border-slate-200 dark:border-slate-800" />
         </div>
 
-        {/* Real Google OAuth & Social Auth Buttons */}
-        <div className="space-y-2.5">
-          <div className="w-full flex justify-center [&>div]:w-full [&>div>iframe]:w-full">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={handleGoogleError}
-              theme="outline"
-              size="large"
-              text="continue_with"
-              shape="pill"
-              width="100%"
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={handleFacebookAuth}
-            disabled={loading}
-            className="w-full flex items-center justify-center space-x-3 py-2.5 px-4 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold shadow-xs transition-all active:scale-98"
-          >
-            {/* Facebook Blue SVG */}
-            <svg className="w-4 h-4 flex-shrink-0" fill="#1877F2" viewBox="0 0 24 24">
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-            </svg>
-            <span>Continue with Facebook</span>
-          </button>
+        {/* Real Google OAuth Button */}
+        <div className="w-full flex justify-center [&>div]:w-full [&>div>iframe]:w-full">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            theme="outline"
+            size="large"
+            text="continue_with"
+            shape="pill"
+            width="100%"
+          />
         </div>
 
         {/* Bottom Register CTA */}
