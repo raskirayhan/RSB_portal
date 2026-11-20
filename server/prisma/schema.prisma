@@ -97,6 +97,7 @@ model User {
   gameScores      GameScore[]
   badges          UserBadge[]
   championshipAttempts ChampionshipAttempt[]
+  hscIctAttempts  HscIctExamAttempt[]
 }
 
 model DeviceSession {
@@ -335,4 +336,56 @@ model ChampionshipAttempt {
 
   @@unique([userId, sessionId])
   @@index([sessionId, score, timeTakenSec])
+}
+
+model HscIctQuestion {
+  id           String                  @id @default(uuid())
+  chapter      Int                     // 1 to 6
+  chapterTitle String                  // e.g. "অধ্যায় ১: বিশ্ব ও বাংলাদেশ প্রেক্ষিত", "অধ্যায় ৪: ওয়েব ডিজাইন ও HTML"
+  topic        String?
+  questionText String                  @db.Text
+  options      Json                    // Array of 4 strings
+  correctIndex Int                     // 0, 1, 2, 3
+  explanation  String?                 @db.Text
+  boardYear    String?                 // e.g. "ঢাকা বোর্ড ২০২৩", "সকল বোর্ড ২০১৮"
+  createdAt    DateTime                @default(now())
+
+  attempts     HscIctAttemptQuestion[]
+
+  @@index([chapter])
+}
+
+model HscIctExamAttempt {
+  id                String                  @id @default(uuid())
+  userId            String
+  user              User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionCount     Int                     // 30 or 40
+  chapterFilter     String                  @default("ALL") // "ALL", "1", "2", "4", "6", etc.
+  score             Int                     // number of correct answers
+  accuracy          Float                   // (score / questionCount) * 100
+  timeTakenSec      Int                     // seconds taken
+  tabSwitches       Int                     @default(0)
+  xpEarned          Int                     @default(0)
+  gemsEarned        Int                     @default(0)
+  answers           Json                    // { [qId]: selectedIndex }
+  questionsSnapshot Json                    // full snapshot of questions with answers & explanations for review
+  completedAt       DateTime                @default(now())
+
+  attemptQuestions  HscIctAttemptQuestion[]
+
+  @@index([userId, completedAt])
+  @@index([score, accuracy, timeTakenSec])
+}
+
+model HscIctAttemptQuestion {
+  id         String             @id @default(uuid())
+  attemptId  String
+  attempt    HscIctExamAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId String
+  question   HscIctQuestion     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  userId     String
+  isCorrect  Boolean            @default(false)
+
+  @@index([userId, questionId])
+  @@index([attemptId])
 }

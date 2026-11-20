@@ -7,6 +7,8 @@ import { playSuccessChime, playPop, playFanfare } from '../../utils/soundFX';
 import confetti from 'canvas-confetti';
 import { ChampionSpotlightLeaderboard, type ChampionData } from '../../components/ChampionSpotlightLeaderboard';
 import { ChampionshipLiveArena } from '../../components/ChampionshipLiveArena';
+import { HscIctExamArena } from '../../components/HscIctExamArena';
+import { HscIctLeaderboard } from '../../components/HscIctLeaderboard';
 import {
   Gamepad2,
   Trophy,
@@ -32,6 +34,33 @@ import {
 
 export const GamesPage: React.FC = () => {
   const { user, profile, updateProfileState } = useAuth();
+
+  // Automatic Class-Based Role/Portal Detection:
+  // SSC (SSC_9, SSC_10, SSC_2026, CLASS_8) -> SSC Science Portal
+  // HSC (HSC_11, HSC_12, HSC_2026, HSC_2027) -> HSC ICT Exam Arena
+  const isHscStudent = Boolean(
+    profile?.academicLevel?.toUpperCase().includes('HSC') ||
+    profile?.academicLevel === 'HSC_11' ||
+    profile?.academicLevel === 'HSC_12'
+  );
+
+  const [portalMode, setPortalMode] = useState<'SSC_SCIENCE' | 'HSC_ICT'>(() => {
+    return isHscStudent ? 'HSC_ICT' : 'SSC_SCIENCE';
+  });
+
+  const [hscTab, setHscTab] = useState<'EXAM' | 'LEADERBOARD'>('EXAM');
+
+  // Sync portal mode with academicLevel if user profile updates
+  useEffect(() => {
+    if (profile?.academicLevel) {
+      if (isHscStudent) {
+        setPortalMode('HSC_ICT');
+      } else {
+        setPortalMode('SSC_SCIENCE');
+      }
+    }
+  }, [profile?.academicLevel, isHscStudent]);
+
   const [activeTab, setActiveTab] = useState<'CHAMPIONSHIP' | 'GAMES' | 'LEADERBOARD' | 'BADGES' | 'PERKS'>('CHAMPIONSHIP');
   const [selectedGame, setSelectedGame] = useState<'PERIODIC' | 'FORMULA' | 'MATH' | 'MCQ'>('PERIODIC');
 
@@ -190,18 +219,78 @@ export const GamesPage: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-fade-in max-w-5xl mx-auto">
+      {/* 🚀 Automatic Class-Based Role/Portal Switcher */}
+      <div className="bg-slate-900 border border-slate-800 p-2.5 rounded-3xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => {
+              playPop();
+              setPortalMode('SSC_SCIENCE');
+            }}
+            className={`flex-1 sm:flex-initial px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+              portalMode === 'SSC_SCIENCE'
+                ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-lg shadow-amber-500/20 font-black'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+          >
+            <Atom className="w-4 h-4 text-emerald-500" />
+            <span>🔬 এসএসসি সায়েন্স পোর্টাল</span>
+            {!isHscStudent && (
+              <span className="text-[10px] bg-slate-950/20 text-slate-900 px-2 py-0.5 rounded-full font-black">
+                আপনার ক্লাস
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              playPop();
+              setPortalMode('HSC_ICT');
+            }}
+            className={`flex-1 sm:flex-initial px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+              portalMode === 'HSC_ICT'
+                ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 text-white shadow-lg shadow-blue-500/20 font-black'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+          >
+            <Binary className="w-4 h-4 text-cyan-300" />
+            <span>💻 এইচএসসি আইসিটি এরিনা</span>
+            {isHscStudent && (
+              <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-black">
+                আপনার ক্লাস
+              </span>
+            )}
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-slate-400 px-3 py-1 bg-slate-800/60 rounded-xl border border-slate-700/50">
+          <span>অটো-ডিটেক্টেড শ্রেণি:</span>
+          <span className="text-white font-extrabold uppercase tracking-wide">
+            {profile?.academicLevel ? profile.academicLevel.replace('_', ' ') : 'এসএসসি / এইচএসসি'}
+          </span>
+        </div>
+      </div>
+
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white p-6 sm:p-8 rounded-3xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border border-purple-500/20">
         <div className="space-y-2">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/30 text-purple-200 text-xs font-bold">
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>গ্যামিফাইড সায়েন্স লার্নিং হাব</span>
+            <span>
+              {portalMode === 'HSC_ICT' ? 'এইচএসসি আইসিটি মাস্টার হাব' : 'এসএসসি সায়েন্স গ্যামিফাইড লার্নিং হাব'}
+            </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            ইন-অ্যাপ সায়েন্স গেমস ও রিওয়ার্ড এরিনা
+            {portalMode === 'HSC_ICT'
+              ? 'এইচএসসি আইসিটি ডাইনামিক এক্সাম ও প্র্যাকটিস এরিনা'
+              : 'ইন-অ্যাপ সায়েন্স গেমস ও রিওয়ার্ড এরিনা'}
           </h1>
           <p className="text-xs sm:text-sm text-purple-200 max-w-xl">
-            পড়াশোনার একঘেয়েমি দূর করতে ব্রেইন গেম খেলুন! প্রতিদিন লগইন করলেই পাবেন <strong>💎 ২ Gems</strong> এবং অন-টাইম ২৪-ঘণ্টা পরীক্ষা দিলে পাবেন <strong>💎 ৩ Gems</strong>!
+            {portalMode === 'HSC_ICT'
+              ? 'বোর্ড স্ট্যান্ডার্ড আনলিমিটেড ৩০ বা ৪০ MCQ টেস্ট দিন। প্রতিদিন লগইন করলে 💎 ২ Gems এবং প্রতিটি পরীক্ষা সফলভাবে সম্পন্ন করলে পাবেন 💎 ৩ Gems!'
+              : 'পড়াশোনার একঘেয়েমি দূর করতে ব্রেইন গেম খেলুন! প্রতিদিন লগইন করলেই পাবেন 💎 ২ Gems এবং অন-টাইম ২৪-ঘণ্টা পরীক্ষা দিলে পাবেন 💎 ৩ Gems!'}
           </p>
         </div>
 
@@ -233,87 +322,146 @@ export const GamesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 👑 #1 Champion Hero Card (Today's 24-Hour Science Champion) */}
-      <ChampionSpotlightLeaderboard
-        champion={champData.champion}
-        podium={[]}
-        rankings={[]}
-        sessionTitle={champData.sessionTitle}
-        expiresAt={champData.expiresAt}
-        totalParticipants={champData.totalParticipants}
-      />
+      {portalMode === 'HSC_ICT' ? (
+        /* ========================================================
+           PORTAL 1: HSC ICT UNLIMITED DYNAMIC EXAM ENGINE & ARENA
+           ======================================================== */
+        <div className="space-y-6">
+          <div className="flex items-center space-x-2 border-b border-slate-800 pb-2 overflow-x-auto">
+            <button
+              onClick={() => {
+                playPop();
+                setHscTab('EXAM');
+              }}
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+                hscTab === 'EXAM'
+                  ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 text-white shadow-md font-black'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Binary className="w-4 h-4" />
+              <span>ডাইনামিক আইসিটি এক্সাম এরিনা (৩০ / ৪০ MCQ)</span>
+            </button>
 
-      {/* Navigation Tabs */}
-      <div className="flex items-center space-x-2 border-b border-slate-200 pb-2 overflow-x-auto">
-        <button
-          onClick={() => setActiveTab('CHAMPIONSHIP')}
-          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
-            activeTab === 'CHAMPIONSHIP'
-              ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-md shadow-amber-500/20 font-black'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-          }`}
-        >
-          <Crown className="w-4 h-4 text-amber-900 fill-amber-900" />
-          <span>২৪-ঘণ্টা লাইভ চ্যাম্পিয়নশিপ</span>
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-          </span>
-        </button>
+            <button
+              onClick={() => {
+                playPop();
+                setHscTab('LEADERBOARD');
+              }}
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+                hscTab === 'LEADERBOARD'
+                  ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 text-white shadow-md font-black'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              <Trophy className="w-4 h-4 text-amber-400" />
+              <span>আইসিটি টপ পারফর্মার লিডারবোর্ড ও হিস্ট্রি</span>
+            </button>
+          </div>
 
-        <button
-          onClick={() => setActiveTab('GAMES')}
-          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
-            activeTab === 'GAMES'
-              ? 'bg-purple-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-          }`}
-        >
-          <Gamepad2 className="w-4 h-4" />
-          <span>আনলিমিটেড প্র্যাকটিস গেমস (৪টি)</span>
-        </button>
+          {hscTab === 'EXAM' ? (
+            <HscIctExamArena
+              userId={user?.id}
+              onViewLeaderboard={() => {
+                playPop();
+                setHscTab('LEADERBOARD');
+              }}
+            />
+          ) : (
+            <HscIctLeaderboard
+              onStartExamClick={() => {
+                playPop();
+                setHscTab('EXAM');
+              }}
+            />
+          )}
+        </div>
+      ) : (
+        /* ========================================================
+           PORTAL 2: SSC SCIENCE 24-HOUR LIVE ARENA & MINI GAMES
+           ======================================================== */
+        <>
+          {/* 👑 #1 Champion Hero Card (Today's 24-Hour Science Champion) */}
+          <ChampionSpotlightLeaderboard
+            champion={champData.champion}
+            podium={[]}
+            rankings={[]}
+            sessionTitle={champData.sessionTitle}
+            expiresAt={champData.expiresAt}
+            totalParticipants={champData.totalParticipants}
+          />
 
-        <button
-          onClick={() => setActiveTab('LEADERBOARD')}
-          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
-            activeTab === 'LEADERBOARD'
-              ? 'bg-purple-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-          }`}
-        >
-          <Trophy className="w-4 h-4" />
-          <span>লাইভ লিডারবোর্ড ও র‍্যাঙ্কিং</span>
-        </button>
+          {/* Navigation Tabs */}
+          <div className="flex items-center space-x-2 border-b border-slate-200 pb-2 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab('CHAMPIONSHIP')}
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+                activeTab === 'CHAMPIONSHIP'
+                  ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-md shadow-amber-500/20 font-black'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Crown className="w-4 h-4 text-amber-900 fill-amber-900" />
+              <span>২৪-ঘণ্টা লাইভ চ্যাম্পিয়নশিপ</span>
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+              </span>
+            </button>
 
-        <button
-          onClick={() => setActiveTab('BADGES')}
-          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
-            activeTab === 'BADGES'
-              ? 'bg-purple-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-          }`}
-        >
-          <Award className="w-4 h-4" />
-          <span>ডিজিটাল ব্যাজ ({badges.length})</span>
-        </button>
+            <button
+              onClick={() => setActiveTab('GAMES')}
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+                activeTab === 'GAMES'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Gamepad2 className="w-4 h-4" />
+              <span>আনলিমিটেড প্র্যাকটিস গেমস (৪টি)</span>
+            </button>
 
-        <button
-          onClick={() => setActiveTab('PERKS')}
-          className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
-            activeTab === 'PERKS'
-              ? 'bg-gradient-to-r from-purple-600 to-cyan-600 text-white shadow-sm'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-          }`}
-        >
-          <Gem className="w-4 h-4 text-cyan-400" />
-          <span>রত্ন সুবিধা (Gems Perks)</span>
-        </button>
-      </div>
+            <button
+              onClick={() => setActiveTab('LEADERBOARD')}
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+                activeTab === 'LEADERBOARD'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Trophy className="w-4 h-4" />
+              <span>লাইভ লিডারবোর্ড ও র‍্যাঙ্কিং</span>
+            </button>
 
-      {/* Tab: Mode B — 24-Hour Live 25-MCQ Championship Arena */}
-      {activeTab === 'CHAMPIONSHIP' && (
-        <ChampionshipLiveArena onAttemptCompleted={loadChampionshipData} />
-      )}
+            <button
+              onClick={() => setActiveTab('BADGES')}
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+                activeTab === 'BADGES'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Award className="w-4 h-4" />
+              <span>ডিজিটাল ব্যাজ ({badges.length})</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('PERKS')}
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+                activeTab === 'PERKS'
+                  ? 'bg-gradient-to-r from-purple-600 to-cyan-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Gem className="w-4 h-4 text-cyan-400" />
+              <span>রত্ন সুবিধা (Gems Perks)</span>
+            </button>
+          </div>
+
+          {/* Tab: Mode B — 24-Hour Live 25-MCQ Championship Arena */}
+          {activeTab === 'CHAMPIONSHIP' && (
+            <ChampionshipLiveArena onAttemptCompleted={loadChampionshipData} />
+          )}
 
       {/* Tab 1: Games Hub */}
       {activeTab === 'GAMES' && (
@@ -660,6 +808,8 @@ export const GamesPage: React.FC = () => {
           </div>
         </div>
       )}
+      </>
+    )}
 
       {/* Game Victory & Rewards Modal */}
       <GameVictoryModal

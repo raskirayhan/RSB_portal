@@ -7,6 +7,7 @@ import gameRoutes from './gameRoutes.js';
 import feedbackRoutes from './feedbackRoutes.js';
 import adminRoutes from './adminRoutes.js';
 import publicRoutes from './publicRoutes.js';
+import hscIctRoutes from './hscIctRoutes.js';
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use('/billing', billingRoutes);
 router.use('/games', gameRoutes);
 router.use('/feedback', feedbackRoutes);
 router.use('/admin', adminRoutes);
+router.use('/hsc-ict', hscIctRoutes);
 
 export default router;
