@@ -55,11 +55,11 @@ export const NctbBooksSection: React.FC<NctbBooksSectionProps> = ({ initialLevel
       </div>
 
       {/* Filter Tabs and Search Bar */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-3">
-        <div className="flex items-center space-x-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 w-full sm:w-auto overflow-x-auto">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div className="flex items-center space-x-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 w-full md:w-auto overflow-x-auto no-scrollbar pb-1">
           <button
             onClick={() => { playPop(); setActiveTab('ALL'); }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
               activeTab === 'ALL'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
@@ -70,7 +70,7 @@ export const NctbBooksSection: React.FC<NctbBooksSectionProps> = ({ initialLevel
 
           <button
             onClick={() => { playPop(); setActiveTab('CLASS_8'); }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
               activeTab === 'CLASS_8'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
@@ -81,7 +81,7 @@ export const NctbBooksSection: React.FC<NctbBooksSectionProps> = ({ initialLevel
 
           <button
             onClick={() => { playPop(); setActiveTab('SSC'); }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
               activeTab === 'SSC'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
@@ -92,7 +92,7 @@ export const NctbBooksSection: React.FC<NctbBooksSectionProps> = ({ initialLevel
 
           <button
             onClick={() => { playPop(); setActiveTab('HSC'); }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
               activeTab === 'HSC'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
@@ -103,7 +103,7 @@ export const NctbBooksSection: React.FC<NctbBooksSectionProps> = ({ initialLevel
         </div>
 
         {/* Search Input */}
-        <div className="relative w-full sm:w-72">
+        <div className="relative w-full md:w-72">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
           <input
             type="text"

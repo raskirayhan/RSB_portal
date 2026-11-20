@@ -46,15 +46,15 @@ export const StudentLayout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors">
       <Navbar />
 
       {/* Profile Incomplete Banner */}
       {profile && !profile.isCompleted && (
-        <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-4 py-2.5 shadow-sm text-sm">
+        <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white px-4 py-2.5 shadow-sm text-xs sm:text-sm">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div className="flex items-center space-x-2">
-              <AlertTriangle className="w-5 h-5 flex-shrink-0 animate-bounce" />
+            <div className="flex items-center space-x-2 text-center sm:text-left">
+              <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 animate-bounce" />
               <span className="font-medium">
                 আপনার প্রোফাইল এখনও ১০০% সম্পন্ন হয়নি! স্টাডি ভল্ট নোটস ডাউনলোড ও ফুল অ্যাক্সেস পেতে প্রোফাইল ফর্মটি পূরণ করুন।
               </span>
@@ -70,38 +70,38 @@ export const StudentLayout: React.FC = () => {
       )}
 
       {/* Student Top Bar: Streak, XP & Batch */}
-      <div className="bg-white border-b border-slate-200 py-3 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center space-x-3">
-            <h2 className="text-lg font-bold text-slate-800">
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 py-3 shadow-xs">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white truncate">
               স্বাগতম, {user.name} 👋
             </h2>
-            <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-blue-100 text-blue-800">
+            <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 rounded-full font-bold bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300">
               {profile?.studentIdNumber || 'ID Pending'}
             </span>
-            <span className="hidden sm:inline-block text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600">
+            <span className="hidden md:inline-block text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
               {profile?.batch?.name || profile?.academicLevel || 'Science Batch'}
             </span>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Daily Streak */}
-            <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold">
-              <Flame className="w-4 h-4 text-amber-500 fill-amber-500 animate-pulse" />
-              <span>{profile?.currentStreak || 1} Days Streak</span>
+            <div className="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-700 dark:text-amber-300 text-[11px] sm:text-xs font-bold">
+              <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500 animate-pulse" />
+              <span>{profile?.currentStreak || 1} Days</span>
             </div>
 
             {/* Total XP */}
-            <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-xs font-bold">
-              <Award className="w-4 h-4 text-purple-600" />
+            <div className="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/60 text-purple-700 dark:text-purple-300 text-[11px] sm:text-xs font-bold">
+              <Award className="w-3.5 h-3.5 text-purple-600" />
               <span>{profile?.totalXp || 0} XP</span>
             </div>
           </div>
         </div>
 
-        {/* Secondary Navigation Pills */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-3 overflow-x-auto">
-          <div className="flex items-center space-x-2 pb-1 text-sm whitespace-nowrap">
+        {/* Secondary Navigation Pills - Scrollable with no scrollbar */}
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 mt-2.5 sm:mt-3 overflow-x-auto no-scrollbar">
+          <div className="flex items-center space-x-1.5 sm:space-x-2 pb-1 text-xs sm:text-sm whitespace-nowrap">
             {navLinks.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.to;
@@ -109,13 +109,13 @@ export const StudentLayout: React.FC = () => {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg font-medium transition-all ${
+                  className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-3.5 py-1.5 rounded-xl font-medium transition-all ${
                     isActive
                       ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -124,7 +124,7 @@ export const StudentLayout: React.FC = () => {
         </div>
       </div>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         <Outlet />
       </main>
 

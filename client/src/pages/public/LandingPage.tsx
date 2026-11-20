@@ -242,28 +242,28 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       {/* SECTION 1: GLASS NAVBAR & HERO (Light Lavender/White Theme) */}
       {/* ========================================================= */}
-      <section className="relative overflow-hidden pt-12 pb-24 lg:pt-20 lg:pb-32 bg-gradient-to-b from-indigo-50/70 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 border-b border-slate-100 dark:border-slate-800/80">
-        {/* Glow orbs */}
-        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[650px] h-[350px] bg-gradient-to-tr from-blue-400/15 via-indigo-400/20 to-purple-400/15 rounded-full blur-3xl pointer-events-none" />
+      <section className="relative overflow-hidden pt-8 pb-20 sm:pt-16 sm:pb-28 lg:pt-20 lg:pb-32 bg-gradient-to-b from-indigo-50/70 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 border-b border-slate-100 dark:border-slate-800/80">
+        {/* Glow orbs - clamped on mobile */}
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[90vw] max-w-[650px] h-[250px] sm:h-[350px] bg-gradient-to-tr from-blue-400/15 via-indigo-400/20 to-purple-400/15 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center">
             {/* Left Column: Headline & CTAs */}
-            <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+            <div className="lg:col-span-7 space-y-5 sm:space-y-6 text-center lg:text-left">
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-blue-100/90 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 text-xs font-black tracking-wide"
+                className="inline-flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-blue-100/90 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 text-[10px] sm:text-xs font-black tracking-wide max-w-full text-center leading-normal"
               >
-                <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                <span>CLASS 8 (JSC), SSC & HSC 2026-2027 SCIENCE BATCH • KHULNA & BAGERHAT</span>
+                <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                <span className="truncate sm:overflow-visible">CLASS 8, SSC & HSC 2026-2027 • KHULNA & BAGERHAT</span>
               </motion.div>
 
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]"
+                className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.15]"
               >
                 Master Science (Class 8, SSC & HSC) with{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
@@ -276,7 +276,7 @@ export const LandingPage: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-medium"
+                className="text-sm sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-medium"
               >
                 ইন্টারেক্টিভ ৩ মিনিটের কনসেপ্ট লেসন, অ্যান্টি-লিক ওয়াটারমার্কড নোটস, মান্থলি গার্ডিয়ান প্রগ্রেস ট্র্যাকিং এবং ব্রেন গেমস—খুলনা ও বাগেরহাটের বিজ্ঞান শিক্ষার্থীদের জন্য পূর্ণাঙ্গ একাডেমিক সাপোর্ট।
               </motion.p>
@@ -286,18 +286,18 @@ export const LandingPage: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2"
+                className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3 pt-1 sm:pt-2"
               >
                 <Link
                   to="/register"
-                  className="w-full sm:w-auto px-8 py-4 rounded-2xl font-black text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl shadow-blue-500/25 hover:shadow-2xl hover:scale-[1.02] transition-all flex items-center justify-center space-x-2 text-sm sm:text-base"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl font-black text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl shadow-blue-500/25 hover:shadow-2xl hover:scale-[1.02] transition-all flex items-center justify-center space-x-2 text-sm sm:text-base text-center"
                 >
                   <span>Join the Batch 🚀</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <a
                   href="#demo-classes"
-                  className="w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-slate-800 dark:text-slate-200 bg-white/90 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 shadow-sm transition-all flex items-center justify-center space-x-2 text-sm sm:text-base backdrop-blur-md"
+                  className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl font-bold text-slate-800 dark:text-slate-200 bg-white/90 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 shadow-sm transition-all flex items-center justify-center space-x-2 text-sm sm:text-base backdrop-blur-md text-center"
                 >
                   <Play className="w-4 h-4 text-blue-600 fill-blue-600" />
                   <span>Watch 3-Min Demo ▶️</span>
@@ -305,30 +305,30 @@ export const LandingPage: React.FC = () => {
               </motion.div>
 
               {/* Batch Location Pill */}
-              <div className="flex items-center justify-center lg:justify-start space-x-2 text-xs text-slate-500 dark:text-slate-400 pt-1 font-medium">
-                <MapPin className="w-3.5 h-3.5 text-rose-500" />
+              <div className="flex items-center justify-center lg:justify-start space-x-2 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 pt-1 font-medium">
+                <MapPin className="w-3.5 h-3.5 text-rose-500 flex-shrink-0" />
                 <span>অফলাইন প্রাইভেট ব্যাচ: খুলনা ও বাগেরহাট • সাথে ২৪/৭ স্মার্ট পোর্টাল ব্যাকআপ</span>
               </div>
             </div>
 
             {/* Right Column: Centerpiece Visual Card with Floating Badges */}
-            <div className="lg:col-span-5 relative">
+            <div className="lg:col-span-5 relative w-full">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.2 }}
-                className="relative mx-auto max-w-sm sm:max-w-md bg-white/80 dark:bg-slate-900/80 rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 backdrop-blur-xl"
+                className="relative mx-auto w-full max-w-sm sm:max-w-md bg-white/80 dark:bg-slate-900/80 rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-7 backdrop-blur-xl"
               >
                 {/* Header Profile Badge */}
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white font-black text-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <div className="flex items-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white font-black text-xl sm:text-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 flex-shrink-0">
                     RR
                   </div>
-                  <div>
-                    <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight">
+                  <div className="min-w-0">
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight truncate">
                       শেখ রাসকি রায়হান
                     </h3>
-                    <p className="text-xs font-bold text-blue-600 dark:text-blue-400">
+                    <p className="text-xs font-bold text-blue-600 dark:text-blue-400 truncate">
                       CSE Engineer & Science Educator
                     </p>
                     <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
@@ -338,58 +338,58 @@ export const LandingPage: React.FC = () => {
                 </div>
 
                 {/* Floating Badges */}
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/60 text-xs font-bold text-blue-900 dark:text-blue-200">
-                    <span className="flex items-center space-x-2">
-                      <Atom className="w-4 h-4 text-blue-600" />
-                      <span>Physics (Mechanics & Waves)</span>
+                <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+                  <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/60 text-[11px] sm:text-xs font-bold text-blue-900 dark:text-blue-200">
+                    <span className="flex items-center space-x-2 truncate">
+                      <Atom className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                      <span className="truncate">Physics (Mechanics & Waves)</span>
                     </span>
-                    <span className="text-[10px] bg-blue-200/70 dark:bg-blue-900 px-2 py-0.5 rounded-full font-mono">
+                    <span className="text-[9px] sm:text-[10px] bg-blue-200/70 dark:bg-blue-900 px-2 py-0.5 rounded-full font-mono flex-shrink-0 ml-1">
                       CORE
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/60 text-xs font-bold text-emerald-900 dark:text-emerald-200">
-                    <span className="flex items-center space-x-2">
-                      <Flame className="w-4 h-4 text-emerald-600" />
-                      <span>Chemistry (Organic & Periodic)</span>
+                  <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/60 text-[11px] sm:text-xs font-bold text-emerald-900 dark:text-emerald-200">
+                    <span className="flex items-center space-x-2 truncate">
+                      <Flame className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                      <span className="truncate">Chemistry (Organic & Periodic)</span>
                     </span>
-                    <span className="text-[10px] bg-emerald-200/70 dark:bg-emerald-900 px-2 py-0.5 rounded-full font-mono">
+                    <span className="text-[9px] sm:text-[10px] bg-emerald-200/70 dark:bg-emerald-900 px-2 py-0.5 rounded-full font-mono flex-shrink-0 ml-1">
                       CORE
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/60 text-xs font-bold text-amber-900 dark:text-amber-200">
-                    <span className="flex items-center space-x-2">
-                      <TrendingUp className="w-4 h-4 text-amber-600" />
-                      <span>Higher Math (Calculus & Vectors)</span>
+                  <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/60 text-[11px] sm:text-xs font-bold text-amber-900 dark:text-amber-200">
+                    <span className="flex items-center space-x-2 truncate">
+                      <TrendingUp className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                      <span className="truncate">Higher Math (Calculus & Vectors)</span>
                     </span>
-                    <span className="text-[10px] bg-amber-200/70 dark:bg-amber-900 px-2 py-0.5 rounded-full font-mono">
+                    <span className="text-[9px] sm:text-[10px] bg-amber-200/70 dark:bg-amber-900 px-2 py-0.5 rounded-full font-mono flex-shrink-0 ml-1">
                       CORE
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/60 text-xs font-bold text-purple-900 dark:text-purple-200">
-                    <span className="flex items-center space-x-2">
-                      <Binary className="w-4 h-4 text-purple-600" />
-                      <span>ICT (C Code & Logic Gates)</span>
+                  <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-900/60 text-[11px] sm:text-xs font-bold text-purple-900 dark:text-purple-200">
+                    <span className="flex items-center space-x-2 truncate">
+                      <Binary className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                      <span className="truncate">ICT (C Code & Logic Gates)</span>
                     </span>
-                    <span className="text-[10px] bg-purple-200/70 dark:bg-purple-900 px-2 py-0.5 rounded-full font-mono">
+                    <span className="text-[9px] sm:text-[10px] bg-purple-200/70 dark:bg-purple-900 px-2 py-0.5 rounded-full font-mono flex-shrink-0 ml-1">
                       CORE
                     </span>
                   </div>
                 </div>
 
                 {/* Target GPA 5.00 Banner */}
-                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between shadow-md">
-                  <div className="flex items-center space-x-2.5">
-                    <Award className="w-5 h-5 text-yellow-300" />
+                <div className="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between shadow-md">
+                  <div className="flex items-center space-x-2 sm:space-x-2.5">
+                    <Award className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 flex-shrink-0" />
                     <div>
                       <p className="text-xs font-extrabold">Target: Board GPA 5.00</p>
-                      <p className="text-[10px] text-blue-100">BUET & Medical Admission Foundation</p>
+                      <p className="text-[9px] sm:text-[10px] text-blue-100">BUET & Medical Admission Foundation</p>
                     </div>
                   </div>
-                  <span className="text-xs font-black bg-white/20 px-2 py-1 rounded-lg">100% Care</span>
+                  <span className="text-[10px] sm:text-xs font-black bg-white/20 px-2 py-0.5 sm:py-1 rounded-lg flex-shrink-0">100% Care</span>
                 </div>
               </motion.div>
             </div>
@@ -400,31 +400,31 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       {/* SECTION 2: TRUST & COUNTER BAR (Floating White Card)       */}
       {/* ========================================================= */}
-      <section className="-mt-10 relative z-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white/95 dark:bg-slate-900/95 rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200/80 dark:border-slate-800 backdrop-blur-xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800">
-            <div className="pt-2 md:pt-0">
-              <p className="text-3xl sm:text-4xl font-black text-blue-600 dark:text-blue-400">500+</p>
-              <p className="text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1">Students Mentored</p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">SSC & HSC Science Batches</p>
+      <section className="-mt-6 sm:-mt-10 relative z-20 max-w-6xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="bg-white/95 dark:bg-slate-900/95 rounded-3xl p-4 sm:p-8 shadow-2xl border border-slate-200/80 dark:border-slate-800 backdrop-blur-xl">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 text-center">
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 md:bg-transparent">
+              <p className="text-2xl sm:text-4xl font-black text-blue-600 dark:text-blue-400">500+</p>
+              <p className="text-[11px] sm:text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1">Students Mentored</p>
+              <p className="text-[9px] sm:text-[11px] text-slate-500 dark:text-slate-400">SSC & HSC Science Batches</p>
             </div>
 
-            <div className="pt-4 md:pt-0">
-              <p className="text-3xl sm:text-4xl font-black text-emerald-600 dark:text-emerald-400">100%</p>
-              <p className="text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1">Concept Clarity</p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">Zero Memorization Guarantee</p>
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 md:bg-transparent">
+              <p className="text-2xl sm:text-4xl font-black text-emerald-600 dark:text-emerald-400">100%</p>
+              <p className="text-[11px] sm:text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1">Concept Clarity</p>
+              <p className="text-[9px] sm:text-[11px] text-slate-500 dark:text-slate-400">Zero Memorization Guarantee</p>
             </div>
 
-            <div className="pt-4 md:pt-0">
-              <p className="text-3xl sm:text-4xl font-black text-indigo-600 dark:text-indigo-400">Smart</p>
-              <p className="text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1">Digital QR Portal</p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">Auto-ID & Attendance Scan</p>
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 md:bg-transparent">
+              <p className="text-2xl sm:text-4xl font-black text-indigo-600 dark:text-indigo-400">Smart</p>
+              <p className="text-[11px] sm:text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1">Digital QR Portal</p>
+              <p className="text-[9px] sm:text-[11px] text-slate-500 dark:text-slate-400">Auto-ID & Attendance Scan</p>
             </div>
 
-            <div className="pt-4 md:pt-0">
-              <p className="text-3xl sm:text-4xl font-black text-purple-600 dark:text-purple-400">24/7</p>
-              <p className="text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1">Doubt Support</p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">Direct WhatsApp & Portal</p>
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 md:bg-transparent">
+              <p className="text-2xl sm:text-4xl font-black text-purple-600 dark:text-purple-400">24/7</p>
+              <p className="text-[11px] sm:text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-1">Doubt Support</p>
+              <p className="text-[9px] sm:text-[11px] text-slate-500 dark:text-slate-400">Direct WhatsApp & Portal</p>
             </div>
           </div>
         </div>
@@ -615,7 +615,7 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       {/* SECTION 5: DARK EVOLUTION ROADMAP BANNER (Dark Emerald/Teal)*/}
       {/* ========================================================= */}
-      <section className="py-20 bg-gradient-to-r from-[#061a14] via-[#0d281e] to-[#082017] text-white border-y border-emerald-900/60">
+      <section className="py-16 sm:py-20 bg-gradient-to-r from-[#061a14] via-[#0d281e] to-[#082017] text-white border-y border-emerald-900/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Left Column (5 cols) */}
@@ -627,32 +627,32 @@ export const LandingPage: React.FC = () => {
                 From Board Basics to Engineering & Medical Foundation
               </h2>
               <p className="text-xs sm:text-sm text-emerald-200/80 leading-relaxed">
-                পরিকল্পিত ৪-ধাপের মাইলস্টোন যা ৯ম শ্রেণি থেকে শুরু করে বিশ্ববিদ্যালয় ভর্তি পরীক্ষা পর্যন্ত প্রতিটি সায়েন্স স্টুডেন্টকে আত্মবিশ্বাসী করে তোলে।
+                পরিকল্পিত ৪-ধাপের মাইলস্টোন যা ৮ম-৯ম শ্রেণি থেকে শুরু করে বিশ্ববিদ্যালয় ভর্তি পরীক্ষা পর্যন্ত প্রতিটি সায়েন্স স্টুডেন্টকে আত্মবিশ্বাসী করে তোলে।
               </p>
             </div>
 
             {/* Right Column: Connected Node Graph (7 cols) */}
             <div className="lg:col-span-7">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-4 rounded-2xl bg-emerald-900/30 border border-emerald-500/30 text-center space-y-1.5 backdrop-blur-md">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-900/30 border border-emerald-500/30 text-center space-y-1.5 backdrop-blur-md">
                   <span className="text-[10px] font-mono text-emerald-400 font-bold">STEP 01</span>
-                  <h4 className="text-xs font-black text-white">Class 9-10 Foundation</h4>
+                  <h4 className="text-xs font-black text-white">Class 8-10 Foundation</h4>
                   <p className="text-[10px] text-emerald-300/70">মৌলিক ধারণা ও বোর্ডের সৃজনশীল সমাধান</p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-emerald-900/40 border border-emerald-500/40 text-center space-y-1.5 backdrop-blur-md">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-900/40 border border-emerald-500/40 text-center space-y-1.5 backdrop-blur-md">
                   <span className="text-[10px] font-mono text-emerald-400 font-bold">STEP 02</span>
                   <h4 className="text-xs font-black text-white">HSC Core Concepts</h4>
                   <p className="text-[10px] text-emerald-300/70">গাণিতিক বিশ্লেষণ ও জটিল সূত্রের ব্যুৎপত্তি</p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-emerald-900/50 border border-emerald-400/60 text-center space-y-1.5 shadow-lg shadow-emerald-500/20 backdrop-blur-md">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-emerald-900/50 border border-emerald-400/60 text-center space-y-1.5 shadow-lg shadow-emerald-500/20 backdrop-blur-md">
                   <span className="text-[10px] font-mono text-emerald-300 font-bold">STEP 03</span>
                   <h4 className="text-xs font-black text-white">Board GPA 5.00</h4>
                   <p className="text-[10px] text-emerald-200">ক্যাডেট কলেজ প্রশ্নব্যাংক ও টাইম ম্যানেজমেন্ট</p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-gradient-to-b from-emerald-600/40 to-teal-700/40 border border-emerald-300/80 text-center space-y-1.5 backdrop-blur-md">
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-b from-emerald-600/40 to-teal-700/40 border border-emerald-300/80 text-center space-y-1.5 backdrop-blur-md">
                   <span className="text-[10px] font-mono text-white font-bold">STEP 04</span>
                   <h4 className="text-xs font-black text-white">BUET / Medical / Varsity</h4>
                   <p className="text-[10px] text-emerald-100">অ্যাডভান্সড প্রবলেম সলভিং ও ভর্তি প্রস্তুতি</p>
@@ -733,21 +733,21 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Topic Filter Pills */}
-          <div className="flex items-center justify-center gap-2 mb-10 flex-wrap">
+          {/* Topic Filter Pills - horizontally scrollable without breaking on mobile */}
+          <div className="flex items-center justify-start sm:justify-center gap-2 mb-8 overflow-x-auto no-scrollbar pb-1 px-1">
             <button
               onClick={() => setVideoFilter('ALL')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                 videoFilter === 'ALL'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
                   : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 border border-white/10'
               }`}
             >
-              সব বিষয় (All Topics)
+              সব বিষয় (All)
             </button>
             <button
               onClick={() => setVideoFilter('Physics')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                 videoFilter === 'Physics'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
                   : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 border border-white/10'
@@ -757,7 +757,7 @@ export const LandingPage: React.FC = () => {
             </button>
             <button
               onClick={() => setVideoFilter('Chemistry')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
                 videoFilter === 'Chemistry'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
                   : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 border border-white/10'
@@ -768,7 +768,7 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Videos Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-16 sm:mb-20">
             {filteredVideos.map((vid: any) => (
               <div
                 key={vid.id}
@@ -814,7 +814,7 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Reviews Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {reviews.map((rev, i) => (
               <div
                 key={i}
@@ -934,16 +934,17 @@ export const LandingPage: React.FC = () => {
 
       {/* Video Modal Player */}
       {selectedVideo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="relative w-full max-w-3xl bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
-            <div className="flex items-center justify-between p-4 bg-slate-800 text-white border-b border-slate-700">
-              <div>
-                <h4 className="text-sm font-bold truncate">{selectedVideo.title}</h4>
-                <p className="text-[11px] text-blue-400 font-mono">{selectedVideo.subject} • {selectedVideo.duration}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/85 backdrop-blur-md">
+          <div className="relative w-full max-w-3xl max-h-[92vh] flex flex-col bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
+            <div className="flex items-center justify-between p-3.5 sm:p-4 bg-slate-800 text-white border-b border-slate-700">
+              <div className="min-w-0 pr-2">
+                <h4 className="text-xs sm:text-sm font-bold truncate">{selectedVideo.title}</h4>
+                <p className="text-[10px] sm:text-[11px] text-blue-400 font-mono">{selectedVideo.subject} • {selectedVideo.duration}</p>
               </div>
               <button
                 onClick={() => setSelectedVideo(null)}
-                className="p-1 rounded-full hover:bg-slate-700 text-slate-400 hover:text-white"
+                className="p-1.5 rounded-full hover:bg-slate-700 text-slate-400 hover:text-white flex-shrink-0"
+                aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>

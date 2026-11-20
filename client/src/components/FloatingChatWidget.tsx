@@ -11,7 +11,7 @@ export const FloatingChatWidget: React.FC = () => {
   );
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end">
       {/* Expanded Quick Chat Card */}
       <AnimatePresence>
         {isOpen && (
@@ -20,7 +20,7 @@ export const FloatingChatWidget: React.FC = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 15, scale: 0.92 }}
             transition={{ duration: 0.2 }}
-            className="mb-3 w-80 sm:w-96 rounded-3xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 shadow-2xl overflow-hidden text-slate-800 dark:text-slate-100"
+            className="mb-3 w-[calc(100vw-2rem)] max-w-sm rounded-3xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 shadow-2xl overflow-hidden text-slate-800 dark:text-slate-100"
           >
             {/* Header */}
             <div className="p-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white relative">
@@ -40,7 +40,7 @@ export const FloatingChatWidget: React.FC = () => {
                 </div>
                 <div>
                   <h4 className="font-extrabold text-sm tracking-tight flex items-center space-x-1">
-                    <span>Sheikh Raski Rayhan</span>
+                    <span>শেখ রাসকি রায়হান</span>
                     <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
                   </h4>
                   <p className="text-[11px] text-blue-100 leading-tight">
@@ -77,7 +77,7 @@ export const FloatingChatWidget: React.FC = () => {
                 >
                   <div className="flex items-center space-x-2.5">
                     <span className="text-base">💬</span>
-                    <span>WhatsApp-এ সরাসরি চ্যাট করুন</span>
+                    <span>WhatsApp-এ সরাসরি চ্যাট</span>
                   </div>
                   <Send className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </a>
@@ -98,27 +98,24 @@ export const FloatingChatWidget: React.FC = () => {
 
             {/* Footer Notice */}
             <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800/80 text-[10px] text-slate-400 text-center">
-              Rayhan's Science Lab • 24/7 Academic Support
+              Rayhan's Science Lab • Khulna & Bagerhat
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Floating Trigger Button */}
-      <motion.button
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.92 }}
+      {/* Floating Toggle Button */}
+      <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2.5 px-4 py-3.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold shadow-2xl shadow-emerald-500/40 border-2 border-white/40 cursor-pointer select-none"
-        aria-label="Open Rayhan Sir WhatsApp chat"
+        className="flex items-center space-x-2 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs sm:text-sm shadow-xl shadow-emerald-600/30 hover:scale-105 active:scale-95 transition-all group"
+        aria-label="Contact Rayhan Sir on WhatsApp"
       >
-        <span className="relative flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-white" />
+        <span className="text-base sm:text-lg">💬</span>
+        <span className="inline-block">WhatsApp</span>
+        <span className="hidden sm:inline-block text-[11px] font-mono bg-white/20 px-2 py-0.5 rounded-full">
+          {displayPhone}
         </span>
-        <MessageCircle className="w-5 h-5" />
-        <span className="text-xs hidden sm:inline-block">চ্যাট বা কল করুন</span>
-      </motion.button>
+      </button>
     </div>
   );
 };

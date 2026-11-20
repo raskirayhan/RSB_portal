@@ -128,34 +128,34 @@ export const StudentDashboard: React.FC = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Welcome & Motivational Card */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white rounded-3xl p-6 sm:p-8 shadow-xl">
+      <div className="relative overflow-hidden bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white rounded-3xl p-4 sm:p-8 shadow-xl">
         <div className="absolute right-0 top-0 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 sm:gap-6">
           <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-blue-100 text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>{academicTitle}</span>
+            <div className="inline-flex items-center space-x-1.5 sm:space-x-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-blue-100 text-[10px] sm:text-xs font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-amber-300 flex-shrink-0" />
+              <span className="truncate">{academicTitle}</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight">
               হ্যালো, {user?.name}! প্রস্তুত তো আজকের ক্লাসের জন্য?
             </h1>
-            <p className="text-sm text-blue-100/90 leading-relaxed">
+            <p className="text-xs sm:text-sm text-blue-100/90 leading-relaxed">
               "কঠিন পরিশ্রমে সাফল্য নিশ্চিত। প্রতিদিনের লেকচার শিট অনুশীলন করুন এবং কুইজ খেলে আপনার কনসেপ্ট ঝালাই করে নিন।" — রায়হান স্যার
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 w-full md:w-auto">
             <button
               onClick={() => setIsQrModalOpen(true)}
-              className="px-5 py-3 rounded-xl bg-white text-blue-900 hover:bg-blue-50 font-bold text-sm shadow-md transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+              className="w-full sm:w-auto px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-white text-blue-900 hover:bg-blue-50 font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
             >
               <QrCode className="w-4 h-4 text-blue-700" />
               <span>ডিজিটাল QR ব্যাজ দেখুন</span>
             </button>
             <Link
               to="/vault"
-              className="px-5 py-3 rounded-xl bg-blue-600/80 hover:bg-blue-600 border border-white/20 text-white font-bold text-sm transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+              className="w-full sm:w-auto px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-blue-600/80 hover:bg-blue-600 border border-white/20 text-white font-bold text-xs sm:text-sm transition-all flex items-center justify-center space-x-2 whitespace-nowrap text-center"
             >
               <BookOpen className="w-4 h-4" />
               <span>স্টাডি ভল্ট ও NCTB বই</span>
@@ -166,19 +166,19 @@ export const StudentDashboard: React.FC = () => {
 
       {/* Daily Login Reward Claim Alert Banner */}
       {rewardStatus.canClaim && (
-        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-purple-900/80 via-indigo-900/80 to-blue-900/80 border border-purple-500/40 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center space-x-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-500 via-pink-500 to-amber-400 flex items-center justify-center text-2xl shadow-lg shadow-purple-500/30 animate-bounce">
+        <div className="p-3.5 sm:p-5 rounded-3xl bg-gradient-to-r from-purple-900/80 via-indigo-900/80 to-blue-900/80 border border-purple-500/40 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-purple-500 via-pink-500 to-amber-400 flex items-center justify-center text-xl sm:text-2xl shadow-lg shadow-purple-500/30 animate-bounce flex-shrink-0">
               🎁
             </div>
             <div>
-              <h4 className="text-sm font-black text-white flex items-center space-x-2">
+              <h4 className="text-xs sm:text-sm font-black text-white flex items-center space-x-2">
                 <span>আজকের দৈনিক লগইন বোনাস প্রস্তুত!</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 font-extrabold uppercase">
-                  Ready to Claim
+                <span className="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 font-extrabold uppercase">
+                  Ready
                 </span>
               </h4>
-              <p className="text-xs text-purple-200 mt-0.5">
+              <p className="text-[11px] sm:text-xs text-purple-200 mt-0.5">
                 লগইন স্ট্রিক বজায় রেখে সংগ্রহ করুন: <strong className="text-cyan-300">+{rewardStatus.gems} 💎 Gems</strong> ও <strong className="text-amber-300">+{rewardStatus.stars} ⭐ Stars</strong>
               </p>
             </div>
@@ -186,7 +186,7 @@ export const StudentDashboard: React.FC = () => {
 
           <button
             onClick={() => setIsDailyRewardModalOpen(true)}
-            className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 whitespace-nowrap active:scale-95"
+            className="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 whitespace-nowrap active:scale-95"
           >
             <span>রিওয়ার্ড ক্লেইম করুন 💎</span>
             <ArrowRight className="w-4 h-4" />
@@ -194,86 +194,93 @@ export const StudentDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* KPI Cards Grid - Compact 2-col on mobile */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
         {/* Profile Status */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">প্রোফাইল স্ট্যাটাস</p>
-            <h4 className="text-lg font-black text-slate-900 dark:text-white mt-1">
-              {profile?.isCompleted ? '১০০% সম্পন্ন' : 'অসম্পূর্ণ (Incomplete)'}
-            </h4>
-            <Link to="/profile" className="text-xs text-blue-600 font-semibold hover:underline mt-1 inline-block">
-              {profile?.isCompleted ? 'তথ্য দেখুন →' : 'এখনই তথ্য পূরণ করুন →'}
-            </Link>
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">প্রোফাইল</p>
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${profile?.isCompleted ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600' : 'bg-amber-100 dark:bg-amber-950 text-amber-600'}`}>
+              {profile?.isCompleted ? <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" /> : <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />}
+            </div>
           </div>
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${profile?.isCompleted ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600' : 'bg-amber-100 dark:bg-amber-950 text-amber-600'}`}>
-            {profile?.isCompleted ? <CheckCircle2 className="w-6 h-6" /> : <AlertTriangle className="w-6 h-6" />}
+          <div>
+            <h4 className="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
+              {profile?.isCompleted ? '১০০% সম্পন্ন' : 'অসম্পূর্ণ'}
+            </h4>
+            <Link to="/profile" className="text-[11px] sm:text-xs text-blue-600 font-semibold hover:underline mt-1 inline-block">
+              {profile?.isCompleted ? 'তথ্য দেখুন →' : 'পূরণ করুন →'}
+            </Link>
           </div>
         </div>
 
         {/* Monthly Tuition Fee */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">চলতি মাসের ফি</p>
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isFeePaid ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600' : 'bg-amber-100 dark:bg-amber-950 text-amber-600'}`}>
+              <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
+            </div>
+          </div>
           <div>
-            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">চলতি মাসের ফি</p>
-            <h4 className={`text-lg font-black mt-1 ${isFeePaid ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+            <h4 className={`text-sm sm:text-base font-black truncate ${isFeePaid ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
               {isFeePaid ? 'পরিশোধিত (PAID)' : 'বকেয়া (UNPAID)'}
             </h4>
-            <Link to="/billing" className="text-xs text-blue-600 font-semibold hover:underline mt-1 inline-block">
-              {isFeePaid ? 'মানি রিসিট ডাউনলোড →' : 'bKash-এ পেমেন্ট করুন →'}
+            <Link to="/billing" className="text-[11px] sm:text-xs text-blue-600 font-semibold hover:underline mt-1 inline-block truncate">
+              {isFeePaid ? 'রিসিট →' : 'পেমেন্ট করুন →'}
             </Link>
-          </div>
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isFeePaid ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600' : 'bg-amber-100 dark:bg-amber-950 text-amber-600'}`}>
-            <CreditCard className="w-6 h-6" />
           </div>
         </div>
 
         {/* Gems Wallet */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Gems ওয়ালেট</p>
-            <h4 className="text-lg font-black text-cyan-600 dark:text-cyan-400 mt-1 flex items-center space-x-1">
-              <Gem className="w-5 h-5 text-cyan-500" />
-              <span>{gems}</span>
-            </h4>
-            <Link to="/games" className="text-xs text-cyan-600 font-semibold hover:underline mt-1 inline-block">
-              গেমস খেলে রত্ন বাড়ান →
-            </Link>
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Gems ওয়ালেট</p>
+            <div className="w-8 h-8 rounded-xl bg-cyan-100 dark:bg-cyan-950 text-cyan-600 flex items-center justify-center">
+              <Gem className="w-4 h-4 sm:w-5 sm:h-5" />
+            </div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-cyan-100 dark:bg-cyan-950 text-cyan-600 flex items-center justify-center">
-            <Gem className="w-6 h-6" />
+          <div>
+            <h4 className="text-sm sm:text-base font-black text-cyan-600 dark:text-cyan-400 flex items-center space-x-1">
+              <span>{gems} 💎</span>
+            </h4>
+            <Link to="/games" className="text-[11px] sm:text-xs text-cyan-600 font-semibold hover:underline mt-1 inline-block">
+              গেমস খেলুন →
+            </Link>
           </div>
         </div>
 
         {/* Total XP Points */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">মোট পয়েন্ট</p>
+            <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-600 flex items-center justify-center">
+              <Award className="w-4 h-4 sm:w-5 sm:h-5" />
+            </div>
+          </div>
           <div>
-            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">মোট অর্জিত পয়েন্ট</p>
-            <h4 className="text-lg font-black text-purple-600 dark:text-purple-400 mt-1">
+            <h4 className="text-sm sm:text-base font-black text-purple-600 dark:text-purple-400 truncate">
               {profile?.totalXp || 0} XP
             </h4>
-            <Link to="/games" className="text-xs text-purple-600 font-semibold hover:underline mt-1 inline-block">
-              লিডারবোর্ড দেখুন →
+            <Link to="/games" className="text-[11px] sm:text-xs text-purple-600 font-semibold hover:underline mt-1 inline-block">
+              লিডারবোর্ড →
             </Link>
-          </div>
-          <div className="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-950 text-purple-600 flex items-center justify-center">
-            <Award className="w-6 h-6" />
           </div>
         </div>
 
-        {/* Daily Streak */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
+        {/* Daily Streak - Spans 2 cols on mobile */}
+        <div className="col-span-2 sm:col-span-1 bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">লগইন স্ট্রিক</p>
-            <h4 className="text-lg font-black text-amber-600 dark:text-amber-400 mt-1">
-              {profile?.currentStreak || 1} দিন টানা
+            <p className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">লগইন স্ট্রিক</p>
+            <h4 className="text-sm sm:text-base font-black text-amber-600 dark:text-amber-400 mt-1">
+              {profile?.currentStreak || 1} দিন টানা 🔥
             </h4>
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 inline-block">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
               দৈনিক কুইজ খেলুন
             </span>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-600 flex items-center justify-center">
-            <Flame className="w-6 h-6 fill-amber-500" />
+          <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-600 flex items-center justify-center flex-shrink-0">
+            <Flame className="w-5 h-5 fill-amber-500" />
           </div>
         </div>
       </div>
@@ -296,7 +303,7 @@ export const StudentDashboard: React.FC = () => {
             </div>
 
             {/* Academic Level Toggle Chips */}
-            <div className="flex items-center space-x-1.5 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
+            <div className="grid grid-cols-3 gap-1 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs w-full sm:w-auto">
               <button
                 type="button"
                 onClick={() => {
@@ -304,7 +311,7 @@ export const StudentDashboard: React.FC = () => {
                   setActiveLevel('CLASS_8');
                   localStorage.setItem('rsb_selected_academic_level', 'CLASS_8');
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-2 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all text-center truncate ${
                   activeLevel === 'CLASS_8'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -319,7 +326,7 @@ export const StudentDashboard: React.FC = () => {
                   setActiveLevel('SSC');
                   localStorage.setItem('rsb_selected_academic_level', 'SSC');
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-2 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all text-center truncate ${
                   activeLevel === 'SSC'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -334,7 +341,7 @@ export const StudentDashboard: React.FC = () => {
                   setActiveLevel('HSC');
                   localStorage.setItem('rsb_selected_academic_level', 'HSC');
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-2 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all text-center truncate ${
                   activeLevel === 'HSC'
                     ? 'bg-blue-600 text-white shadow-xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'

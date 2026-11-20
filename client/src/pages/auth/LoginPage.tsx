@@ -77,17 +77,17 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-[85vh] bg-slate-50 dark:bg-slate-950 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors">
-      <div className="max-w-md w-full space-y-6 bg-white dark:bg-slate-900 p-8 sm:p-10 rounded-3xl shadow-xl border border-slate-200/80 dark:border-slate-800 transition-all">
+      <div className="max-w-md w-full space-y-6 bg-white dark:bg-slate-900 p-5 sm:p-10 rounded-3xl shadow-xl border border-slate-200/80 dark:border-slate-800 transition-all">
         
         {/* Simple Brand Header */}
         <div className="text-center space-y-2">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white flex items-center justify-center mx-auto shadow-lg shadow-blue-500/20">
-            <GraduationCap className="w-7 h-7" />
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white flex items-center justify-center mx-auto shadow-lg shadow-blue-500/20">
+            <GraduationCap className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             স্টুডেন্ট লগইন
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
             Rayhan Special Batch (RSB_Portal) • খুলনা ও বাগেরহাট
           </p>
         </div>
@@ -108,14 +108,14 @@ export const LoginPage: React.FC = () => {
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
               আপনার ব্যাচ / শ্রেণি (Batch)
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
               <button
                 type="button"
                 onClick={() => {
                   playPop();
                   setBatchLevel('CLASS_8');
                 }}
-                className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all text-center ${
+                className={`py-2 px-1 sm:px-2 rounded-xl text-[11px] sm:text-xs font-bold border transition-all text-center truncate ${
                   batchLevel === 'CLASS_8'
                     ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                     : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
@@ -130,7 +130,7 @@ export const LoginPage: React.FC = () => {
                   playPop();
                   setBatchLevel('SSC');
                 }}
-                className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all text-center ${
+                className={`py-2 px-1 sm:px-2 rounded-xl text-[11px] sm:text-xs font-bold border transition-all text-center truncate ${
                   batchLevel === 'SSC'
                     ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                     : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
@@ -145,7 +145,7 @@ export const LoginPage: React.FC = () => {
                   playPop();
                   setBatchLevel('HSC');
                 }}
-                className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all text-center ${
+                className={`py-2 px-1 sm:px-2 rounded-xl text-[11px] sm:text-xs font-bold border transition-all text-center truncate ${
                   batchLevel === 'HSC'
                     ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                     : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'

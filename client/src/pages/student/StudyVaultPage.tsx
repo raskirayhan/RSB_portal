@@ -134,9 +134,9 @@ export const StudyVaultPage: React.FC = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Top Academic Level Switcher */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-5 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-md">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-md">
         <div className="flex items-center space-x-2.5">
-          <GraduationCap className="w-5 h-5 text-blue-400" />
+          <GraduationCap className="w-5 h-5 text-blue-400 flex-shrink-0" />
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-slate-300 block">
               শিক্ষাস্তর / বিভাগ নির্বাচন:
@@ -147,7 +147,7 @@ export const StudyVaultPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 w-full sm:w-auto">
+        <div className="grid grid-cols-3 gap-1.5 w-full sm:w-auto">
           <button
             onClick={() => {
               playPop();
@@ -155,13 +155,13 @@ export const StudyVaultPage: React.FC = () => {
               localStorage.setItem('rsb_selected_academic_level', 'CLASS_8');
               setSelectedSubject('');
             }}
-            className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
+            className={`px-2.5 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-extrabold transition-all text-center truncate ${
               activeLevel === 'CLASS_8'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30'
                 : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
             }`}
           >
-            🏫 ৮ম শ্রেণি (JSC)
+            🏫 ৮ম (JSC)
           </button>
 
           <button
@@ -171,13 +171,13 @@ export const StudyVaultPage: React.FC = () => {
               localStorage.setItem('rsb_selected_academic_level', 'SSC');
               setSelectedSubject('');
             }}
-            className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
+            className={`px-2.5 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-extrabold transition-all text-center truncate ${
               activeLevel === 'SSC'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30'
                 : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
             }`}
           >
-            🎓 এসএসসি (SSC Science)
+            🎓 এসএসসি
           </button>
 
           <button
@@ -187,32 +187,32 @@ export const StudyVaultPage: React.FC = () => {
               localStorage.setItem('rsb_selected_academic_level', 'HSC');
               setSelectedSubject('');
             }}
-            className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
+            className={`px-2.5 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-extrabold transition-all text-center truncate ${
               activeLevel === 'HSC'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30'
                 : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
             }`}
           >
-            🔬 এইচএসসি (HSC Science)
+            🔬 এইচএসসি
           </button>
         </div>
       </div>
 
-      {/* Primary Vault Navigation Tabs */}
-      <div className="flex items-center space-x-3 border-b border-slate-200 dark:border-slate-800 pb-2">
+      {/* Primary Vault Navigation Tabs - responsive 2-column or overflow safe */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
         <button
           onClick={() => {
             playPop();
             setActiveVaultTab('SHEETS');
           }}
-          className={`flex items-center space-x-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
+          className={`flex items-center justify-center space-x-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all text-center ${
             activeVaultTab === 'SHEETS'
               ? 'bg-blue-600 text-white shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
-          <FileText className="w-4 h-4" />
-          <span>লেকচার শিট ও অধ্যায়ভিত্তিক নোটস</span>
+          <FileText className="w-4 h-4 flex-shrink-0" />
+          <span className="truncate">লেকচার শিট ও অধ্যায়ভিত্তিক নোটস</span>
         </button>
 
         <button
@@ -220,14 +220,14 @@ export const StudyVaultPage: React.FC = () => {
             playPop();
             setActiveVaultTab('NCTB_BOOKS');
           }}
-          className={`flex items-center space-x-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
+          className={`flex items-center justify-center space-x-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all text-center ${
             activeVaultTab === 'NCTB_BOOKS'
               ? 'bg-emerald-600 text-white shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
-          <BookOpen className="w-4 h-4" />
-          <span>NCTB মূল বোর্ড বইসমূহ (Textbooks PDF)</span>
+          <BookOpen className="w-4 h-4 flex-shrink-0" />
+          <span className="truncate">NCTB মূল বোর্ড বইসমূহ (Textbooks PDF)</span>
         </button>
       </div>
 
