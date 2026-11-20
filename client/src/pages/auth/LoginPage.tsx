@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
@@ -21,6 +21,22 @@ export const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Responsive button width matching card while strictly adhering to Google's 200-400px constraint
+  const [btnWidth, setBtnWidth] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      return Math.min(380, Math.max(240, window.innerWidth - 64));
+    }
+    return 350;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setBtnWidth(Math.min(380, Math.max(240, window.innerWidth - 64)));
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -223,7 +239,7 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Real Google OAuth Button */}
-        <div className="w-full flex justify-center [&>div]:w-full [&>div>iframe]:w-full">
+        <div className="w-full flex justify-center items-center overflow-hidden">
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={handleGoogleError}
@@ -231,7 +247,10 @@ export const LoginPage: React.FC = () => {
             size="large"
             text="continue_with"
             shape="pill"
-            width="100%"
+            width={btnWidth}
+            containerProps={{
+              className: 'google-oauth-btn-wrapper',
+            }}
           />
         </div>
 

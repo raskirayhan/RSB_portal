@@ -45,3 +45,23 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
+
+/* Real Google Login Button Centering & Responsive Styling */
+.google-oauth-btn-wrapper {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+}
+
+.google-oauth-btn-wrapper > div {
+  margin: 0 auto !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+.google-oauth-btn-wrapper iframe {
+  margin: 0 auto !important;
+}
+
