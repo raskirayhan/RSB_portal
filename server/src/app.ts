@@ -19,6 +19,14 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization', 'x-device-id', 'X-Requested-With'],
   })
 );
+// Explicitly handle preflight OPTIONS for all incoming endpoints
+app.options('*', cors());
+
+// Prevent stale caching on Vercel Serverless
+app.use((_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  next();
+});
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

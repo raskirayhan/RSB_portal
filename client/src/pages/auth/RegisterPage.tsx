@@ -90,7 +90,7 @@ export const RegisterPage: React.FC = () => {
       console.error('Registration Error', err);
       const networkHelp =
         err.message === 'Network Error'
-          ? 'সার্ভারে কানেক্ট করা যাচ্ছে না। দয়া করে ব্যাকএন্ড সার্ভার চালু আছে কিনা নিশ্চিত করুন।'
+          ? 'সার্ভারে কানেক্ট করা যাচ্ছে না। দয়া করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন অথবা কিছুক্ষণ পর পুনরায় চেষ্টা করুন।'
           : undefined;
       setError(
         err.response?.data?.message ||

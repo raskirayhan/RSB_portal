@@ -946,7 +946,7 @@ export class AuthController {
    */
   static async googleOAuthCallback(req: Request, res: Response) {
     try {
-      const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+      const clientUrl = process.env.CLIENT_URL || 'https://client-xi-lac.vercel.app';
       const token = req.query.token as string;
       if (token) {
         return res.redirect(`${clientUrl}/oauth-callback?token=${encodeURIComponent(token)}`);

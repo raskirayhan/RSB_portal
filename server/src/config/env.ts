@@ -8,7 +8,7 @@ export const ENV = {
   JWT_SECRET: process.env.JWT_SECRET || 'dev_jwt_secret_placeholder',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
   REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET || 'dev_refresh_token_secret_placeholder',
-  CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
+  CLIENT_URL: process.env.CLIENT_URL || 'https://client-xi-lac.vercel.app',
   MAX_ALLOWED_DEVICES: parseInt(process.env.MAX_ALLOWED_DEVICES || '2', 10),
   EMAIL_HOST: process.env.EMAIL_HOST || 'smtp.example.com',
   EMAIL_PORT: parseInt(process.env.EMAIL_PORT || '587', 10),

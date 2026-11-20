@@ -51,7 +51,7 @@ var ENV = {
   JWT_SECRET: process.env.JWT_SECRET || "dev_jwt_secret_placeholder",
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "7d",
   REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET || "dev_refresh_token_secret_placeholder",
-  CLIENT_URL: process.env.CLIENT_URL || "http://localhost:5173",
+  CLIENT_URL: process.env.CLIENT_URL || "https://client-xi-lac.vercel.app",
   MAX_ALLOWED_DEVICES: parseInt(process.env.MAX_ALLOWED_DEVICES || "2", 10),
   EMAIL_HOST: process.env.EMAIL_HOST || "smtp.example.com",
   EMAIL_PORT: parseInt(process.env.EMAIL_PORT || "587", 10),
@@ -1164,7 +1164,7 @@ var AuthController = class {
    */
   static async googleOAuthCallback(req, res) {
     try {
-      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+      const clientUrl = process.env.CLIENT_URL || "https://client-xi-lac.vercel.app";
       const token = req.query.token;
       if (token) {
         return res.redirect(`${clientUrl}/oauth-callback?token=${encodeURIComponent(token)}`);
@@ -5330,6 +5330,11 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization", "x-device-id", "X-Requested-With"]
   })
 );
+app.options("*", cors());
+app.use((_req, res, next) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  next();
+});
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.get(["/", "/api"], (req, res) => {
