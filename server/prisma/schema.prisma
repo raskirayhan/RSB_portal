@@ -75,7 +75,8 @@ enum GameType {
 
 model User {
   id              String            @id @default(uuid())
-  email           String            @unique
+  email           String?           @unique
+  phone           String?           @unique
   name            String
   passwordHash    String
   role            Role              @default(STUDENT)

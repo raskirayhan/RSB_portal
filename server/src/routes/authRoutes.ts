@@ -4,13 +4,22 @@ import { authenticateJWT, rateLimitOtp } from '../middleware/auth.js';
 
 const router = Router();
 
-router.post('/register', rateLimitOtp(5), AuthController.register);
-router.post('/verify-otp', rateLimitOtp(10), AuthController.verifyOtp);
+// 1. Instant Registration (No OTP required)
+router.post('/register', AuthController.register);
+
+// 2. Login with Email OR Phone + Password
 router.post('/login', AuthController.login);
+
+// 3. Social Authentication (Google / Facebook)
+router.post('/social', AuthController.socialAuth);
+
+// 4. Session & Me Management
 router.get('/me', authenticateJWT, AuthController.getMe);
 router.get('/sessions', authenticateJWT, AuthController.getActiveSessions);
 router.delete('/sessions/:sessionId', authenticateJWT, AuthController.terminateSession);
-router.post('/forgot-password', rateLimitOtp(3), AuthController.forgotPassword);
-router.post('/reset-password', rateLimitOtp(5), AuthController.resetPassword);
+
+// 5. Forgot Password (6-Digit Email OTP - 5 mins) & Reset Password
+router.post('/forgot-password', rateLimitOtp(5), AuthController.forgotPassword);
+router.post('/reset-password', rateLimitOtp(10), AuthController.resetPassword);
 
 export default router;

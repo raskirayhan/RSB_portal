@@ -369,153 +369,136 @@ var sendError = (res, message, statusCode = 400, error) => {
 };
 
 // src/controllers/authController.ts
-import { DeviceType as DeviceType2, Role, UserStatus } from "@prisma/client";
+import { DeviceType as DeviceType2, Role, UserStatus, AuthProvider } from "@prisma/client";
 var AuthController = class {
   /**
-   * 1. Register with Email/Password & trigger 6-digit OTP
+   * 1. Instant Student Registration (No OTP Required)
+   * Fields: fullName, identifier (Email or Phone), classLevel, batchName, password
    */
   static async register(req, res) {
     try {
-      const { name, email, password, academicLevel = "HSC_2026" } = req.body;
-      if (!name || !email || !password) {
-        return sendError(res, "Name, email, and password are required.");
+      const {
+        fullName,
+        name,
+        identifier,
+        email,
+        phone,
+        classLevel = "HSC_11",
+        academicLevel,
+        batchName = "Special Batch",
+        password,
+        confirmPassword,
+        deviceId,
+        deviceName
+      } = req.body;
+      const studentName = (fullName || name || "").trim();
+      const rawIdentifier = (identifier || email || phone || "").toString().trim();
+      const selectedClass = (classLevel || academicLevel || "HSC_11").toString();
+      const selectedBatch = (batchName || "Special Batch").toString().trim();
+      if (!studentName) {
+        return sendError(res, "\u09B6\u09BF\u0995\u09CD\u09B7\u09BE\u09B0\u09CD\u09A5\u09C0\u09B0 \u09AA\u09C2\u09B0\u09CD\u09A3 \u09A8\u09BE\u09AE \u09A6\u09C7\u0993\u09DF\u09BE \u0986\u09AC\u09B6\u09CD\u09AF\u0995 (Full Name is required).");
       }
-      const existingUser = await prisma.user.findUnique({
-        where: { email: email.toLowerCase() }
-      });
-      if (existingUser) {
-        return sendError(res, "An account with this email already exists.");
+      if (!rawIdentifier) {
+        return sendError(res, "\u0987\u09AE\u09C7\u0987\u09B2 \u0985\u09A5\u09AC\u09BE \u09AE\u09CB\u09AC\u09BE\u0987\u09B2 \u09A8\u09AE\u09CD\u09AC\u09B0 \u09A6\u09C7\u0993\u09DF\u09BE \u0986\u09AC\u09B6\u09CD\u09AF\u0995 (Email or Phone is required).");
+      }
+      if (!password || password.length < 6) {
+        return sendError(res, "\u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1 \u0995\u09AE\u09AA\u0995\u09CD\u09B7\u09C7 \u09EC \u0985\u0995\u09CD\u09B7\u09B0\u09C7\u09B0 \u09B9\u09A4\u09C7 \u09B9\u09AC\u09C7 (Password must be at least 6 characters).");
+      }
+      if (confirmPassword && password !== confirmPassword) {
+        return sendError(res, "\u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1 \u098F\u09AC\u0982 \u0995\u09A8\u09AB\u09BE\u09B0\u09CD\u09AE \u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1 \u09AE\u09BF\u09B2\u099B\u09C7 \u09A8\u09BE (Passwords do not match).");
+      }
+      const isEmail = rawIdentifier.includes("@");
+      const normalizedEmail = isEmail ? rawIdentifier.toLowerCase() : null;
+      const normalizedPhone = !isEmail ? rawIdentifier.replace(/[^0-9+]/g, "") : null;
+      if (normalizedEmail) {
+        const existingEmailUser = await prisma.user.findUnique({
+          where: { email: normalizedEmail }
+        });
+        if (existingEmailUser) {
+          return sendError(res, "\u098F\u0987 \u0987\u09AE\u09C7\u0987\u09B2 \u09A6\u09BF\u09DF\u09C7 \u0987\u09A4\u09BF\u09AE\u09A7\u09CD\u09AF\u09C7 \u098F\u0995\u099F\u09BF \u0985\u09CD\u09AF\u09BE\u0995\u09BE\u0989\u09A8\u09CD\u099F \u09A4\u09C8\u09B0\u09BF \u0995\u09B0\u09BE \u0986\u099B\u09C7 (Email already exists).");
+        }
+      }
+      if (normalizedPhone) {
+        const existingPhoneUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { phone: normalizedPhone },
+              { profile: { studentPhone: normalizedPhone } }
+            ]
+          }
+        });
+        if (existingPhoneUser) {
+          return sendError(res, "\u098F\u0987 \u09AB\u09CB\u09A8 \u09A8\u09AE\u09CD\u09AC\u09B0 \u09A6\u09BF\u09DF\u09C7 \u0987\u09A4\u09BF\u09AE\u09A7\u09CD\u09AF\u09C7 \u098F\u0995\u099F\u09BF \u0985\u09CD\u09AF\u09BE\u0995\u09BE\u0989\u09A8\u09CD\u099F \u09A4\u09C8\u09B0\u09BF \u0995\u09B0\u09BE \u0986\u099B\u09C7 (Phone number already exists).");
+        }
       }
       const passwordHash = await hashPassword(password);
       const user = await prisma.user.create({
         data: {
-          name,
-          email: email.toLowerCase(),
+          name: studentName,
+          email: normalizedEmail,
+          phone: normalizedPhone,
           passwordHash,
           role: Role.STUDENT,
-          status: UserStatus.PENDING_VERIFICATION
+          status: UserStatus.ACTIVE,
+          authProvider: AuthProvider.LOCAL
         }
       });
-      const otpCode = generateOtpCode();
-      const otpHash = await hashOtp(otpCode);
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1e3);
-      await prisma.otpVerification.create({
-        data: {
-          email: user.email,
-          otpHash,
-          purpose: "REGISTRATION",
-          expiresAt,
-          userId: user.id
-        }
-      });
-      await EmailService.sendOtpEmail(user.email, otpCode, "REGISTRATION");
-      return sendSuccess(
-        res,
-        { email: user.email, userId: user.id },
-        "Registration initiated. 6-digit OTP has been sent to your email."
-      );
-    } catch (error) {
-      console.error("[Register Error]", error);
-      return sendError(res, "Failed to register account.", 500, error.message);
-    }
-  }
-  /**
-   * 2. Verify 6-digit OTP to activate account and assign Student ID
-   */
-  static async verifyOtp(req, res) {
-    try {
-      const { email, otp, academicLevel = "HSC_2026" } = req.body;
-      if (!email || !otp) {
-        return sendError(res, "Email and OTP are required.");
-      }
-      const verification = await prisma.otpVerification.findFirst({
+      let batch = await prisma.batch.findFirst({
         where: {
-          email: email.toLowerCase(),
-          purpose: "REGISTRATION",
-          verified: false,
-          expiresAt: { gt: /* @__PURE__ */ new Date() }
-        },
-        orderBy: { createdAt: "desc" }
+          name: { equals: selectedBatch, mode: "insensitive" }
+        }
       });
-      if (!verification) {
-        return sendError(res, "Invalid or expired OTP. Please request a new code.");
+      if (!batch) {
+        batch = await prisma.batch.create({
+          data: {
+            name: selectedBatch,
+            academicLevel: selectedClass,
+            scheduleDays: "\u09B0\u09AC\u09BF-\u09AE\u0999\u09CD\u0997\u09B2-\u09AC\u09C3\u09B9\u09B8\u09CD\u09AA\u09A4\u09BF",
+            timeSlot: "\u09B8\u0995\u09BE\u09B2 \u09EE:\u09E6\u09E6 - \u09E7\u09E6:\u09E6\u09E6",
+            monthlyFee: 2e3,
+            isActive: true
+          }
+        });
       }
-      const isValid = await compareOtp(otp, verification.otpHash);
-      if (!isValid) {
-        return sendError(res, "Incorrect OTP code.");
-      }
-      await prisma.otpVerification.update({
-        where: { id: verification.id },
-        data: { verified: true }
-      });
-      const user = await prisma.user.update({
-        where: { email: email.toLowerCase() },
-        data: { status: UserStatus.ACTIVE }
-      });
       const currentYearShort = (/* @__PURE__ */ new Date()).getFullYear().toString().slice(-2);
       const studentCount = await prisma.studentProfile.count();
       const studentIdNumber = `RSB-${currentYearShort}-${(studentCount + 1).toString().padStart(3, "0")}`;
-      const qrPayload = QrService.generateBadgePayload(studentIdNumber, user.id, user.name, academicLevel);
+      const qrPayload = QrService.generateBadgePayload(studentIdNumber, user.id, user.name, selectedClass);
       const qrCodeDataUrl = await QrService.generateQrDataUrl(qrPayload);
       const profile = await prisma.studentProfile.create({
         data: {
           userId: user.id,
           studentIdNumber,
-          academicLevel,
+          academicLevel: selectedClass,
+          batchId: batch.id,
+          studentPhone: normalizedPhone,
           qrCodeDataUrl,
           isCompleted: false
+        },
+        include: {
+          batch: true
         }
       });
-      return sendSuccess(
-        res,
-        { user: { id: user.id, email: user.email, name: user.name, role: user.role }, profile },
-        "Account verified successfully! Please log in."
-      );
-    } catch (error) {
-      console.error("[Verify OTP Error]", error);
-      return sendError(res, "Verification failed.", 500, error.message);
-    }
-  }
-  /**
-   * 3. Login with Dual-Device Control (Max 2 FIFO eviction)
-   */
-  static async login(req, res) {
-    try {
-      const { email, password, deviceId, deviceName } = req.body;
-      if (!email || !password) {
-        return sendError(res, "Email and password are required.");
-      }
-      const user = await prisma.user.findUnique({
-        where: { email: email.toLowerCase() },
-        include: { profile: { include: { batch: true } } }
-      });
-      if (!user) {
-        return sendError(res, "Invalid credentials.", 401);
-      }
-      if (user.status === UserStatus.PENDING_VERIFICATION) {
-        return sendError(res, "Please verify your email OTP before logging in.", 403);
-      }
-      if (user.status === UserStatus.SUSPENDED) {
-        return sendError(res, "Your account has been suspended. Contact Rayhan Sir.", 403);
-      }
-      const passwordMatch = await comparePassword(password, user.passwordHash);
-      if (!passwordMatch) {
-        return sendError(res, "Invalid credentials.", 401);
-      }
       const userAgent = req.headers["user-agent"] || "Unknown Agent";
       const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "127.0.0.1";
       const effectiveDeviceId = deviceId || Buffer.from(`${user.id}-${userAgent}-${ip}`).toString("base64").slice(0, 32);
       const isMobile = /mobile|android|iphone|ipad/i.test(userAgent);
       const deviceType = isMobile ? DeviceType2.MOBILE : DeviceType2.DESKTOP;
-      const tempRefreshToken = signRefreshToken({ userId: user.id, email: user.email, role: user.role, name: user.name });
+      const tempRefreshToken = signRefreshToken({
+        userId: user.id,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        name: user.name
+      });
       const session = await SessionService.registerSession(
         user.id,
         {
           deviceId: effectiveDeviceId,
-          deviceName: deviceName || (isMobile ? "Mobile Device" : "Desktop Browser"),
+          deviceName: deviceName || (isMobile ? "Mobile Phone" : "Desktop Browser"),
           deviceType,
           browser: userAgent.slice(0, 80),
-          os: isMobile ? "Mobile OS" : "Desktop OS",
+          os: isMobile ? "Mobile" : "Desktop",
           ipAddress: ip
         },
         tempRefreshToken
@@ -523,6 +506,7 @@ var AuthController = class {
       const accessToken = signAccessToken({
         userId: user.id,
         email: user.email,
+        phone: user.phone,
         role: user.role,
         name: user.name,
         sessionId: session.id
@@ -530,6 +514,7 @@ var AuthController = class {
       const refreshToken = signRefreshToken({
         userId: user.id,
         email: user.email,
+        phone: user.phone,
         role: user.role,
         name: user.name,
         sessionId: session.id
@@ -545,6 +530,113 @@ var AuthController = class {
           user: {
             id: user.id,
             email: user.email,
+            phone: user.phone,
+            name: user.name,
+            role: user.role
+          },
+          profile,
+          tokens: {
+            accessToken,
+            refreshToken
+          },
+          sessionId: session.id,
+          activeDevicesCount: activeSessions.length
+        },
+        "\u09B0\u09C7\u099C\u09BF\u09B8\u09CD\u099F\u09CD\u09B0\u09C7\u09B6\u09A8 \u09B8\u09AB\u09B2 \u09B9\u09DF\u09C7\u099B\u09C7! \u09B8\u09CD\u09AC\u09BE\u0997\u09A4\u09AE Rayhan Special Batch-\u098F\u0964"
+      );
+    } catch (error) {
+      console.error("[Instant Register Error]", error);
+      return sendError(res, "\u09B0\u09C7\u099C\u09BF\u09B8\u09CD\u099F\u09CD\u09B0\u09C7\u09B6\u09A8 \u09B8\u09AE\u09CD\u09AA\u09A8\u09CD\u09A8 \u0995\u09B0\u09BE \u09B8\u09AE\u09CD\u09AD\u09AC \u09B9\u09DF\u09A8\u09BF\u0964", 500, error.message);
+    }
+  }
+  /**
+   * 2. Login with Email OR Phone Number + Password (Dual-Device Control)
+   */
+  static async login(req, res) {
+    try {
+      const { identifier, email, phone, password, deviceId, deviceName } = req.body;
+      const rawInput = (identifier || email || phone || "").toString().trim();
+      if (!rawInput || !password) {
+        return sendError(res, "\u0987\u09AE\u09C7\u0987\u09B2/\u09AB\u09CB\u09A8 \u09A8\u09AE\u09CD\u09AC\u09B0 \u098F\u09AC\u0982 \u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1 \u09A6\u09C7\u0993\u09DF\u09BE \u0986\u09AC\u09B6\u09CD\u09AF\u0995\u0964");
+      }
+      const isEmail = rawInput.includes("@");
+      const normalizedEmail = isEmail ? rawInput.toLowerCase() : null;
+      const normalizedPhone = !isEmail ? rawInput.replace(/[^0-9+]/g, "") : null;
+      const user = await prisma.user.findFirst({
+        where: isEmail ? { email: { equals: normalizedEmail, mode: "insensitive" } } : {
+          OR: [
+            { phone: normalizedPhone },
+            { profile: { studentPhone: normalizedPhone } }
+          ]
+        },
+        include: {
+          profile: {
+            include: { batch: true }
+          }
+        }
+      });
+      if (!user) {
+        return sendError(res, "\u09AD\u09C1\u09B2 \u0987\u09AE\u09C7\u0987\u09B2/\u09AB\u09CB\u09A8 \u0985\u09A5\u09AC\u09BE \u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1\u0964", 401);
+      }
+      if (user.status === UserStatus.SUSPENDED) {
+        return sendError(res, "\u0986\u09AA\u09A8\u09BE\u09B0 \u0985\u09CD\u09AF\u09BE\u0995\u09BE\u0989\u09A8\u09CD\u099F\u099F\u09BF \u09B8\u09CD\u09A5\u0997\u09BF\u09A4 \u09B0\u09BE\u0996\u09BE \u09B9\u09DF\u09C7\u099B\u09C7\u0964 \u0985\u09A8\u09C1\u0997\u09CD\u09B0\u09B9 \u0995\u09B0\u09C7 \u09B0\u09BE\u09DF\u09B9\u09BE\u09A8 \u09B8\u09CD\u09AF\u09BE\u09B0\u09C7\u09B0 \u09B8\u09BE\u09A5\u09C7 \u09AF\u09CB\u0997\u09BE\u09AF\u09CB\u0997 \u0995\u09B0\u09C1\u09A8\u0964", 403);
+      }
+      const passwordMatch = await comparePassword(password, user.passwordHash);
+      if (!passwordMatch) {
+        return sendError(res, "\u09AD\u09C1\u09B2 \u0987\u09AE\u09C7\u0987\u09B2/\u09AB\u09CB\u09A8 \u0985\u09A5\u09AC\u09BE \u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1\u0964", 401);
+      }
+      const userAgent = req.headers["user-agent"] || "Unknown Agent";
+      const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "127.0.0.1";
+      const effectiveDeviceId = deviceId || Buffer.from(`${user.id}-${userAgent}-${ip}`).toString("base64").slice(0, 32);
+      const isMobile = /mobile|android|iphone|ipad/i.test(userAgent);
+      const deviceType = isMobile ? DeviceType2.MOBILE : DeviceType2.DESKTOP;
+      const tempRefreshToken = signRefreshToken({
+        userId: user.id,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        name: user.name
+      });
+      const session = await SessionService.registerSession(
+        user.id,
+        {
+          deviceId: effectiveDeviceId,
+          deviceName: deviceName || (isMobile ? "Mobile Phone" : "Desktop Browser"),
+          deviceType,
+          browser: userAgent.slice(0, 80),
+          os: isMobile ? "Mobile OS" : "Desktop OS",
+          ipAddress: ip
+        },
+        tempRefreshToken
+      );
+      const accessToken = signAccessToken({
+        userId: user.id,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        name: user.name,
+        sessionId: session.id
+      });
+      const refreshToken = signRefreshToken({
+        userId: user.id,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        name: user.name,
+        sessionId: session.id
+      });
+      await prisma.deviceSession.update({
+        where: { id: session.id },
+        data: { refreshToken }
+      });
+      const activeSessions = await SessionService.getUserSessions(user.id);
+      return sendSuccess(
+        res,
+        {
+          user: {
+            id: user.id,
+            email: user.email,
+            phone: user.phone,
             name: user.name,
             role: user.role
           },
@@ -557,15 +649,239 @@ var AuthController = class {
           activeDevicesCount: activeSessions.length,
           activeDevices: activeSessions
         },
-        "Login successful."
+        "\u09B2\u0997\u0987\u09A8 \u09B8\u09AB\u09B2 \u09B9\u09DF\u09C7\u099B\u09C7\u0964"
       );
     } catch (error) {
       console.error("[Login Error]", error);
-      return sendError(res, "Login failed.", 500, error.message);
+      return sendError(res, "\u09B2\u0997\u0987\u09A8 \u09AC\u09CD\u09AF\u09B0\u09CD\u09A5 \u09B9\u09DF\u09C7\u099B\u09C7\u0964", 500, error.message);
     }
   }
   /**
-   * 4. Get Current User info, Profile & Sessions
+   * 3. Social Authentication (Google & Facebook)
+   */
+  static async socialAuth(req, res) {
+    try {
+      const { provider, email, name, avatarUrl, socialId, classLevel = "HSC_11" } = req.body;
+      if (!provider || !["GOOGLE", "FACEBOOK"].includes(provider)) {
+        return sendError(res, "Invalid social provider.");
+      }
+      if (!email && !socialId) {
+        return sendError(res, "Email or Social ID is required for social login.");
+      }
+      const normalizedEmail = email ? email.toLowerCase().trim() : null;
+      let user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            ...normalizedEmail ? [{ email: normalizedEmail }] : [],
+            ...provider === "GOOGLE" && socialId ? [{ googleId: socialId }] : [],
+            ...provider === "FACEBOOK" && socialId ? [{ facebookId: socialId }] : []
+          ]
+        },
+        include: {
+          profile: { include: { batch: true } }
+        }
+      });
+      if (!user) {
+        const randomDummyPass = await hashPassword(Math.random().toString(36).slice(-10));
+        user = await prisma.user.create({
+          data: {
+            name: name || (provider === "GOOGLE" ? "Google Student" : "Facebook Student"),
+            email: normalizedEmail,
+            passwordHash: randomDummyPass,
+            role: Role.STUDENT,
+            status: UserStatus.ACTIVE,
+            authProvider: provider === "GOOGLE" ? AuthProvider.GOOGLE : AuthProvider.FACEBOOK,
+            googleId: provider === "GOOGLE" ? socialId : null,
+            facebookId: provider === "FACEBOOK" ? socialId : null
+          },
+          include: {
+            profile: { include: { batch: true } }
+          }
+        });
+        const currentYearShort = (/* @__PURE__ */ new Date()).getFullYear().toString().slice(-2);
+        const studentCount = await prisma.studentProfile.count();
+        const studentIdNumber = `RSB-${currentYearShort}-${(studentCount + 1).toString().padStart(3, "0")}`;
+        const qrPayload = QrService.generateBadgePayload(studentIdNumber, user.id, user.name, classLevel);
+        const qrCodeDataUrl = await QrService.generateQrDataUrl(qrPayload);
+        const profile = await prisma.studentProfile.create({
+          data: {
+            userId: user.id,
+            studentIdNumber,
+            academicLevel: classLevel,
+            avatarUrl: avatarUrl || null,
+            qrCodeDataUrl,
+            isCompleted: false
+          },
+          include: { batch: true }
+        });
+        user = { ...user, profile };
+      }
+      const userAgent = req.headers["user-agent"] || "Unknown Agent";
+      const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "127.0.0.1";
+      const effectiveDeviceId = Buffer.from(`${user.id}-${userAgent}-${ip}`).toString("base64").slice(0, 32);
+      const isMobile = /mobile|android|iphone|ipad/i.test(userAgent);
+      const deviceType = isMobile ? DeviceType2.MOBILE : DeviceType2.DESKTOP;
+      const tempRefreshToken = signRefreshToken({
+        userId: user.id,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        name: user.name
+      });
+      const session = await SessionService.registerSession(
+        user.id,
+        {
+          deviceId: effectiveDeviceId,
+          deviceName: `${provider} Auth - ${isMobile ? "Mobile" : "Desktop"}`,
+          deviceType,
+          browser: userAgent.slice(0, 80),
+          os: isMobile ? "Mobile" : "Desktop",
+          ipAddress: ip
+        },
+        tempRefreshToken
+      );
+      const accessToken = signAccessToken({
+        userId: user.id,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        name: user.name,
+        sessionId: session.id
+      });
+      const refreshToken = signRefreshToken({
+        userId: user.id,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        name: user.name,
+        sessionId: session.id
+      });
+      await prisma.deviceSession.update({
+        where: { id: session.id },
+        data: { refreshToken }
+      });
+      return sendSuccess(
+        res,
+        {
+          user: {
+            id: user.id,
+            email: user.email,
+            phone: user.phone,
+            name: user.name,
+            role: user.role
+          },
+          profile: user.profile,
+          tokens: {
+            accessToken,
+            refreshToken
+          },
+          sessionId: session.id
+        },
+        `${provider} \u09A6\u09BF\u09DF\u09C7 \u09B8\u09AB\u09B2\u09AD\u09BE\u09AC\u09C7 \u09B2\u0997\u0987\u09A8 \u09B9\u09DF\u09C7\u099B\u09C7\u0964`
+      );
+    } catch (error) {
+      console.error("[Social Auth Error]", error);
+      return sendError(res, "Social login failed.", 500, error.message);
+    }
+  }
+  /**
+   * 4. Forgot Password - Request 6-Digit Email OTP (Strict 5-minute validity)
+   */
+  static async forgotPassword(req, res) {
+    try {
+      const { email } = req.body;
+      if (!email || !email.includes("@")) {
+        return sendError(res, "\u0985\u09A8\u09C1\u0997\u09CD\u09B0\u09B9 \u0995\u09B0\u09C7 \u098F\u0995\u099F\u09BF \u09B8\u09A0\u09BF\u0995 \u0987\u09AE\u09C7\u0987\u09B2 \u09A0\u09BF\u0995\u09BE\u09A8\u09BE \u09AA\u09CD\u09B0\u09A6\u09BE\u09A8 \u0995\u09B0\u09C1\u09A8 (Valid Email is required).");
+      }
+      const normalizedEmail = email.toLowerCase().trim();
+      const user = await prisma.user.findUnique({
+        where: { email: normalizedEmail }
+      });
+      if (!user) {
+        return sendError(res, "\u098F\u0987 \u0987\u09AE\u09C7\u0987\u09B2 \u09A6\u09BF\u09DF\u09C7 \u0995\u09CB\u09A8\u09CB \u0985\u09CD\u09AF\u09BE\u0995\u09BE\u0989\u09A8\u09CD\u099F \u09AA\u09BE\u0993\u09DF\u09BE \u09AF\u09BE\u09DF\u09A8\u09BF\u0964 \u09B8\u09A0\u09BF\u0995 \u0987\u09AE\u09C7\u0987\u09B2 \u09A6\u09BF\u09DF\u09C7 \u0986\u09AC\u09BE\u09B0 \u099A\u09C7\u09B7\u09CD\u099F\u09BE \u0995\u09B0\u09C1\u09A8\u0964", 404);
+      }
+      const otpCode = generateOtpCode();
+      const otpHash = await hashOtp(otpCode);
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1e3);
+      await prisma.otpVerification.deleteMany({
+        where: {
+          email: normalizedEmail,
+          purpose: "PASSWORD_RESET"
+        }
+      });
+      await prisma.otpVerification.create({
+        data: {
+          email: normalizedEmail,
+          otpHash,
+          purpose: "PASSWORD_RESET",
+          expiresAt,
+          userId: user.id
+        }
+      });
+      await EmailService.sendOtpEmail(normalizedEmail, otpCode, "PASSWORD_RESET");
+      return sendSuccess(
+        res,
+        { email: normalizedEmail },
+        "\u09AA\u09BE\u09B8\u0993\u09AF\u09BC\u09BE\u09B0\u09CD\u09A1 \u09B0\u09BF\u09B8\u09C7\u099F \u0995\u09B0\u09BE\u09B0 \u09EC \u09A1\u09BF\u099C\u09BF\u099F\u09C7\u09B0 OTP \u0986\u09AA\u09A8\u09BE\u09B0 \u0987\u09AE\u09C7\u0987\u09B2\u09C7 \u09AA\u09BE\u09A0\u09BE\u09A8\u09CB \u09B9\u09AF\u09BC\u09C7\u099B\u09C7 (\u09AE\u09C7\u09DF\u09BE\u09A6 \u09EB \u09AE\u09BF\u09A8\u09BF\u099F)\u0964"
+      );
+    } catch (error) {
+      console.error("[Forgot Password Error]", error);
+      return sendError(res, "\u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1 \u09B0\u09BF\u09B8\u09C7\u099F \u0995\u09CB\u09A1 \u09AA\u09BE\u09A0\u09BE\u09A4\u09C7 \u09B8\u09AE\u09B8\u09CD\u09AF\u09BE \u09B9\u09DF\u09C7\u099B\u09C7\u0964", 500, error.message);
+    }
+  }
+  /**
+   * 5. Reset Password using 6-Digit OTP & Set New Password
+   */
+  static async resetPassword(req, res) {
+    try {
+      const { email, otp, newPassword, confirmPassword } = req.body;
+      if (!email || !otp || !newPassword) {
+        return sendError(res, "\u0987\u09AE\u09C7\u0987\u09B2, \u09EC \u09A1\u09BF\u099C\u09BF\u099F\u09C7\u09B0 \u0993\u099F\u09BF\u09AA\u09BF \u098F\u09AC\u0982 \u09A8\u09A4\u09C1\u09A8 \u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1 \u09AA\u09CD\u09B0\u09A6\u09BE\u09A8 \u0995\u09B0\u09C1\u09A8\u0964");
+      }
+      if (newPassword.length < 6) {
+        return sendError(res, "\u09A8\u09A4\u09C1\u09A8 \u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1 \u0995\u09AE\u09AA\u0995\u09CD\u09B7\u09C7 \u09EC \u0985\u0995\u09CD\u09B7\u09B0\u09C7\u09B0 \u09B9\u09A4\u09C7 \u09B9\u09AC\u09C7\u0964");
+      }
+      if (confirmPassword && newPassword !== confirmPassword) {
+        return sendError(res, "\u09A8\u09A4\u09C1\u09A8 \u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1 \u098F\u09AC\u0982 \u0995\u09A8\u09AB\u09BE\u09B0\u09CD\u09AE \u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1 \u09AE\u09BF\u09B2\u099B\u09C7 \u09A8\u09BE\u0964");
+      }
+      const normalizedEmail = email.toLowerCase().trim();
+      const verification = await prisma.otpVerification.findFirst({
+        where: {
+          email: normalizedEmail,
+          purpose: "PASSWORD_RESET",
+          verified: false,
+          expiresAt: { gt: /* @__PURE__ */ new Date() }
+          // Strict 5-minute validity check
+        },
+        orderBy: { createdAt: "desc" }
+      });
+      if (!verification) {
+        return sendError(res, "\u0995\u09CB\u09A1\u099F\u09BF \u09AD\u09C1\u09B2 \u0985\u09A5\u09AC\u09BE \u098F\u09B0 \u09EB \u09AE\u09BF\u09A8\u09BF\u099F\u09C7\u09B0 \u09AE\u09C7\u09DF\u09BE\u09A6 \u09B6\u09C7\u09B7 \u09B9\u09DF\u09C7 \u0997\u09C7\u099B\u09C7\u0964 \u09A6\u09DF\u09BE \u0995\u09B0\u09C7 \u09AA\u09C1\u09A8\u09B0\u09BE\u09DF \u09A8\u09A4\u09C1\u09A8 \u0995\u09CB\u09A1\u09C7\u09B0 \u0985\u09A8\u09C1\u09B0\u09CB\u09A7 \u0995\u09B0\u09C1\u09A8\u0964", 400);
+      }
+      const isValid = await compareOtp(otp.trim(), verification.otpHash);
+      if (!isValid) {
+        return sendError(res, "\u09AD\u09C1\u09B2 OTP \u0995\u09CB\u09A1\u0964 \u0985\u09A8\u09C1\u0997\u09CD\u09B0\u09B9 \u0995\u09B0\u09C7 \u09B8\u09A0\u09BF\u0995 \u0995\u09CB\u09A1\u099F\u09BF \u09B2\u09BF\u0996\u09C1\u09A8\u0964", 400);
+      }
+      await prisma.otpVerification.delete({
+        where: { id: verification.id }
+      });
+      const passwordHash = await hashPassword(newPassword);
+      await prisma.user.update({
+        where: { email: normalizedEmail },
+        data: { passwordHash }
+      });
+      return sendSuccess(
+        res,
+        null,
+        "\u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1 \u09B8\u09AB\u09B2\u09AD\u09BE\u09AC\u09C7 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09BF\u09A4 \u09B9\u09DF\u09C7\u099B\u09C7! \u098F\u0996\u09A8 \u0986\u09AA\u09A8\u09BE\u09B0 \u09A8\u09A4\u09C1\u09A8 \u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1 \u09A6\u09BF\u09DF\u09C7 \u09B2\u0997\u0987\u09A8 \u0995\u09B0\u09C1\u09A8\u0964"
+      );
+    } catch (error) {
+      console.error("[Reset Password Error]", error);
+      return sendError(res, "\u09AA\u09BE\u09B8\u0993\u09DF\u09BE\u09B0\u09CD\u09A1 \u09B0\u09BF\u09B8\u09C7\u099F \u0995\u09B0\u09A4\u09C7 \u09B8\u09AE\u09B8\u09CD\u09AF\u09BE \u09B9\u09DF\u09C7\u099B\u09C7\u0964", 500, error.message);
+    }
+  }
+  /**
+   * 6. Get Current User info, Profile & Sessions
    */
   static async getMe(req, res) {
     try {
@@ -585,6 +901,7 @@ var AuthController = class {
         user: {
           id: user.id,
           email: user.email,
+          phone: user.phone,
           name: user.name,
           role: user.role
         },
@@ -596,7 +913,7 @@ var AuthController = class {
     }
   }
   /**
-   * 5. Get Active Device Sessions
+   * 7. Get Active Device Sessions
    */
   static async getActiveSessions(req, res) {
     try {
@@ -607,78 +924,15 @@ var AuthController = class {
     }
   }
   /**
-   * 6. Terminate / Remote Logout a specific device session
+   * 8. Terminate / Remote Logout a specific device session
    */
   static async terminateSession(req, res) {
     try {
       const { sessionId } = req.params;
       await SessionService.terminateSession(req.user.userId, sessionId);
-      return sendSuccess(res, null, "Device session terminated.");
+      return sendSuccess(res, null, "\u09A1\u09BF\u09AD\u09BE\u0987\u09B8 \u09B8\u09C7\u09B6\u09A8 \u09AC\u09A8\u09CD\u09A7 \u0995\u09B0\u09BE \u09B9\u09DF\u09C7\u099B\u09C7\u0964");
     } catch (error) {
       return sendError(res, "Failed to terminate session.", 500);
-    }
-  }
-  /**
-   * 7. Forgot Password - Request 6-digit OTP
-   */
-  static async forgotPassword(req, res) {
-    try {
-      const { email } = req.body;
-      const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
-      if (!user) {
-        return sendSuccess(res, null, "If that email exists, an OTP has been sent.");
-      }
-      const otpCode = generateOtpCode();
-      const otpHash = await hashOtp(otpCode);
-      await prisma.otpVerification.create({
-        data: {
-          email: user.email,
-          otpHash,
-          purpose: "PASSWORD_RESET",
-          expiresAt: new Date(Date.now() + 5 * 60 * 1e3),
-          userId: user.id
-        }
-      });
-      await EmailService.sendOtpEmail(user.email, otpCode, "PASSWORD_RESET");
-      return sendSuccess(res, null, "Password reset OTP has been sent to your email.");
-    } catch (error) {
-      return sendError(res, "Failed to request password reset.", 500);
-    }
-  }
-  /**
-   * 8. Reset Password using verified OTP
-   */
-  static async resetPassword(req, res) {
-    try {
-      const { email, otp, newPassword } = req.body;
-      const verification = await prisma.otpVerification.findFirst({
-        where: {
-          email: email.toLowerCase(),
-          purpose: "PASSWORD_RESET",
-          verified: false,
-          expiresAt: { gt: /* @__PURE__ */ new Date() }
-        },
-        orderBy: { createdAt: "desc" }
-      });
-      if (!verification) {
-        return sendError(res, "Invalid or expired OTP.");
-      }
-      const isValid = await compareOtp(otp, verification.otpHash);
-      if (!isValid) {
-        return sendError(res, "Incorrect OTP.");
-      }
-      await prisma.otpVerification.update({
-        where: { id: verification.id },
-        data: { verified: true }
-      });
-      const passwordHash = await hashPassword(newPassword);
-      await prisma.user.update({
-        where: { email: email.toLowerCase() },
-        data: { passwordHash }
-      });
-      return sendSuccess(res, null, "Password has been updated. Please log in with your new password.");
-    } catch (error) {
-      return sendError(res, "Failed to reset password.", 500);
     }
   }
 };
@@ -739,14 +993,14 @@ var rateLimitOtp = (maxAttempts = 5, windowMs = 15 * 60 * 1e3) => {
 
 // src/routes/authRoutes.ts
 var router = Router();
-router.post("/register", rateLimitOtp(5), AuthController.register);
-router.post("/verify-otp", rateLimitOtp(10), AuthController.verifyOtp);
+router.post("/register", AuthController.register);
 router.post("/login", AuthController.login);
+router.post("/social", AuthController.socialAuth);
 router.get("/me", authenticateJWT, AuthController.getMe);
 router.get("/sessions", authenticateJWT, AuthController.getActiveSessions);
 router.delete("/sessions/:sessionId", authenticateJWT, AuthController.terminateSession);
-router.post("/forgot-password", rateLimitOtp(3), AuthController.forgotPassword);
-router.post("/reset-password", rateLimitOtp(5), AuthController.resetPassword);
+router.post("/forgot-password", rateLimitOtp(5), AuthController.forgotPassword);
+router.post("/reset-password", rateLimitOtp(10), AuthController.resetPassword);
 var authRoutes_default = router;
 
 // src/routes/profileRoutes.ts

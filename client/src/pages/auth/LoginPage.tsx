@@ -5,19 +5,18 @@ import { api } from '../../api/client';
 import {
   GraduationCap,
   Mail,
+  Phone,
   Lock,
   Eye,
   EyeOff,
   AlertCircle,
-  ArrowRight,
-  BookOpen
+  ArrowRight
 } from 'lucide-react';
 import { playPop, playSuccessChime } from '../../utils/soundFX';
 
 export const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
-  const [batchLevel, setBatchLevel] = useState<'CLASS_8' | 'SSC' | 'HSC'>('HSC');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,18 +35,13 @@ export const LoginPage: React.FC = () => {
 
     try {
       const res = await api.post('/auth/login', {
-        email: email.trim(),
+        identifier: identifier.trim(),
         password,
       });
 
       if (res.data.success) {
         const { user, profile, tokens } = res.data.data;
         login(tokens.accessToken, user, profile);
-
-        // Store selected academic batch preference if student hasn't set one yet
-        if (batchLevel) {
-          localStorage.setItem('rsb_selected_academic_level', batchLevel);
-        }
 
         // Trigger daily login reward popup on dashboard
         sessionStorage.setItem('rsb_show_daily_reward', 'true');
@@ -68,19 +62,54 @@ export const LoginPage: React.FC = () => {
       setError(
         err.response?.data?.message ||
           networkHelp ||
-          'লগইন ব্যর্থ হয়েছে। ইমেইল ও পাসওয়ার্ড সঠিক কিনা পরীক্ষা করুন।'
+          'লগইন ব্যর্থ হয়েছে। ইমেইল/ফোন ও পাসওয়ার্ড সঠিক কিনা পরীক্ষা করুন।'
       );
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSocialAuth = async (provider: 'GOOGLE' | 'FACEBOOK') => {
+    playPop();
+    setError('');
+    setLoading(true);
+
+    try {
+      const demoEmail = prompt(
+        `${provider === 'GOOGLE' ? 'Google' : 'Facebook'} একাউন্টের ইমেইল প্রদান করুন (OAuth Demo):`,
+        provider === 'GOOGLE' ? 'student@gmail.com' : 'student@fb.com'
+      );
+
+      if (!demoEmail) {
+        setLoading(false);
+        return;
+      }
+
+      const res = await api.post('/auth/social', {
+        provider,
+        email: demoEmail.trim(),
+        name: provider === 'GOOGLE' ? 'Google Student' : 'Facebook Student',
+      });
+
+      if (res.data.success) {
+        const { user, profile, tokens } = res.data.data;
+        login(tokens.accessToken, user, profile);
+        sessionStorage.setItem('rsb_show_daily_reward', 'true');
+        playSuccessChime();
+        navigate(from === '/login' ? '/dashboard' : from);
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || `${provider} লগইন ব্যর্থ হয়েছে।`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-[85vh] bg-slate-50 dark:bg-slate-950 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors">
+    <div className="min-h-[85vh] bg-slate-50 dark:bg-slate-950 flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8 transition-colors">
       <div className="max-w-md w-full space-y-6 bg-white dark:bg-slate-900 p-5 sm:p-10 rounded-3xl shadow-xl border border-slate-200/80 dark:border-slate-800 transition-all">
-        
-        {/* Simple Brand Header */}
-        <div className="text-center space-y-2">
+        {/* Brand Header */}
+        <div className="text-center space-y-1.5">
           <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white flex items-center justify-center mx-auto shadow-lg shadow-blue-500/20">
             <GraduationCap className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
@@ -92,6 +121,59 @@ export const LoginPage: React.FC = () => {
           </p>
         </div>
 
+        {/* Social Auth Buttons */}
+        <div className="space-y-2.5">
+          <button
+            type="button"
+            onClick={() => handleSocialAuth('GOOGLE')}
+            disabled={loading}
+            className="w-full flex items-center justify-center space-x-3 py-2.5 px-4 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold shadow-xs transition-all active:scale-98"
+          >
+            {/* Google Multicolor SVG */}
+            <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
+              <path
+                fill="#4285F4"
+                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+              />
+              <path
+                fill="#EA4335"
+                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+              />
+            </svg>
+            <span>Continue with Google</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSocialAuth('FACEBOOK')}
+            disabled={loading}
+            className="w-full flex items-center justify-center space-x-3 py-2.5 px-4 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-bold shadow-xs transition-all active:scale-98"
+          >
+            {/* Facebook Blue SVG */}
+            <svg className="w-4 h-4 flex-shrink-0" fill="#1877F2" viewBox="0 0 24 24">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+            </svg>
+            <span>Continue with Facebook</span>
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div className="relative flex py-1 items-center">
+          <div className="flex-grow border-t border-slate-200 dark:border-slate-800" />
+          <span className="flex-shrink mx-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            অথবা ইমেইল / ফোন দিয়ে লগইন
+          </span>
+          <div className="flex-grow border-t border-slate-200 dark:border-slate-800" />
+        </div>
+
         {/* Error Alert */}
         {error && (
           <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs flex items-start space-x-2.5">
@@ -100,75 +182,25 @@ export const LoginPage: React.FC = () => {
           </div>
         )}
 
-        {/* Login Form: Just Batch, Email & Password */}
+        {/* Login Form: Identifier (Email/Phone) & Password */}
         <form onSubmit={handleLogin} className="space-y-4">
-          
-          {/* Batch Selector Tabs */}
+          {/* Email OR Phone Number Field */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-              আপনার ব্যাচ / শ্রেণি (Batch)
-            </label>
-            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  playPop();
-                  setBatchLevel('CLASS_8');
-                }}
-                className={`py-2 px-1 sm:px-2 rounded-xl text-[11px] sm:text-xs font-bold border transition-all text-center truncate ${
-                  batchLevel === 'CLASS_8'
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                }`}
-              >
-                ৮ম শ্রেণি (JSC)
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  playPop();
-                  setBatchLevel('SSC');
-                }}
-                className={`py-2 px-1 sm:px-2 rounded-xl text-[11px] sm:text-xs font-bold border transition-all text-center truncate ${
-                  batchLevel === 'SSC'
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                }`}
-              >
-                SSC Science
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  playPop();
-                  setBatchLevel('HSC');
-                }}
-                className={`py-2 px-1 sm:px-2 rounded-xl text-[11px] sm:text-xs font-bold border transition-all text-center truncate ${
-                  batchLevel === 'HSC'
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                }`}
-              >
-                HSC Science
-              </button>
-            </div>
-          </div>
-
-          {/* Email Field */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-              ইমেইল ঠিকানা (Email)
+              ইমেইল অথবা মোবাইল নম্বর (Email or Phone)
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+              {identifier.includes('@') ? (
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+              ) : (
+                <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+              )}
               <input
-                type="email"
+                type="text"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="student@gmail.com"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="017XXXXXXXX বা student@example.com"
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
               />
             </div>
