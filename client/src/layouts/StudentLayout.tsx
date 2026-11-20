@@ -54,7 +54,7 @@ export const StudentLayout: React.FC = () => {
 
   const navLinks = [
     { to: '/dashboard', label: 'ওভারভিউ', icon: LayoutDashboard },
-    { to: '/vault', label: 'স্টাডি ভল্ট (নোটস)', icon: BookOpen },
+    { to: '/vault', label: 'নোটস ও পিডিএফ (Notes & PDFs)', icon: BookOpen },
     { to: '/profile', label: 'প্রোফাইল ও QR কার্ড', icon: UserCheck },
     { to: '/billing', label: 'পেমেন্ট ও রসিদ', icon: CreditCard },
     { to: '/games', label: 'সায়েন্স গেমস', icon: Gamepad2 },
@@ -73,7 +73,7 @@ export const StudentLayout: React.FC = () => {
             <div className="flex items-center space-x-2 text-center sm:text-left">
               <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 animate-bounce" />
               <span className="font-medium">
-                আপনার প্রোফাইল এখনও ১০০% সম্পন্ন হয়নি! স্টাডি ভল্ট নোটস ডাউনলোড ও ফুল অ্যাক্সেস পেতে প্রোফাইল ফর্মটি পূরণ করুন।
+                আপনার প্রোফাইল এখনও ১০০% সম্পন্ন হয়নি! সকল লেকচার শিট ও পিডিএফ ডাউনলোড পেতে প্রোফাইল ফর্মটি পূরণ করুন।
               </span>
             </div>
             <Link

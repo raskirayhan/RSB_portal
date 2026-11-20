@@ -469,7 +469,7 @@ export const StudyVaultPage: React.FC = () => {
                   <span>Rayhan Sir's Verified Study Materials</span>
                 </div>
                 <h1 className="text-xl sm:text-3xl font-black tracking-tight text-white">
-                  স্মার্ট স্টাডি ভল্ট — {activeLevel === 'SSC' ? 'এসএসসি' : 'এইচএসসি'}
+                  নোটস ও পিডিএফ (Notes & PDFs) — {activeLevel === 'SSC' ? 'এসএসসি' : 'এইচএসসি'}
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
                   বোর্ড স্ট্যান্ডার্ড লেকচার শিট, হ্যান্ডনোট, ক্যাডেট কলেজ CQ+MCQ প্রশ্নব্যাংক ও পূর্ণাঙ্গ মডেল টেস্ট সলভ। যেকোনো ডিভাইসে এক ক্লিকে সরাসরি পড়ুন অথবা ডাউনলোড করুন।
@@ -569,7 +569,7 @@ export const StudyVaultPage: React.FC = () => {
           {loading ? (
             <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
               <RefreshCw className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-3" />
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">স্টাডি ভল্ট লোড হচ্ছে...</p>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">নোটস ও পিডিএফ লোড হচ্ছে...</p>
             </div>
           ) : notes.length === 0 ? (
             <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
@@ -596,7 +596,7 @@ export const StudyVaultPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
-                    বিষয়ভিত্তিক স্টাডি ভল্ট (Subject Bento Overview)
+                    বিষয়ভিত্তিক নোটস ও পিডিএফ (Notes & PDFs Overview)
                   </h2>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     যে বিষয়ের নোটস ও মডেল টেস্ট পড়তে চান, সেই বিষয়ে ক্লিক করুন

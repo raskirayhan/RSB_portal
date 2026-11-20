@@ -158,7 +158,7 @@ export const StudentDashboard: React.FC = () => {
               className="w-full sm:w-auto px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-blue-600/80 hover:bg-blue-600 border border-white/20 text-white font-bold text-xs sm:text-sm transition-all flex items-center justify-center space-x-2 whitespace-nowrap text-center"
             >
               <BookOpen className="w-4 h-4" />
-              <span>স্টাডি ভল্ট ও NCTB বই</span>
+              <span>নোটস ও পিডিএফ (Notes & PDFs)</span>
             </Link>
           </div>
         </div>
@@ -295,7 +295,7 @@ export const StudentDashboard: React.FC = () => {
             <div>
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center space-x-2">
                 <GraduationCap className="w-5 h-5 text-blue-600" />
-                <span>আমার সিলেবাস ও বিষয়ভিত্তিক স্টাডি ভল্ট</span>
+                <span>আমার সিলেবাস ও বিষয়ভিত্তিক নোটস (Notes & PDFs)</span>
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 শিক্ষাস্তর অনুসারে সাজানো অধ্যায়, লেকচার শিট ও বোর্ড বই

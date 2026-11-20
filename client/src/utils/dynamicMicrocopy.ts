@@ -65,7 +65,7 @@ export function getContextualStudentMicrocopy(params: {
       type: 'NEW_STUDENT',
       badgeTitle: 'Lab Access Pending',
       headline: `Welcome to the Lab, ${firstName}! 🔬`,
-      subtext: 'Your official Scientist QR Badge and Study Vault are waiting. Complete your profile 100% to unlock full access.',
+      subtext: 'Your official Scientist QR Badge and Notes & PDFs library are waiting. Complete your profile 100% to unlock full access.',
       actionText: 'Complete Profile Now',
       actionUrl: '/profile',
       icon: '🧪',

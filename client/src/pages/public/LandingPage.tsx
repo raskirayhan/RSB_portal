@@ -222,7 +222,7 @@ export const LandingPage: React.FC = () => {
                   className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl font-bold text-slate-800 dark:text-slate-200 bg-white/90 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 shadow-sm transition-all flex items-center justify-center space-x-2 text-sm sm:text-base backdrop-blur-md text-center"
                 >
                   <BookOpen className="w-4 h-4 text-blue-600" />
-                  <span>Study Vault (Notes & PDFs) 📚</span>
+                  <span>Notes & PDFs 📚</span>
                 </Link>
               </motion.div>
 
@@ -410,7 +410,7 @@ export const LandingPage: React.FC = () => {
               <div className="w-12 h-12 rounded-2xl bg-amber-600/20 border border-amber-500/30 text-amber-400 flex items-center justify-center font-mono font-black text-lg">
                 04
               </div>
-              <h3 className="text-base font-extrabold text-white">The Study Vault & Watermarking</h3>
+              <h3 className="text-base font-extrabold text-white">Notes & PDFs (Watermarked)</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
                 অধ্যায়ভিত্তিক লেকচার শিট, সূত্রের শিট ও ক্যাডেট কলেজ CQ প্রশ্নব্যাংক ডাউনলোড করুন। পাইরেসি রোধে থাকবে আপনার নিজস্ব ডায়নামিক ওয়াটারমার্ক।
               </p>
