@@ -152,11 +152,11 @@ export const ChampionSpotlightLeaderboard: React.FC<ChampionSpotlightProps> = ({
 
                 <div className="text-center px-3">
                   <p className="text-[10px] uppercase font-bold text-amber-300 tracking-wider flex items-center justify-center gap-1">
-                    <Zap className="w-3 h-3 text-amber-400" />
-                    <span>অর্জিত XP</span>
+                    <Sparkles className="w-3 h-3 text-amber-400" />
+                    <span>রিওয়ার্ড</span>
                   </p>
-                  <p className="text-base sm:text-lg font-black text-emerald-400 mt-0.5">
-                    +{champion.xpEarned}
+                  <p className="text-base sm:text-lg font-black text-cyan-300 mt-0.5">
+                    +৩ Gems 💎
                   </p>
                 </div>
               </div>
@@ -216,7 +216,7 @@ export const ChampionSpotlightLeaderboard: React.FC<ChampionSpotlightProps> = ({
               <div className="text-right">
                 <span className="text-lg font-black text-amber-400">{player.score}</span>
                 <span className="text-xs text-slate-400">/{player.totalQuestions}</span>
-                <p className="text-[11px] text-emerald-400 font-bold">+{player.xpEarned} XP</p>
+                <p className="text-[11px] text-cyan-400 font-bold">+৩ Gems 💎</p>
               </div>
             </motion.div>
           ))}
@@ -256,7 +256,7 @@ export const ChampionSpotlightLeaderboard: React.FC<ChampionSpotlightProps> = ({
                   <th className="py-3 px-4 text-center">স্কোর (/২৫)</th>
                   <th className="py-3 px-4 text-center">সময়</th>
                   <th className="py-3 px-4 text-center">ট্যাব সুইচ</th>
-                  <th className="py-3 px-4 text-right">XP</th>
+                  <th className="py-3 px-4 text-right">Gems 💎</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200">
@@ -313,8 +313,8 @@ export const ChampionSpotlightLeaderboard: React.FC<ChampionSpotlightProps> = ({
                         </span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-right font-black text-emerald-600 dark:text-emerald-400">
-                      +{row.xpEarned}
+                    <td className="py-3.5 px-4 text-right font-black text-cyan-500 dark:text-cyan-400">
+                      +৩ 💎
                     </td>
                   </tr>
                 ))}

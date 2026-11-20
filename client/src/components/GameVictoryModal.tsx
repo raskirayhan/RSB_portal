@@ -60,22 +60,14 @@ export const GameVictoryModal: React.FC<GameVictoryModalProps> = ({
           {gameTitle} • মোট স্কোর: <strong className="text-white">{score} পয়েন্ট</strong>
         </p>
 
-        {/* Rewards Earned Grid */}
-        <div className="grid grid-cols-2 gap-3 my-6">
-          <div className="p-4 rounded-2xl bg-cyan-950/40 border border-cyan-500/30 flex flex-col items-center justify-center space-y-1">
+        {/* Rewards Earned Card */}
+        <div className="my-6">
+          <div className="p-4 rounded-2xl bg-cyan-950/40 border border-cyan-500/30 flex flex-col items-center justify-center space-y-1 shadow-md shadow-cyan-950/30">
             <div className="flex items-center space-x-1.5 text-cyan-300 font-black text-2xl">
               <Gem className="w-6 h-6 text-cyan-400" />
               <span>+{gemsEarned}</span>
             </div>
-            <span className="text-[11px] text-cyan-200/80 font-bold uppercase tracking-wider">Gems রত্ন</span>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/30 flex flex-col items-center justify-center space-y-1">
-            <div className="flex items-center space-x-1.5 text-amber-300 font-black text-2xl">
-              <Star className="w-6 h-6 text-amber-400 fill-amber-400" />
-              <span>+{xpEarned}</span>
-            </div>
-            <span className="text-[11px] text-amber-200/80 font-bold uppercase tracking-wider">Stars / XP</span>
+            <span className="text-[11px] text-cyan-200/80 font-bold uppercase tracking-wider">Gems রত্ন অর্জিত</span>
           </div>
         </div>
 

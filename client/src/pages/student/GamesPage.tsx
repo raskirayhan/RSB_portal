@@ -201,7 +201,7 @@ export const GamesPage: React.FC = () => {
             ইন-অ্যাপ সায়েন্স গেমস ও রিওয়ার্ড এরিনা
           </h1>
           <p className="text-xs sm:text-sm text-purple-200 max-w-xl">
-            পড়াশোনার একঘেয়েমি দূর করতে ব্রেইন গেম খেলুন! খেলায় জিতলেই পাবেন <strong>💎 Gems রত্ন</strong> ও <strong>⭐ XP Stars</strong>, যা দিয়ে লিডারবোর্ডের শীর্ষে উঠে বিশেষ সুবিধা আনলক করা যাবে।
+            পড়াশোনার একঘেয়েমি দূর করতে ব্রেইন গেম খেলুন! প্রতিদিন লগইন করলেই পাবেন <strong>💎 ২ Gems</strong> এবং অন-টাইম ২৪-ঘণ্টা পরীক্ষা দিলে পাবেন <strong>💎 ৩ Gems</strong>!
           </p>
         </div>
 
@@ -216,18 +216,18 @@ export const GamesPage: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/20 text-center">
-            <Star className="w-5 h-5 text-amber-300 fill-amber-300" />
+            <Trophy className="w-5 h-5 text-amber-300" />
             <div className="text-left">
-              <p className="text-[9px] text-purple-200 font-bold uppercase tracking-wider">মোট XP</p>
-              <h3 className="text-lg font-black text-amber-300">{profile?.totalXp || 0} XP</h3>
+              <p className="text-[9px] text-purple-200 font-bold uppercase tracking-wider">অন-টাইম এক্সাম</p>
+              <h3 className="text-lg font-black text-amber-300">+৩ Gems</h3>
             </div>
           </div>
 
           <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/20 text-center">
             <Flame className="w-5 h-5 text-orange-400 fill-orange-400" />
             <div className="text-left">
-              <p className="text-[9px] text-purple-200 font-bold uppercase tracking-wider">স্ট্রিক</p>
-              <h3 className="text-lg font-black text-orange-300">{profile?.currentStreak || 1} দিন</h3>
+              <p className="text-[9px] text-purple-200 font-bold uppercase tracking-wider">লগইন বোনাস</p>
+              <h3 className="text-lg font-black text-orange-300">+২ Gems</h3>
             </div>
           </div>
         </div>
@@ -330,7 +330,7 @@ export const GamesPage: React.FC = () => {
             >
               <Atom className="w-6 h-6 text-emerald-600 mb-2" />
               <h4 className="font-bold text-slate-800 text-xs sm:text-sm">Periodic Table Match</h4>
-              <p className="text-[10px] text-slate-500">রসায়ন • জিতলেই +৪০ Gems</p>
+              <p className="text-[10px] text-slate-500">রসায়ন • জিতলেই +১ Gem 💎</p>
             </button>
 
             <button
@@ -343,7 +343,7 @@ export const GamesPage: React.FC = () => {
             >
               <Zap className="w-6 h-6 text-blue-600 mb-2" />
               <h4 className="font-bold text-slate-800 text-xs sm:text-sm">Physics Formula Rush</h4>
-              <p className="text-[10px] text-slate-500">পদার্থবিজ্ঞান • জিতলেই +৩৫ Gems</p>
+              <p className="text-[10px] text-slate-500">পদার্থবিজ্ঞান • জিতলেই +১ Gem 💎</p>
             </button>
 
             <button
@@ -356,7 +356,7 @@ export const GamesPage: React.FC = () => {
             >
               <Calculator className="w-6 h-6 text-purple-600 mb-2" />
               <h4 className="font-bold text-slate-800 text-xs sm:text-sm">Mental Math Sprint</h4>
-              <p className="text-[10px] text-slate-500">উচ্চতর গণিত • জিতলেই +৩৫ Gems</p>
+              <p className="text-[10px] text-slate-500">উচ্চতর গণিত • জিতলেই +১ Gem 💎</p>
             </button>
 
             <button
@@ -369,7 +369,7 @@ export const GamesPage: React.FC = () => {
             >
               <Binary className="w-6 h-6 text-amber-600 mb-2" />
               <h4 className="font-bold text-slate-800 text-xs sm:text-sm">Science MCQ Battle</h4>
-              <p className="text-[10px] text-slate-500">ICT ও বিজ্ঞান • জিতলেই +৩০ Gems</p>
+              <p className="text-[10px] text-slate-500">ICT ও বিজ্ঞান • জিতলেই +১ Gem 💎</p>
             </button>
           </div>
 
@@ -434,12 +434,12 @@ export const GamesPage: React.FC = () => {
             />
           </div>
 
-          {/* Overall Batch XP Leaderboard */}
+          {/* Overall Batch Leaderboard */}
           <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-slate-900 text-base">ব্যাচের অল-টাইম ও সাপ্তাহিক লাইভ লিডারবোর্ড</h3>
-                <p className="text-xs text-slate-500">প্রতিটি কুইজ ও গেমসে অর্জিত মোট XP পয়েন্টের ভিত্তিতে সার্বিক র‍্যাঙ্ক</p>
+                <p className="text-xs text-slate-500">প্রতিটি কুইজ ও গেমসের পারফরম্যান্সের ভিত্তিতে সার্বিক র‍্যাঙ্ক</p>
               </div>
               <Trophy className="w-6 h-6 text-amber-500" />
             </div>
@@ -453,7 +453,7 @@ export const GamesPage: React.FC = () => {
                   <th className="px-6 py-4">স্টুডেন্ট ID</th>
                   <th className="px-6 py-4">ব্যাচ</th>
                   <th className="px-6 py-4">স্ট্রিক</th>
-                  <th className="px-6 py-4 text-right">মোট XP</th>
+                  <th className="px-6 py-4 text-right">মোট পয়েন্ট</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -497,7 +497,7 @@ export const GamesPage: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right font-black text-purple-700">
-                        {student.totalXp} XP
+                        {student.totalXp} পয়েন্ট
                       </td>
                     </tr>
                   );
@@ -600,7 +600,7 @@ export const GamesPage: React.FC = () => {
                   <span className="text-slate-500 font-bold">খরচ:</span>
                   <span className="font-black text-cyan-600 flex items-center space-x-1">
                     <Gem className="w-3.5 h-3.5" />
-                    <span>১০০ Gems</span>
+                    <span>১০ Gems</span>
                   </span>
                 </div>
                 {unlockedPerks.includes('GOLDEN_GLOW') ? (
@@ -612,10 +612,10 @@ export const GamesPage: React.FC = () => {
                   </button>
                 ) : (
                   <button
-                    onClick={() => handleUnlockPerk('GOLDEN_GLOW', 100)}
+                    onClick={() => handleUnlockPerk('GOLDEN_GLOW', 10)}
                     className="w-full py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold text-xs shadow-md transition-all active:scale-95"
                   >
-                    আনলক করুন (100 Gems) 💎
+                    আনলক করুন (10 Gems) 💎
                   </button>
                 )}
               </div>
@@ -637,7 +637,7 @@ export const GamesPage: React.FC = () => {
                   <span className="text-slate-500 font-bold">খরচ:</span>
                   <span className="font-black text-cyan-600 flex items-center space-x-1">
                     <Gem className="w-3.5 h-3.5" />
-                    <span>১৫০ Gems</span>
+                    <span>১৫ Gems</span>
                   </span>
                 </div>
                 {unlockedPerks.includes('PRIORITY_PASS') ? (
@@ -649,10 +649,10 @@ export const GamesPage: React.FC = () => {
                   </button>
                 ) : (
                   <button
-                    onClick={() => handleUnlockPerk('PRIORITY_PASS', 150)}
+                    onClick={() => handleUnlockPerk('PRIORITY_PASS', 15)}
                     className="w-full py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-md transition-all active:scale-95"
                   >
-                    আনলক করুন (150 Gems) 💎
+                    আনলক করুন (15 Gems) 💎
                   </button>
                 )}
               </div>
@@ -757,7 +757,7 @@ const PeriodicTableGame: React.FC<{
     <div className="space-y-6 max-w-xl mx-auto text-center">
       <div className="flex items-center justify-between text-xs text-slate-500 border-b pb-2">
         <span>প্রশ্ন: {currentIdx + 1} / {elements.length}</span>
-        <span className="font-bold text-emerald-600">স্কোর: {score} XP</span>
+        <span className="font-bold text-emerald-600">স্কোর: {score} পয়েন্ট</span>
       </div>
 
       <div className="p-8 rounded-3xl bg-gradient-to-tr from-emerald-600 to-teal-700 text-white shadow-xl space-y-2">
@@ -838,7 +838,7 @@ const PhysicsFormulaGame: React.FC<{
     <div className="space-y-6 max-w-xl mx-auto text-center">
       <div className="flex items-center justify-between text-xs text-slate-500 border-b pb-2">
         <span>ফর্মুলা {idx + 1} / {questions.length}</span>
-        <span className="font-bold text-blue-600">স্কোর: {score} XP</span>
+        <span className="font-bold text-blue-600">স্কোর: {score} পয়েন্ট</span>
       </div>
 
       <div className="p-6 rounded-3xl bg-blue-50 border border-blue-200 text-blue-900">
@@ -914,7 +914,7 @@ const MentalMathGame: React.FC<{
     <div className="space-y-6 max-w-xl mx-auto text-center">
       <div className="flex items-center justify-between text-xs text-slate-500 border-b pb-2">
         <span>গণিত চ্যালেঞ্জ: {idx + 1} / {problems.length}</span>
-        <span className="font-bold text-purple-600">স্কোর: {score} XP</span>
+        <span className="font-bold text-purple-600">স্কোর: {score} পয়েন্ট</span>
       </div>
 
       <div className="p-6 rounded-3xl bg-purple-50 border border-purple-200 text-purple-900">
@@ -989,7 +989,7 @@ const ScienceMcqGame: React.FC<{
     <div className="space-y-6 max-w-xl mx-auto text-center">
       <div className="flex items-center justify-between text-xs text-slate-500 border-b pb-2">
         <span>কুইজ {idx + 1} / {mcqs.length}</span>
-        <span className="font-bold text-amber-600">স্কোর: {score} XP</span>
+        <span className="font-bold text-amber-600">স্কোর: {score} পয়েন্ট</span>
       </div>
 
       <div className="p-6 rounded-3xl bg-amber-50 border border-amber-200 text-amber-950">

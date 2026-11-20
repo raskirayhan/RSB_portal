@@ -3,6 +3,7 @@ import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
+import { getUserGems } from '../utils/rewards';
 import {
   AlertTriangle,
   Flame,
@@ -13,12 +14,23 @@ import {
   CreditCard,
   Gamepad2,
   MessageSquare,
-  Smartphone
+  Smartphone,
+  Gem
 } from 'lucide-react';
 
 export const StudentLayout: React.FC = () => {
   const { user, profile, isLoading } = useAuth();
   const location = useLocation();
+  const [gems, setGems] = React.useState<number>(() => getUserGems(user?.id));
+
+  React.useEffect(() => {
+    setGems(getUserGems(user?.id));
+    const handleGemsUpdate = (e: any) => {
+      if (e.detail?.gems !== undefined) setGems(e.detail.gems);
+    };
+    window.addEventListener('rsb_gems_updated', handleGemsUpdate);
+    return () => window.removeEventListener('rsb_gems_updated', handleGemsUpdate);
+  }, [user?.id]);
 
   if (isLoading) {
     return (
@@ -91,11 +103,14 @@ export const StudentLayout: React.FC = () => {
               <span>{profile?.currentStreak || 1} Days</span>
             </div>
 
-            {/* Total XP */}
-            <div className="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/60 text-purple-700 dark:text-purple-300 text-[11px] sm:text-xs font-bold">
-              <Award className="w-3.5 h-3.5 text-purple-600" />
-              <span>{profile?.totalXp || 0} XP</span>
-            </div>
+            {/* Total Gems */}
+            <Link
+              to="/games"
+              className="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-900/60 text-cyan-700 dark:text-cyan-300 text-[11px] sm:text-xs font-bold hover:scale-105 transition-transform"
+            >
+              <Gem className="w-3.5 h-3.5 text-cyan-500" />
+              <span>{gems} Gems 💎</span>
+            </Link>
           </div>
         </div>
 

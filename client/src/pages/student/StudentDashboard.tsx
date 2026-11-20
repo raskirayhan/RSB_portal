@@ -25,7 +25,8 @@ import {
   Star,
   GraduationCap,
   Layers,
-  DownloadCloud
+  DownloadCloud,
+  Trophy
 } from 'lucide-react';
 
 export const StudentDashboard: React.FC = () => {
@@ -104,12 +105,11 @@ export const StudentDashboard: React.FC = () => {
     return () => window.removeEventListener('rsb_gems_updated', handleGemsUpdate);
   }, [user?.id, profile?.currentStreak, profile?.totalXp]);
 
-  const handleRewardClaimed = (gemsEarned: number, starsEarned: number, newStreak: number) => {
+  const handleRewardClaimed = (_gemsEarned: number, _starsEarned: number, newStreak: number) => {
     setRewardStatus({ ...rewardStatus, canClaim: false });
     if (profile) {
       updateProfileState({
         ...profile,
-        totalXp: (profile.totalXp || 0) + starsEarned,
         currentStreak: newStreak,
       });
     }
@@ -179,7 +179,7 @@ export const StudentDashboard: React.FC = () => {
                 </span>
               </h4>
               <p className="text-[11px] sm:text-xs text-purple-200 mt-0.5">
-                লগইন স্ট্রিক বজায় রেখে সংগ্রহ করুন: <strong className="text-cyan-300">+{rewardStatus.gems} 💎 Gems</strong> ও <strong className="text-amber-300">+{rewardStatus.stars} ⭐ Stars</strong>
+                লগইন স্ট্রিক বজায় রেখে সংগ্রহ করুন: <strong className="text-cyan-300">+{rewardStatus.gems} 💎 Gems</strong>
               </p>
             </div>
           </div>
@@ -250,20 +250,20 @@ export const StudentDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Total XP Points */}
+        {/* 24-Hour Science Championship Exam */}
         <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">মোট পয়েন্ট</p>
-            <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-600 flex items-center justify-center">
-              <Award className="w-4 h-4 sm:w-5 sm:h-5" />
+            <p className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">২৪-ঘণ্টা এক্সাম</p>
+            <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-600 flex items-center justify-center">
+              <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
           <div>
-            <h4 className="text-sm sm:text-base font-black text-purple-600 dark:text-purple-400 truncate">
-              {profile?.totalXp || 0} XP
+            <h4 className="text-sm sm:text-base font-black text-amber-600 dark:text-amber-400 truncate">
+              +৩ Gems বোনাস
             </h4>
-            <Link to="/games" className="text-[11px] sm:text-xs text-purple-600 font-semibold hover:underline mt-1 inline-block">
-              লিডারবোর্ড →
+            <Link to="/games" className="text-[11px] sm:text-xs text-amber-600 dark:text-amber-400 font-semibold hover:underline mt-1 inline-block">
+              পরীক্ষা দিন →
             </Link>
           </div>
         </div>

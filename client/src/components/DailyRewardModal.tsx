@@ -22,15 +22,13 @@ export const DailyRewardModal: React.FC<DailyRewardModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  const streakBonus = Math.min(20, currentStreak * 2);
-  const rewardGems = 25 + streakBonus;
-  const rewardStars = 50 + currentStreak * 5;
+  const rewardGems = 2; // Strict 2 Gems daily login reward
 
   const handleClaim = () => {
     playPop();
     const result = claimDailyLoginReward(userId, currentStreak, totalXp);
     if (result.success && onRewardClaimed) {
-      onRewardClaimed(result.gemsEarned, result.starsEarned, result.newStreak);
+      onRewardClaimed(result.gemsEarned, 0, result.newStreak);
     }
     onClose();
   };
@@ -75,35 +73,27 @@ export const DailyRewardModal: React.FC<DailyRewardModalProps> = ({
           প্রতিদিন নিয়মিত লগইন করে স্ট্রিক ধরে রাখুন এবং বিজ্ঞানের দারুণ সব গেমসের জন্য রত্ন সংগ্রহ করুন!
         </p>
 
-        {/* Reward Value Cards */}
-        <div className="grid grid-cols-2 gap-3 my-6">
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center space-y-1">
-            <div className="flex items-center space-x-1.5 text-cyan-300 font-extrabold text-2xl">
-              <Gem className="w-6 h-6 text-cyan-400" />
+        {/* Reward Value Card - Strictly 2 Gems */}
+        <div className="my-6">
+          <div className="p-5 rounded-2xl bg-cyan-950/40 border border-cyan-500/30 backdrop-blur-sm flex flex-col items-center justify-center space-y-1.5 shadow-lg shadow-cyan-950/40">
+            <div className="flex items-center space-x-2 text-cyan-300 font-black text-3xl">
+              <Gem className="w-8 h-8 text-cyan-400 animate-pulse" />
               <span>+{rewardGems}</span>
             </div>
-            <span className="text-[11px] text-slate-300 font-bold uppercase tracking-wider">Gems রত্ন</span>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center space-y-1">
-            <div className="flex items-center space-x-1.5 text-amber-300 font-extrabold text-2xl">
-              <Star className="w-6 h-6 text-amber-400 fill-amber-400" />
-              <span>+{rewardStars}</span>
-            </div>
-            <span className="text-[11px] text-slate-300 font-bold uppercase tracking-wider">Stars / XP</span>
+            <span className="text-xs text-cyan-200/90 font-extrabold uppercase tracking-wider">দৈনিক লগইন Gems রত্ন</span>
           </div>
         </div>
 
         {/* Streak Highlight */}
-        <div className="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 text-xs text-amber-200 mb-6">
+        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 text-xs text-amber-200 mb-6">
           <div className="flex items-center space-x-2">
             <Flame className="w-5 h-5 text-orange-400 fill-orange-400" />
             <span className="font-bold text-left">
               বর্তমান স্ট্রিক: {currentStreak} দিন টানা
             </span>
           </div>
-          <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold">
-            +{streakBonus} Bonus Gems
+          <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[11px] font-bold">
+            🔥 স্ট্রিক চালু
           </span>
         </div>
 

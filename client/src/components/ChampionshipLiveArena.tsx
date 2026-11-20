@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../api/client';
 import { playPop, playSuccessChime, playFanfare } from '../utils/soundFX';
+import { awardOnTimeExamReward } from '../utils/rewards';
 import confetti from 'canvas-confetti';
 import {
   Trophy,
@@ -217,6 +218,9 @@ export const ChampionshipLiveArena: React.FC<ChampionshipLiveArenaProps> = ({ on
           completedAt: new Date().toISOString(),
         });
 
+        // Award 3 Gems for on-time exam completion ("exam time to time dele 3ta gems")
+        awardOnTimeExamReward();
+
         if (data.fullReview) {
           setFullReviewQuestions(data.fullReview);
         }
@@ -377,12 +381,12 @@ export const ChampionshipLiveArena: React.FC<ChampionshipLiveArenaProps> = ({ on
               <p className="text-[10px] text-slate-400 mt-0.5">১২ মিনিটের মধ্যে</p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-center">
-              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">অর্জিত XP</p>
-              <h4 className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
-                +{myAttempt.xpEarned}
+            <div className="p-4 rounded-2xl bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-800/60 text-center">
+              <p className="text-[11px] font-bold text-cyan-700 dark:text-cyan-400">অন-টাইম এক্সাম রিওয়ার্ড</p>
+              <h4 className="text-2xl font-black text-cyan-600 dark:text-cyan-300 mt-1 flex items-center justify-center gap-1">
+                <span>+৩ Gems</span> 💎
               </h4>
-              <p className="text-[10px] text-slate-400 mt-0.5">প্রোফাইলে যুক্ত হয়েছে</p>
+              <p className="text-[10px] text-cyan-600/80 dark:text-cyan-400/80 mt-0.5">রত্ন একাউন্টে যোগ হয়েছে</p>
             </div>
 
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-center">

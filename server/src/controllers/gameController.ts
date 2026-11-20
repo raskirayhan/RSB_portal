@@ -282,11 +282,8 @@ export class GameController {
         }
       });
 
-      // Calculate XP: 10 XP per correct question + speed bonus
-      let bonusXp = 0;
-      if (score >= 20) bonusXp += 50; // High score badge bonus
-      if (score >= 15 && timeTakenSec < 480) bonusXp += 30; // Fast solver bonus (under 8 mins)
-      const totalXpEarned = score * 10 + bonusXp;
+      // On-time exam submission reward: strictly 3 Gems, XP removed
+      const gemsEarned = 3;
 
       // Record the attempt in database
       const attempt = await prisma.championshipAttempt.create({
@@ -298,19 +295,17 @@ export class GameController {
           timeTakenSec: Math.max(1, Number(timeTakenSec)),
           tabSwitches: Number(tabSwitches) || 0,
           answers,
-          xpEarned: totalXpEarned,
+          xpEarned: gemsEarned,
         },
       });
 
-      // Update student's total XP and streak in Profile
+      // Update student's streak in Profile
       const profile = await prisma.studentProfile.findUnique({ where: { userId } });
-      const updatedTotalXp = (profile?.totalXp || 0) + totalXpEarned;
       const currentStreak = Math.max(1, profile?.currentStreak || 1);
 
       await prisma.studentProfile.update({
         where: { userId },
         data: {
-          totalXp: updatedTotalXp,
           currentStreak,
         },
       });
@@ -337,10 +332,10 @@ export class GameController {
         totalQuestions: questions.length,
         timeTakenSec,
         tabSwitches,
-        xpEarned: totalXpEarned,
+        gemsEarned,
         answers,
         fullReview: questions,
-      }, 'আপনার ২৫টি এমসিকিউ সফলভাবে সাবমিট হয়েছে!');
+      }, 'আপনার ২৫টি এমসিকিউ সফলভাবে সাবমিট হয়েছে! অন-টাইম পরীক্ষার জন্য +৩ Gems অর্জিত হয়েছে।');
     } catch (error: any) {
       console.error('[Submit Championship Attempt Error]', error);
       return sendError(res, 'পরীক্ষা সাবমিট করতে সমস্যা হয়েছে।', 500, error.message);

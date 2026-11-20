@@ -1,5 +1,5 @@
 // RSB Portal Gamification & Rewards Utility
-// Manages Gems, Stars, XP, Daily Login Streaks, and Game Win Rewards
+// Manages Gems, Daily Login Streaks, Game Win Rewards, and On-Time Exam Bonus
 
 import { playFanfare, playSuccessChime, playPop } from './soundFX';
 import confetti from 'canvas-confetti';
@@ -7,7 +7,6 @@ import confetti from 'canvas-confetti';
 export interface DailyRewardStatus {
   canClaim: boolean;
   gems: number;
-  stars: number;
   streak: number;
   lastClaimDate: string | null;
 }
@@ -16,7 +15,7 @@ export interface GameRewardResult {
   isWin: boolean;
   score: number;
   gemsEarned: number;
-  xpEarned: number;
+  xpEarned: number; // Deprecated, kept for backward compat (always 0)
   newTotalGems: number;
   newTotalXp: number;
 }
@@ -27,18 +26,18 @@ const getTodayKey = (): string => {
 };
 
 /**
- * Get student's current Gems balance from localStorage (synced with profile baseline)
+ * Get student's current Gems balance from localStorage
  */
-export const getUserGems = (userId?: string, baseTotalXp: number = 0): number => {
-  if (typeof window === 'undefined') return 100;
+export const getUserGems = (userId?: string, _baseTotalXp: number = 0): number => {
+  if (typeof window === 'undefined') return 5;
   const key = userId ? `rsb_gems_${userId}` : 'rsb_gems_guest';
   const stored = localStorage.getItem(key);
   if (stored !== null) {
     const parsed = parseInt(stored, 10);
     if (!isNaN(parsed)) return parsed;
   }
-  // Initialize with sensible starting amount + XP bonus
-  const initial = Math.max(80, Math.floor(baseTotalXp * 0.4) + 60);
+  // Standard initial starter gems balance
+  const initial = 5;
   localStorage.setItem(key, initial.toString());
   return initial;
 };
@@ -46,9 +45,9 @@ export const getUserGems = (userId?: string, baseTotalXp: number = 0): number =>
 /**
  * Add or deduct gems for user
  */
-export const updateUserGems = (userId?: string, delta: number = 0, baseTotalXp: number = 0): number => {
-  if (typeof window === 'undefined') return 100;
-  const current = getUserGems(userId, baseTotalXp);
+export const updateUserGems = (userId?: string, delta: number = 0, _baseTotalXp: number = 0): number => {
+  if (typeof window === 'undefined') return 5;
+  const current = getUserGems(userId);
   const updated = Math.max(0, current + delta);
   const key = userId ? `rsb_gems_${userId}` : 'rsb_gems_guest';
   localStorage.setItem(key, updated.toString());
@@ -58,38 +57,35 @@ export const updateUserGems = (userId?: string, delta: number = 0, baseTotalXp: 
 };
 
 /**
- * Check if the student can claim today's daily login reward
+ * Check if the student can claim today's daily login reward (2 Gems per day)
  */
 export const checkDailyLoginReward = (userId?: string, currentStreak: number = 1): DailyRewardStatus => {
   if (typeof window === 'undefined') {
-    return { canClaim: false, gems: 25, stars: 50, streak: 1, lastClaimDate: null };
+    return { canClaim: false, gems: 2, streak: 1, lastClaimDate: null };
   }
   const today = getTodayKey();
   const key = userId ? `rsb_last_login_claim_${userId}` : 'rsb_last_login_claim_guest';
   const lastClaim = localStorage.getItem(key);
 
   const canClaim = lastClaim !== today;
-  // Streak multiplier: higher streak = slightly higher daily bonus!
-  const streakBonusGems = Math.min(20, Math.floor(currentStreak * 2));
-  const gems = 25 + streakBonusGems;
-  const stars = 50 + (currentStreak * 5);
+  // Daily login strictly gives 2 Gems
+  const gems = 2;
 
   return {
     canClaim,
     gems,
-    stars,
-    streak: canClaim ? currentStreak : currentStreak,
+    streak: currentStreak,
     lastClaimDate: lastClaim,
   };
 };
 
 /**
- * Claim today's daily login reward
+ * Claim today's daily login reward (2 Gems)
  */
 export const claimDailyLoginReward = (
   userId?: string,
   currentStreak: number = 1,
-  baseTotalXp: number = 0
+  _baseTotalXp: number = 0
 ): { success: boolean; gemsEarned: number; starsEarned: number; newGemsTotal: number; newStreak: number } => {
   const status = checkDailyLoginReward(userId, currentStreak);
   if (!status.canClaim) {
@@ -97,7 +93,7 @@ export const claimDailyLoginReward = (
       success: false,
       gemsEarned: 0,
       starsEarned: 0,
-      newGemsTotal: getUserGems(userId, baseTotalXp),
+      newGemsTotal: getUserGems(userId),
       newStreak: currentStreak,
     };
   }
@@ -106,63 +102,73 @@ export const claimDailyLoginReward = (
   const claimKey = userId ? `rsb_last_login_claim_${userId}` : 'rsb_last_login_claim_guest';
   localStorage.setItem(claimKey, today);
 
-  const newGemsTotal = updateUserGems(userId, status.gems, baseTotalXp);
+  // Award strictly 2 Gems for daily login
+  const gemsEarned = 2;
+  const newGemsTotal = updateUserGems(userId, gemsEarned);
   const newStreak = currentStreak + 1;
 
   // Visual & Sound celebration
   try {
     playFanfare();
     confetti({
-      particleCount: 70,
-      spread: 70,
+      particleCount: 50,
+      spread: 60,
       origin: { y: 0.6 },
     });
   } catch (e) {}
 
   return {
     success: true,
-    gemsEarned: status.gems,
-    starsEarned: status.stars,
+    gemsEarned,
+    starsEarned: 0,
     newGemsTotal,
     newStreak,
   };
 };
 
 /**
- * Calculate and award game rewards on winning/completing a game
+ * Award 3 Gems for completing an exam on-time
+ * "exam time to time dele 3ta gems"
+ */
+export const awardOnTimeExamReward = (userId?: string): number => {
+  const gemsEarned = 3;
+  const newGemsTotal = updateUserGems(userId, gemsEarned);
+  try {
+    playFanfare();
+    confetti({
+      particleCount: 75,
+      spread: 70,
+      origin: { y: 0.55 },
+    });
+  } catch (e) {}
+  return newGemsTotal;
+};
+
+/**
+ * Calculate and award game rewards on winning/completing casual practice mini-games
+ * Wins give 1 Gem, XP is completely removed.
  */
 export const processGameReward = (
   userId: string | undefined,
   score: number,
   maxPossibleScore: number = 100,
-  baseTotalXp: number = 0
+  _baseTotalXp: number = 0
 ): GameRewardResult => {
   const winThreshold = Math.floor(maxPossibleScore * 0.6);
   const isWin = score >= winThreshold;
 
-  // Reward formula
-  let gemsEarned = 0;
-  let xpEarned = 0;
+  // Win reward: 1 Gem (reduced quantity), XP = 0
+  const gemsEarned = isWin ? 1 : 0;
+  const xpEarned = 0;
 
-  if (isWin) {
-    // Win Reward: 30-50 gems depending on score, plus high XP
-    gemsEarned = Math.max(30, Math.floor(score * 0.4));
-    xpEarned = Math.max(50, score);
-  } else {
-    // Participation reward
-    gemsEarned = Math.max(10, Math.floor(score * 0.2));
-    xpEarned = Math.max(20, Math.floor(score * 0.5));
-  }
-
-  const newTotalGems = updateUserGems(userId, gemsEarned, baseTotalXp);
-  const newTotalXp = baseTotalXp + xpEarned;
+  const newTotalGems = updateUserGems(userId, gemsEarned);
 
   if (isWin) {
     try {
       playFanfare();
       confetti({
-        particleCount: 100,
-        spread: 80,
+        particleCount: 50,
+        spread: 60,
         origin: { y: 0.55 },
       });
     } catch (e) {}
@@ -178,6 +184,6 @@ export const processGameReward = (
     gemsEarned,
     xpEarned,
     newTotalGems,
-    newTotalXp,
+    newTotalXp: 0,
   };
 };

@@ -160,19 +160,14 @@ export const Navbar: React.FC = () => {
                   </Link>
                 ) : (
                   <>
-                    {/* Live Gems & XP Pill Widget (Hidden on small mobile, available on dashboard) */}
+                    {/* Live Gems Pill Widget */}
                     <Link
                       to="/games"
-                      title="আপনার অর্জিত Gems ও Stars — গেমস খেলুন"
-                      className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-purple-500/10 via-cyan-500/10 to-amber-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20 shadow-xs hover:border-cyan-500/40 transition-all group"
+                      title="আপনার অর্জিত Gems — সায়েন্স গেমস ও লাইভ চ্যাম্পিয়নশিপ"
+                      className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20 shadow-xs hover:border-cyan-500/40 transition-all group"
                     >
                       <Gem className="w-3.5 h-3.5 text-cyan-500 group-hover:scale-110 transition-transform" />
-                      <span>{gems}</span>
-                      <span className="text-slate-300 dark:text-slate-600">|</span>
-                      <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400 group-hover:rotate-12 transition-transform" />
-                      <span className="text-amber-600 dark:text-amber-400 font-extrabold">
-                        {profile?.totalXp || 0} XP
-                      </span>
+                      <span>{gems} Gems 💎</span>
                     </Link>
 
                     <Link
@@ -288,12 +283,9 @@ export const Navbar: React.FC = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="flex items-center space-x-1 text-cyan-600 font-black text-xs">
-                    <Gem className="w-3 h-3" />
-                    <span>{gems}</span>
-                  </div>
-                  <div className="text-[10px] text-amber-500 font-bold">
-                    {profile?.totalXp || 0} XP
+                  <div className="flex items-center space-x-1 text-cyan-600 dark:text-cyan-400 font-black text-xs">
+                    <Gem className="w-3.5 h-3.5" />
+                    <span>{gems} Gems</span>
                   </div>
                 </div>
               </div>

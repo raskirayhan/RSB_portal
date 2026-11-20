@@ -2720,10 +2720,7 @@ var GameController = class {
           score += 1;
         }
       });
-      let bonusXp = 0;
-      if (score >= 20) bonusXp += 50;
-      if (score >= 15 && timeTakenSec < 480) bonusXp += 30;
-      const totalXpEarned = score * 10 + bonusXp;
+      const gemsEarned = 3;
       const attempt = await prisma.championshipAttempt.create({
         data: {
           sessionId,
@@ -2733,16 +2730,14 @@ var GameController = class {
           timeTakenSec: Math.max(1, Number(timeTakenSec)),
           tabSwitches: Number(tabSwitches) || 0,
           answers,
-          xpEarned: totalXpEarned
+          xpEarned: gemsEarned
         }
       });
       const profile = await prisma.studentProfile.findUnique({ where: { userId } });
-      const updatedTotalXp = (profile?.totalXp || 0) + totalXpEarned;
       const currentStreak = Math.max(1, profile?.currentStreak || 1);
       await prisma.studentProfile.update({
         where: { userId },
         data: {
-          totalXp: updatedTotalXp,
           currentStreak
         }
       });
@@ -2766,10 +2761,10 @@ var GameController = class {
         totalQuestions: questions.length,
         timeTakenSec,
         tabSwitches,
-        xpEarned: totalXpEarned,
+        gemsEarned,
         answers,
         fullReview: questions
-      }, "\u0986\u09AA\u09A8\u09BE\u09B0 \u09E8\u09EB\u099F\u09BF \u098F\u09AE\u09B8\u09BF\u0995\u09BF\u0989 \u09B8\u09AB\u09B2\u09AD\u09BE\u09AC\u09C7 \u09B8\u09BE\u09AC\u09AE\u09BF\u099F \u09B9\u09DF\u09C7\u099B\u09C7!");
+      }, "\u0986\u09AA\u09A8\u09BE\u09B0 \u09E8\u09EB\u099F\u09BF \u098F\u09AE\u09B8\u09BF\u0995\u09BF\u0989 \u09B8\u09AB\u09B2\u09AD\u09BE\u09AC\u09C7 \u09B8\u09BE\u09AC\u09AE\u09BF\u099F \u09B9\u09DF\u09C7\u099B\u09C7! \u0985\u09A8-\u099F\u09BE\u0987\u09AE \u09AA\u09B0\u09C0\u0995\u09CD\u09B7\u09BE\u09B0 \u099C\u09A8\u09CD\u09AF +\u09E9 Gems \u0985\u09B0\u09CD\u099C\u09BF\u09A4 \u09B9\u09DF\u09C7\u099B\u09C7\u0964");
     } catch (error) {
       console.error("[Submit Championship Attempt Error]", error);
       return sendError(res, "\u09AA\u09B0\u09C0\u0995\u09CD\u09B7\u09BE \u09B8\u09BE\u09AC\u09AE\u09BF\u099F \u0995\u09B0\u09A4\u09C7 \u09B8\u09AE\u09B8\u09CD\u09AF\u09BE \u09B9\u09DF\u09C7\u099B\u09C7\u0964", 500, error.message);
