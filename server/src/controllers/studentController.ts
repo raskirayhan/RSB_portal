@@ -21,13 +21,12 @@ const onboardingSchema = z.object({
   institution: z.string().min(2, 'স্কুল বা কলেজের নাম প্রদান করুন।'),
   fatherName: z.string().min(2, 'পিতার নাম প্রদান করুন।'),
   guardianPhone: z.string().regex(/^(?:\+88|88)?(01[3-9]\d{8})$/, 'সঠিক ১১ ডিজিটের অভিভাবকের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)'),
-  batchSecretCode: z.string().optional(),
 });
 
 export class StudentController {
   /**
    * Mandatory Student Onboarding Submit
-   * Sets isProfileComplete = true, verificationStatus = 'VERIFIED'
+   * Verified directly with student's mobile number (No secret code required)
    */
   static async completeOnboarding(req: AuthenticatedRequest, res: Response) {
     try {
@@ -51,28 +50,13 @@ export class StudentController {
         institution,
         fatherName,
         guardianPhone,
-        batchSecretCode,
       } = parseResult.data;
 
       // Normalize phone numbers to 11 digits
       const normalizedPhone = phone.replace(/^(\+88|88)/, '').trim();
       const normalizedGuardianPhone = guardianPhone.replace(/^(\+88|88)/, '').trim();
 
-      // Check Batch Access Code from system settings (default 'RSB26')
-      let activeSetting = await prisma.systemSetting.findUnique({
-        where: { key: 'BATCH_SECRET_CODE' },
-      });
-      if (!activeSetting) {
-        activeSetting = await prisma.systemSetting.create({
-          data: { key: 'BATCH_SECRET_CODE', value: 'RSB26' },
-        });
-      }
-
-      const requiredCode = activeSetting.value.trim().toUpperCase();
-      const submittedCode = (batchSecretCode || '').trim().toUpperCase();
-      const isCodeMatched = submittedCode === requiredCode;
-
-      // Status is VERIFIED upon completing authentic profile
+      // Student is directly verified upon submitting mobile number and details
       const verificationStatus: VerificationStatus = VerificationStatus.VERIFIED;
 
       // Find or create batch
@@ -176,7 +160,6 @@ export class StudentController {
           },
           profile: updatedProfile,
           verified: true,
-          codeMatched: isCodeMatched,
         },
         'শিক্ষার্থী ভেরিফিকেশন সফল হয়েছে! স্বাগতম Rayhan Special Batch-এ।'
       );

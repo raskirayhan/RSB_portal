@@ -10,14 +10,11 @@ import {
   QrCode,
   Send,
   X,
-  KeyRound,
   ShieldCheck,
   ShieldAlert,
   Phone,
   Building,
-  RefreshCw,
-  Edit2,
-  Check
+  RefreshCw
 } from 'lucide-react';
 import { QRBadgeModal } from '../../components/QRBadgeModal';
 import { playPop, playSuccessChime } from '../../utils/soundFX';
@@ -27,13 +24,6 @@ export const AdminStudentsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'VERIFIED' | 'UNVERIFIED'>('ALL');
   const [loading, setLoading] = useState(true);
-
-  // Batch Secret Code State
-  const [batchSecretCode, setBatchSecretCode] = useState('RSB26');
-  const [isEditingCode, setIsEditingCode] = useState(false);
-  const [newCodeInput, setNewCodeInput] = useState('');
-  const [codeLoading, setCodeLoading] = useState(false);
-  const [codeSuccessMsg, setCodeSuccessMsg] = useState<string | null>(null);
 
   // Feedback Modal State
   const [selectedStudentForFeedback, setSelectedStudentForFeedback] = useState<any>(null);
@@ -61,47 +51,9 @@ export const AdminStudentsPage: React.FC = () => {
     }
   };
 
-  const fetchBatchCode = async () => {
-    try {
-      const res = await api.get('/admin/settings/batch-code');
-      if (res.data.success && res.data.data?.batchSecretCode) {
-        setBatchSecretCode(res.data.data.batchSecretCode);
-        setNewCodeInput(res.data.data.batchSecretCode);
-      }
-    } catch (err) {
-      console.error('Failed to fetch batch code', err);
-    }
-  };
-
   useEffect(() => {
     fetchStudents();
-    fetchBatchCode();
   }, []);
-
-  const handleUpdateBatchCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCodeInput.trim()) return;
-    setCodeLoading(true);
-    setCodeSuccessMsg(null);
-
-    try {
-      const res = await api.post('/admin/settings/batch-code', {
-        code: newCodeInput.trim(),
-      });
-
-      if (res.data.success) {
-        playSuccessChime();
-        setBatchSecretCode(res.data.data.batchSecretCode);
-        setIsEditingCode(false);
-        setCodeSuccessMsg('ব্যাচ সিক্রেট কোড সফলভাবে আপডেট হয়েছে!');
-        setTimeout(() => setCodeSuccessMsg(null), 3000);
-      }
-    } catch (err) {
-      alert('কোড আপডেট করতে সমস্যা হয়েছে।');
-    } finally {
-      setCodeLoading(false);
-    }
-  };
 
   const handleToggleVerification = async (student: any) => {
     playPop();
@@ -197,66 +149,32 @@ export const AdminStudentsPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Batch Secret Code Management Card */}
+      {/* Quick Verification & Overview Banner */}
       <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white p-6 rounded-3xl border border-blue-500/30 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <div className="flex items-center space-x-2 text-amber-300 text-xs font-bold">
-            <KeyRound className="w-4 h-4" />
-            <span>Active Batch Access Secret Code</span>
+          <div className="flex items-center space-x-2 text-cyan-300 text-xs font-bold">
+            <ShieldCheck className="w-4 h-4" />
+            <span>সরাসরি মোবাইল নম্বর ভেরিফিকেশন সক্রিয়</span>
           </div>
           <h2 className="text-lg sm:text-xl font-black text-white">
-            ক্লাসের গোপন ভেরিফিকেশন কোড: <span className="font-mono text-cyan-300 tracking-wider font-extrabold">{batchSecretCode}</span>
+            সহজ শিক্ষার্থী অথেন্টিকেশন ও প্রোফাইল ট্র্যাকার
           </h2>
-          <p className="text-xs text-slate-300 max-w-xl">
-            Google Sign-In করা শিক্ষার্থীরা এই কোডটি দিয়ে ফর্ম সাবমিট করলে তৎক্ষণাৎ তাদের প্রোফাইল ও QR কার্ড ভেরিফাইড হয়ে যাবে।
+          <p className="text-xs text-slate-300 max-w-2xl">
+            শিক্ষার্থীদের কোনো গোপন কোড দিতে হবে না; তারা সরাসরি তাদের ১১ ডিজিটের মোবাইল নম্বর দিলেই স্বয়ংক্রিয়ভাবে প্রোফাইল ভেরিফাইড হবে ও কিউআর আইডি কার্ড তৈরি হবে। প্রয়োজন অনুসারে আপনি যেকোনো শিক্ষার্থীর স্ট্যাটাস এখান থেকে পরিবর্তন করতে পারেন।
           </p>
-          {codeSuccessMsg && (
-            <p className="text-xs text-emerald-300 font-bold flex items-center space-x-1 mt-1">
-              <Check className="w-3.5 h-3.5" />
-              <span>{codeSuccessMsg}</span>
-            </p>
-          )}
         </div>
 
-        <div className="flex items-center space-x-2">
-          {isEditingCode ? (
-            <form onSubmit={handleUpdateBatchCode} className="flex items-center space-x-2">
-              <input
-                type="text"
-                required
-                value={newCodeInput}
-                onChange={(e) => setNewCodeInput(e.target.value.toUpperCase())}
-                placeholder="নতুন কোড (যেমন: RSB26)"
-                className="px-3 py-2 bg-slate-950 border border-blue-400 rounded-xl text-xs font-mono font-bold text-white uppercase focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <button
-                type="submit"
-                disabled={codeLoading}
-                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50"
-              >
-                {codeLoading ? '...' : 'সংরক্ষণ'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsEditingCode(false)}
-                className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all"
-              >
-                বাতিল
-              </button>
-            </form>
-          ) : (
-            <button
-              onClick={() => {
-                playPop();
-                setNewCodeInput(batchSecretCode);
-                setIsEditingCode(true);
-              }}
-              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center space-x-1.5"
-            >
-              <Edit2 className="w-3.5 h-3.5" />
-              <span>কোড পরিবর্তন করুন</span>
-            </button>
-          )}
+        <div className="flex items-center gap-3">
+          <div className="bg-white/10 px-4 py-2.5 rounded-2xl border border-white/15 text-center">
+            <span className="text-[10px] text-slate-300 block uppercase font-bold">মোট ছাত্র</span>
+            <span className="text-lg font-black text-white">{students.length}</span>
+          </div>
+          <div className="bg-emerald-500/20 px-4 py-2.5 rounded-2xl border border-emerald-500/30 text-center">
+            <span className="text-[10px] text-emerald-300 block uppercase font-bold">ভেরিফাইড</span>
+            <span className="text-lg font-black text-emerald-300">
+              {students.filter((s) => s.verificationStatus === 'VERIFIED').length}
+            </span>
+          </div>
         </div>
       </div>
 

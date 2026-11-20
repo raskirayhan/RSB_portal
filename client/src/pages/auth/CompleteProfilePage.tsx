@@ -10,7 +10,6 @@ import {
   User,
   Phone,
   Building,
-  KeyRound,
   CheckCircle,
   AlertCircle,
   Sparkles,
@@ -29,7 +28,6 @@ export const CompleteProfilePage: React.FC = () => {
   const [institution, setInstitution] = useState(profile?.institutionName || '');
   const [fatherName, setFatherName] = useState(profile?.fatherName || '');
   const [guardianPhone, setGuardianPhone] = useState(profile?.guardianPhone || '');
-  const [batchSecretCode, setBatchSecretCode] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +61,6 @@ export const CompleteProfilePage: React.FC = () => {
         institution: institution.trim(),
         fatherName: fatherName.trim(),
         guardianPhone: guardianPhone.trim(),
-        batchSecretCode: batchSecretCode.trim(),
       });
 
       if (res.data.success) {
@@ -288,26 +285,6 @@ export const CompleteProfilePage: React.FC = () => {
             </div>
           </div>
 
-          {/* 8. Batch Secret Code */}
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-950/60 to-indigo-950/60 border border-blue-500/30 space-y-2">
-            <div className="flex items-center space-x-2 text-blue-400">
-              <KeyRound className="w-4 h-4" />
-              <label className="text-xs font-black uppercase tracking-wider">
-                ব্যাচ সিক্রেট এক্সেস কোড (Batch Access Code)
-              </label>
-            </div>
-            <input
-              type="text"
-              value={batchSecretCode}
-              onChange={(e) => setBatchSecretCode(e.target.value)}
-              placeholder="ক্লাসে রায়হান স্যারের প্রদত্ত কোড লিখুন (যেমন: RSB26)"
-              className="w-full px-3.5 py-2.5 bg-slate-900 border border-blue-500/40 rounded-xl text-xs sm:text-sm text-white font-mono font-bold tracking-widest uppercase focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder:normal-case placeholder:font-sans placeholder:tracking-normal"
-            />
-            <p className="text-[11px] text-slate-400">
-              * সঠিক কোড দিলে তৎক্ষণাৎ আপনার প্রোফাইল ইনস্ট্যান্ট ভেরিফাইড হয়ে যাবে এবং অফিসিয়াল কিউআর আইডি কার্ড জেনারেট হবে।
-            </p>
-          </div>
-
           {/* Submit Button */}
           <button
             type="submit"
@@ -315,7 +292,7 @@ export const CompleteProfilePage: React.FC = () => {
             className="w-full py-3.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-sm rounded-2xl shadow-xl shadow-blue-500/25 transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
           >
             <QrCode className="w-4 h-4" />
-            <span>{loading ? 'যাচাই করা হচ্ছে...' : 'আইডেন্টিটি নিশ্চিত করুন ও ড্যাশবোর্ডে প্রবেশ করুন'}</span>
+            <span>{loading ? 'যাচাই করা হচ্ছে...' : 'মোবাইল নম্বর নিশ্চিত করুন ও ড্যাশবোর্ডে প্রবেশ করুন'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>

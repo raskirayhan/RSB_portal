@@ -1232,13 +1232,12 @@ var onboardingSchema = z.object({
   batchName: z.string().min(1, "\u09AC\u09CD\u09AF\u09BE\u099A \u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09A8 \u0986\u09AC\u09B6\u09CD\u09AF\u0995\u0964"),
   institution: z.string().min(2, "\u09B8\u09CD\u0995\u09C1\u09B2 \u09AC\u09BE \u0995\u09B2\u09C7\u099C\u09C7\u09B0 \u09A8\u09BE\u09AE \u09AA\u09CD\u09B0\u09A6\u09BE\u09A8 \u0995\u09B0\u09C1\u09A8\u0964"),
   fatherName: z.string().min(2, "\u09AA\u09BF\u09A4\u09BE\u09B0 \u09A8\u09BE\u09AE \u09AA\u09CD\u09B0\u09A6\u09BE\u09A8 \u0995\u09B0\u09C1\u09A8\u0964"),
-  guardianPhone: z.string().regex(/^(?:\+88|88)?(01[3-9]\d{8})$/, "\u09B8\u09A0\u09BF\u0995 \u09E7\u09E7 \u09A1\u09BF\u099C\u09BF\u099F\u09C7\u09B0 \u0985\u09AD\u09BF\u09AD\u09BE\u09AC\u0995\u09C7\u09B0 \u09AE\u09CB\u09AC\u09BE\u0987\u09B2 \u09A8\u09AE\u09CD\u09AC\u09B0 \u09A6\u09BF\u09A8 (\u09AF\u09C7\u09AE\u09A8: 017XXXXXXXX)"),
-  batchSecretCode: z.string().optional()
+  guardianPhone: z.string().regex(/^(?:\+88|88)?(01[3-9]\d{8})$/, "\u09B8\u09A0\u09BF\u0995 \u09E7\u09E7 \u09A1\u09BF\u099C\u09BF\u099F\u09C7\u09B0 \u0985\u09AD\u09BF\u09AD\u09BE\u09AC\u0995\u09C7\u09B0 \u09AE\u09CB\u09AC\u09BE\u0987\u09B2 \u09A8\u09AE\u09CD\u09AC\u09B0 \u09A6\u09BF\u09A8 (\u09AF\u09C7\u09AE\u09A8: 017XXXXXXXX)")
 });
 var StudentController = class {
   /**
    * Mandatory Student Onboarding Submit
-   * Sets isProfileComplete = true, verificationStatus = 'VERIFIED'
+   * Verified directly with student's mobile number (No secret code required)
    */
   static async completeOnboarding(req, res) {
     try {
@@ -1258,22 +1257,10 @@ var StudentController = class {
         batchName,
         institution,
         fatherName,
-        guardianPhone,
-        batchSecretCode
+        guardianPhone
       } = parseResult.data;
       const normalizedPhone = phone.replace(/^(\+88|88)/, "").trim();
       const normalizedGuardianPhone = guardianPhone.replace(/^(\+88|88)/, "").trim();
-      let activeSetting = await prisma.systemSetting.findUnique({
-        where: { key: "BATCH_SECRET_CODE" }
-      });
-      if (!activeSetting) {
-        activeSetting = await prisma.systemSetting.create({
-          data: { key: "BATCH_SECRET_CODE", value: "RSB26" }
-        });
-      }
-      const requiredCode = activeSetting.value.trim().toUpperCase();
-      const submittedCode = (batchSecretCode || "").trim().toUpperCase();
-      const isCodeMatched = submittedCode === requiredCode;
       const verificationStatus = VerificationStatus.VERIFIED;
       let batch = await prisma.batch.findFirst({
         where: {
@@ -1361,8 +1348,7 @@ var StudentController = class {
             role: user.role
           },
           profile: updatedProfile,
-          verified: true,
-          codeMatched: isCodeMatched
+          verified: true
         },
         "\u09B6\u09BF\u0995\u09CD\u09B7\u09BE\u09B0\u09CD\u09A5\u09C0 \u09AD\u09C7\u09B0\u09BF\u09AB\u09BF\u0995\u09C7\u09B6\u09A8 \u09B8\u09AB\u09B2 \u09B9\u09DF\u09C7\u099B\u09C7! \u09B8\u09CD\u09AC\u09BE\u0997\u09A4\u09AE Rayhan Special Batch-\u098F\u0964"
       );
