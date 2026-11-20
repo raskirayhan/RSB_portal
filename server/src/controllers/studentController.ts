@@ -17,7 +17,7 @@ const onboardingSchema = z.object({
   fullName: z.string().min(2, 'শিক্ষার্থীর পূর্ণ নাম কমপক্ষে ২ অক্ষরের হতে হবে।'),
   phone: z.string().regex(/^(?:\+88|88)?(01[3-9]\d{8})$/, 'সঠিক ১১ ডিজিটের বাংলাদেশী মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)'),
   classLevel: z.string().min(1, 'শ্রেণি নির্বাচন আবশ্যক।'),
-  batchName: z.string().min(1, 'ব্যাচ নির্বাচন আবশ্যক।'),
+  batchName: z.string().optional(),
   institution: z.string().min(2, 'স্কুল বা কলেজের নাম প্রদান করুন।'),
   fatherName: z.string().min(2, 'পিতার নাম প্রদান করুন।'),
   guardianPhone: z.string().regex(/^(?:\+88|88)?(01[3-9]\d{8})$/, 'সঠিক ১১ ডিজিটের অভিভাবকের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)'),
@@ -59,17 +59,18 @@ export class StudentController {
       // Student is directly verified upon submitting mobile number and details
       const verificationStatus: VerificationStatus = VerificationStatus.VERIFIED;
 
-      // Find or create batch
+      // Find or create batch (default to Regular Batch)
+      const selectedBatch = (batchName || 'Regular Batch').trim();
       let batch = await prisma.batch.findFirst({
         where: {
-          name: { equals: batchName.trim(), mode: 'insensitive' },
+          name: { equals: selectedBatch, mode: 'insensitive' },
         },
       });
 
       if (!batch) {
         batch = await prisma.batch.create({
           data: {
-            name: batchName.trim(),
+            name: selectedBatch,
             academicLevel: classLevel,
             scheduleDays: 'রবি-মঙ্গল-বৃহস্পতি',
             timeSlot: 'সকাল ৮:০০ - ১০:০০',

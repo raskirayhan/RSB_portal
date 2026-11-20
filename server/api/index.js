@@ -1229,7 +1229,7 @@ var onboardingSchema = z.object({
   fullName: z.string().min(2, "\u09B6\u09BF\u0995\u09CD\u09B7\u09BE\u09B0\u09CD\u09A5\u09C0\u09B0 \u09AA\u09C2\u09B0\u09CD\u09A3 \u09A8\u09BE\u09AE \u0995\u09AE\u09AA\u0995\u09CD\u09B7\u09C7 \u09E8 \u0985\u0995\u09CD\u09B7\u09B0\u09C7\u09B0 \u09B9\u09A4\u09C7 \u09B9\u09AC\u09C7\u0964"),
   phone: z.string().regex(/^(?:\+88|88)?(01[3-9]\d{8})$/, "\u09B8\u09A0\u09BF\u0995 \u09E7\u09E7 \u09A1\u09BF\u099C\u09BF\u099F\u09C7\u09B0 \u09AC\u09BE\u0982\u09B2\u09BE\u09A6\u09C7\u09B6\u09C0 \u09AE\u09CB\u09AC\u09BE\u0987\u09B2 \u09A8\u09AE\u09CD\u09AC\u09B0 \u09A6\u09BF\u09A8 (\u09AF\u09C7\u09AE\u09A8: 017XXXXXXXX)"),
   classLevel: z.string().min(1, "\u09B6\u09CD\u09B0\u09C7\u09A3\u09BF \u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09A8 \u0986\u09AC\u09B6\u09CD\u09AF\u0995\u0964"),
-  batchName: z.string().min(1, "\u09AC\u09CD\u09AF\u09BE\u099A \u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09A8 \u0986\u09AC\u09B6\u09CD\u09AF\u0995\u0964"),
+  batchName: z.string().optional(),
   institution: z.string().min(2, "\u09B8\u09CD\u0995\u09C1\u09B2 \u09AC\u09BE \u0995\u09B2\u09C7\u099C\u09C7\u09B0 \u09A8\u09BE\u09AE \u09AA\u09CD\u09B0\u09A6\u09BE\u09A8 \u0995\u09B0\u09C1\u09A8\u0964"),
   fatherName: z.string().min(2, "\u09AA\u09BF\u09A4\u09BE\u09B0 \u09A8\u09BE\u09AE \u09AA\u09CD\u09B0\u09A6\u09BE\u09A8 \u0995\u09B0\u09C1\u09A8\u0964"),
   guardianPhone: z.string().regex(/^(?:\+88|88)?(01[3-9]\d{8})$/, "\u09B8\u09A0\u09BF\u0995 \u09E7\u09E7 \u09A1\u09BF\u099C\u09BF\u099F\u09C7\u09B0 \u0985\u09AD\u09BF\u09AD\u09BE\u09AC\u0995\u09C7\u09B0 \u09AE\u09CB\u09AC\u09BE\u0987\u09B2 \u09A8\u09AE\u09CD\u09AC\u09B0 \u09A6\u09BF\u09A8 (\u09AF\u09C7\u09AE\u09A8: 017XXXXXXXX)")
@@ -1262,15 +1262,16 @@ var StudentController = class {
       const normalizedPhone = phone.replace(/^(\+88|88)/, "").trim();
       const normalizedGuardianPhone = guardianPhone.replace(/^(\+88|88)/, "").trim();
       const verificationStatus = VerificationStatus.VERIFIED;
+      const selectedBatch = (batchName || "Regular Batch").trim();
       let batch = await prisma.batch.findFirst({
         where: {
-          name: { equals: batchName.trim(), mode: "insensitive" }
+          name: { equals: selectedBatch, mode: "insensitive" }
         }
       });
       if (!batch) {
         batch = await prisma.batch.create({
           data: {
-            name: batchName.trim(),
+            name: selectedBatch,
             academicLevel: classLevel,
             scheduleDays: "\u09B0\u09AC\u09BF-\u09AE\u0999\u09CD\u0997\u09B2-\u09AC\u09C3\u09B9\u09B8\u09CD\u09AA\u09A4\u09BF",
             timeSlot: "\u09B8\u0995\u09BE\u09B2 \u09EE:\u09E6\u09E6 - \u09E7\u09E6:\u09E6\u09E6",

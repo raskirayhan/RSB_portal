@@ -24,7 +24,6 @@ export const CompleteProfilePage: React.FC = () => {
   const [fullName, setFullName] = useState(user?.name || profile?.fullName || '');
   const [phone, setPhone] = useState(user?.phone || profile?.studentPhone || '');
   const [classLevel, setClassLevel] = useState(profile?.academicLevel || 'HSC_11');
-  const [batchName, setBatchName] = useState(profile?.batchName || 'Special Exam Batch');
   const [institution, setInstitution] = useState(profile?.institutionName || '');
   const [fatherName, setFatherName] = useState(profile?.fatherName || '');
   const [guardianPhone, setGuardianPhone] = useState(profile?.guardianPhone || '');
@@ -57,7 +56,6 @@ export const CompleteProfilePage: React.FC = () => {
         fullName: fullName.trim(),
         phone: phone.trim(),
         classLevel,
-        batchName,
         institution: institution.trim(),
         fatherName: fatherName.trim(),
         guardianPhone: guardianPhone.trim(),
@@ -199,40 +197,21 @@ export const CompleteProfilePage: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* 3. Class Level */}
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                শ্রেণি নির্বাচন (Class) *
-              </label>
-              <select
-                value={classLevel}
-                onChange={(e) => setClassLevel(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-xs sm:text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="SSC_9">SSC Class 9 (নবম শ্রেণি বিজ্ঞান)</option>
-                <option value="SSC_10">SSC Class 10 (দশম শ্রেণি বিজ্ঞান)</option>
-                <option value="HSC_11">HSC Class 11 (একাদশ শ্রেণি বিজ্ঞান)</option>
-                <option value="HSC_12">HSC Class 12 (দ্বাদশ শ্রেণি বিজ্ঞান)</option>
-              </select>
-            </div>
-
-            {/* 4. Batch Name */}
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                ব্যাচের নাম (Batch Name) *
-              </label>
-              <select
-                value={batchName}
-                onChange={(e) => setBatchName(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-xs sm:text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Morning Batch">Morning Batch (সকাল ব্যাচ)</option>
-                <option value="Afternoon Batch">Afternoon Batch (দুপুর ব্যাচ)</option>
-                <option value="Evening Batch">Evening Batch (সন্ধ্যা ব্যাচ)</option>
-                <option value="Special Exam Batch">Special Exam Batch (স্পেশাল ব্যাচ)</option>
-              </select>
-            </div>
+          {/* 3. Class Level */}
+          <div>
+            <label className="block text-xs font-bold text-slate-300 mb-1.5">
+              শ্রেণি নির্বাচন (Class) *
+            </label>
+            <select
+              value={classLevel}
+              onChange={(e) => setClassLevel(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-slate-800/80 border border-slate-700 rounded-xl text-xs sm:text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="SSC_9">SSC Class 9 (নবম শ্রেণি বিজ্ঞান)</option>
+              <option value="SSC_10">SSC Class 10 (দশম শ্রেণি বিজ্ঞান)</option>
+              <option value="HSC_11">HSC Class 11 (একাদশ শ্রেণি বিজ্ঞান)</option>
+              <option value="HSC_12">HSC Class 12 (দ্বাদশ শ্রেণি বিজ্ঞান)</option>
+            </select>
           </div>
 
           {/* 5. School / College Name */}

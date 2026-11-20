@@ -21,7 +21,6 @@ export const RegisterPage: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [identifier, setIdentifier] = useState('');
   const [classLevel, setClassLevel] = useState('HSC_11');
-  const [batchName, setBatchName] = useState('Morning Batch');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -54,7 +53,6 @@ export const RegisterPage: React.FC = () => {
         fullName: fullName.trim(),
         identifier: identifier.trim(),
         classLevel,
-        batchName,
         password,
         confirmPassword,
       });
@@ -194,43 +192,23 @@ export const RegisterPage: React.FC = () => {
             </div>
           </div>
 
-          {/* 3. Class Level & 4. Batch Name Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Class */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center space-x-1">
-                <BookOpen className="w-3.5 h-3.5 text-blue-500" />
-                <span>শ্রেণি / ক্লাস (Class)</span>
-              </label>
-              <select
-                value={classLevel}
-                onChange={(e) => setClassLevel(e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="SSC_9">SSC (৯ম শ্রেণি)</option>
-                <option value="SSC_10">SSC (১০ম শ্রেণি)</option>
-                <option value="HSC_11">HSC (১১শ শ্রেণি - ১ম বর্ষ)</option>
-                <option value="HSC_12">HSC (১২শ শ্রেণি - ২য় বর্ষ)</option>
-                <option value="CLASS_8">৮ম শ্রেণি (JSC)</option>
-              </select>
-            </div>
-
-            {/* Batch */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center space-x-1">
-                <Users className="w-3.5 h-3.5 text-indigo-500" />
-                <span>ব্যাচ (Batch)</span>
-              </label>
-              <select
-                value={batchName}
-                onChange={(e) => setBatchName(e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Morning Batch">Morning Batch (সকাল)</option>
-                <option value="Evening Batch">Evening Batch (সন্ধ্যা)</option>
-                <option value="Special Batch">Special Batch (কেয়ার)</option>
-              </select>
-            </div>
+          {/* 3. Class Level */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center space-x-1">
+              <BookOpen className="w-3.5 h-3.5 text-blue-500" />
+              <span>শ্রেণি / ক্লাস (Class)</span>
+            </label>
+            <select
+              value={classLevel}
+              onChange={(e) => setClassLevel(e.target.value)}
+              className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="SSC_9">SSC (৯ম শ্রেণি)</option>
+              <option value="SSC_10">SSC (১০ম শ্রেণি)</option>
+              <option value="HSC_11">HSC (১১শ শ্রেণি - ১ম বর্ষ)</option>
+              <option value="HSC_12">HSC (১২শ শ্রেণি - ২য় বর্ষ)</option>
+              <option value="CLASS_8">৮ম শ্রেণি (JSC)</option>
+            </select>
           </div>
 
           {/* 5. Password */}
