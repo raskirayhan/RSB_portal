@@ -30,7 +30,7 @@ export class BillingController {
    */
   static async submitManualPayment(req: AuthenticatedRequest, res: Response) {
     try {
-      const { invoiceId, paymentMethod = PaymentMethod.BKASH_MANUAL, senderNumber, trxId } = req.body;
+      const { invoiceId, paymentMethod = PaymentMethod.BKASH_MANUAL, senderNumber, trxId, amount } = req.body;
 
       if (!invoiceId || !senderNumber || !trxId) {
         return sendError(res, 'Invoice ID, sender number, and transaction ID (TrxID) are required.');
@@ -62,6 +62,10 @@ export class BillingController {
         return sendError(res, 'This Transaction ID (TrxID) has already been submitted.', 400);
       }
 
+      // Parse submitted amount or fallback to invoice.amount
+      const customAmount = amount ? Number(amount) : invoice.amount;
+      const finalAmount = isNaN(customAmount) || customAmount <= 0 ? invoice.amount : customAmount;
+
       // Create or update receipt
       const receipt = await prisma.paymentReceipt.upsert({
         where: { invoiceId },
@@ -71,16 +75,25 @@ export class BillingController {
           paymentMethod,
           senderNumber: senderNumber.trim(),
           trxId: trxId.trim().toUpperCase(),
-          amount: invoice.amount,
+          amount: finalAmount,
           status: PaymentStatus.PENDING,
         },
         update: {
           paymentMethod,
           senderNumber: senderNumber.trim(),
           trxId: trxId.trim().toUpperCase(),
+          amount: finalAmount,
           status: PaymentStatus.PENDING,
         },
       });
+
+      // Update invoice amount to match what the student actually submitted
+      if (finalAmount !== invoice.amount) {
+        await prisma.invoice.update({
+          where: { id: invoiceId },
+          data: { amount: finalAmount },
+        });
+      }
 
       return sendSuccess(
         res,

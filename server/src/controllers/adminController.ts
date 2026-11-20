@@ -200,6 +200,7 @@ export class AdminController {
           data: {
             status: InvoiceStatus.PAID,
             paidAt: now,
+            amount: receipt.amount,
           },
         });
 

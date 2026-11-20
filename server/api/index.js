@@ -1853,7 +1853,7 @@ var BillingController = class {
    */
   static async submitManualPayment(req, res) {
     try {
-      const { invoiceId, paymentMethod = PaymentMethod2.BKASH_MANUAL, senderNumber, trxId } = req.body;
+      const { invoiceId, paymentMethod = PaymentMethod2.BKASH_MANUAL, senderNumber, trxId, amount } = req.body;
       if (!invoiceId || !senderNumber || !trxId) {
         return sendError(res, "Invoice ID, sender number, and transaction ID (TrxID) are required.");
       }
@@ -1876,6 +1876,8 @@ var BillingController = class {
       if (existingTrx) {
         return sendError(res, "This Transaction ID (TrxID) has already been submitted.", 400);
       }
+      const customAmount = amount ? Number(amount) : invoice.amount;
+      const finalAmount = isNaN(customAmount) || customAmount <= 0 ? invoice.amount : customAmount;
       const receipt = await prisma.paymentReceipt.upsert({
         where: { invoiceId },
         create: {
@@ -1884,16 +1886,23 @@ var BillingController = class {
           paymentMethod,
           senderNumber: senderNumber.trim(),
           trxId: trxId.trim().toUpperCase(),
-          amount: invoice.amount,
+          amount: finalAmount,
           status: PaymentStatus2.PENDING
         },
         update: {
           paymentMethod,
           senderNumber: senderNumber.trim(),
           trxId: trxId.trim().toUpperCase(),
+          amount: finalAmount,
           status: PaymentStatus2.PENDING
         }
       });
+      if (finalAmount !== invoice.amount) {
+        await prisma.invoice.update({
+          where: { id: invoiceId },
+          data: { amount: finalAmount }
+        });
+      }
       return sendSuccess(
         res,
         receipt,
@@ -3403,7 +3412,8 @@ var AdminController = class {
           where: { id: receipt.invoiceId },
           data: {
             status: InvoiceStatus2.PAID,
-            paidAt: now
+            paidAt: now,
+            amount: receipt.amount
           }
         });
         return sendSuccess(res, null, `Payment TrxID ${receipt.trxId} approved successfully! Receipt generated.`);

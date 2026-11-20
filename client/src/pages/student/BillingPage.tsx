@@ -11,7 +11,9 @@ import {
   ShieldCheck,
   Send,
   Sparkles,
-  Receipt
+  Receipt,
+  Copy,
+  Check
 } from 'lucide-react';
 
 export const BillingPage: React.FC = () => {
@@ -23,8 +25,10 @@ export const BillingPage: React.FC = () => {
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [paymentMethod, setPaymentMethod] = useState('BKASH_MANUAL');
+  const [customAmount, setCustomAmount] = useState<number | string>(2500);
   const [senderNumber, setSenderNumber] = useState('');
   const [trxId, setTrxId] = useState('');
+  const [copiedNumber, setCopiedNumber] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -47,8 +51,16 @@ export const BillingPage: React.FC = () => {
 
   const handleOpenPaymentModal = (invoice: any) => {
     setSelectedInvoice(invoice);
+    setCustomAmount(invoice.amount || 2500);
     setIsPayModalOpen(true);
     setMsg(null);
+    setCopiedNumber(false);
+  };
+
+  const handleCopyNumber = () => {
+    navigator.clipboard.writeText('01779181871');
+    setCopiedNumber(true);
+    setTimeout(() => setCopiedNumber(false), 2500);
   };
 
   const handleSubmitTrx = async (e: React.FormEvent) => {
@@ -62,6 +74,7 @@ export const BillingPage: React.FC = () => {
         paymentMethod,
         senderNumber: senderNumber.trim(),
         trxId: trxId.trim(),
+        amount: Number(customAmount) || selectedInvoice.amount,
       });
 
       if (res.data.success) {
@@ -245,27 +258,64 @@ export const BillingPage: React.FC = () => {
 
       {/* Manual Payment Modal */}
       {isPayModalOpen && selectedInvoice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200">
-            <div className="p-6 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-              <h3 className="font-extrabold text-lg">টিউশন ফি পেমেন্ট ভেরিফিকেশন</h3>
-              <p className="text-xs text-blue-100 mt-0.5">
-                {selectedInvoice.month} • ৳ {selectedInvoice.amount.toLocaleString()}
-              </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200 my-8">
+            <div className="p-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-extrabold text-lg">টিউশন ফি পেমেন্ট ভেরিফিকেশন</h3>
+                  <p className="text-xs text-blue-100 mt-0.5">
+                    {selectedInvoice.month} • নির্ধারিত ফি ৳ {selectedInvoice.amount.toLocaleString()}
+                  </p>
+                </div>
+                <div className="px-2.5 py-1 rounded-xl bg-white/20 text-white font-mono text-xs font-bold">
+                  bKash / Nagad
+                </div>
+              </div>
             </div>
 
             <div className="p-6 space-y-4">
-              {/* Payment Instructions */}
-              <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200/70 text-xs text-blue-900 space-y-2">
-                <p className="font-bold flex items-center space-x-1.5 text-blue-800">
-                  <Smartphone className="w-4 h-4" />
-                  <span>পেমেন্ট নির্দেশনা (bKash / Nagad):</span>
-                </p>
-                <ol className="list-decimal pl-4 space-y-1 text-slate-700">
-                  <li>আপনার বিকাশ অ্যাপে গিয়ে <strong>Send Money</strong> অথবা পেমেন্ট অপশনে যান।</li>
-                  <li>রায়হান স্যারের নম্বর: <strong className="text-blue-700 font-mono text-sm">01711223344</strong></li>
-                  <li>টাকার পরিমাণ: <strong>৳ {selectedInvoice.amount}</strong> দিন।</li>
-                  <li>পেমেন্ট শেষে পাওয়া <strong>TrxID</strong> এবং আপনার বিকাশ নম্বর নিচে লিখে সাবমিট করুন।</li>
+              {/* Payment Instructions & Number Copy Box */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/80 text-xs text-blue-900 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold flex items-center space-x-1.5 text-blue-800">
+                    <Smartphone className="w-4 h-4 text-blue-600" />
+                    <span>১. বিকাশ / নগদ পার্সোনাল নম্বর (Send Money):</span>
+                  </span>
+                  <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">
+                    Personal
+                  </span>
+                </div>
+
+                {/* 1-Click Copy Number Card */}
+                <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-blue-200 shadow-xs">
+                  <div>
+                    <span className="text-[10px] text-slate-500 font-medium block">রায়হান স্যারের নম্বর:</span>
+                    <span className="text-lg font-black font-mono text-blue-700 tracking-wider">01779181871</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCopyNumber}
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center space-x-1.5 active:scale-95"
+                  >
+                    {copiedNumber ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-300" />
+                        <span className="text-emerald-100">কপি হয়েছে!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>নম্বর কপি</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <ol className="list-decimal pl-4 space-y-1 text-slate-700 text-[11px] leading-relaxed">
+                  <li>বিকাশ বা নগদ অ্যাপের <strong>Send Money</strong> অপশন ব্যবহার করে টাকা পাঠান।</li>
+                  <li>আপনার সুবিধাজনক যেকোনো পরিমাণ ফি পাঠাতে পারেন (কম বা বেশি দিলেও সমস্যা নেই)।</li>
+                  <li>পেমেন্ট শেষে পাওয়া <strong>TrxID</strong> এবং আপনার বিকাশ/নগদ নম্বর নিচে দিন।</li>
                 </ol>
               </div>
 
@@ -278,7 +328,8 @@ export const BillingPage: React.FC = () => {
                 </div>
               )}
 
-              <form onSubmit={handleSubmitTrx} className="space-y-3">
+              <form onSubmit={handleSubmitTrx} className="space-y-3.5">
+                {/* 1. Payment Method */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">পেমেন্ট মেথড</label>
                   <select
@@ -291,20 +342,77 @@ export const BillingPage: React.FC = () => {
                   </select>
                 </div>
 
+                {/* 2. Custom Amount Input */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">প্রেরকের বিকাশ/নগদ নম্বর</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-slate-700">পাঠানো টাকার পরিমাণ (৳ Amount) *</label>
+                    <span className="text-[11px] text-slate-400 font-medium">নির্ধারিত: ৳ {selectedInvoice.amount}</span>
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-sm font-bold text-slate-400">৳</span>
+                    <input
+                      type="number"
+                      required
+                      min="100"
+                      max="50000"
+                      value={customAmount}
+                      onChange={(e) => setCustomAmount(e.target.value)}
+                      placeholder="যেমন: 2500 বা 2000"
+                      className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  {/* Preset quick buttons */}
+                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                    <span className="text-[10px] text-slate-500">কুইক সিলেক্ট:</span>
+                    {[1500, 2000, 2500].map((amt) => (
+                      <button
+                        key={amt}
+                        type="button"
+                        onClick={() => setCustomAmount(amt)}
+                        className={`px-2 py-0.5 rounded-lg text-[11px] font-bold border transition-colors ${
+                          Number(customAmount) === amt
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                        }`}
+                      >
+                        ৳ {amt.toLocaleString()}
+                      </button>
+                    ))}
+                    {selectedInvoice.amount !== 2500 && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomAmount(selectedInvoice.amount)}
+                        className={`px-2 py-0.5 rounded-lg text-[11px] font-bold border transition-colors ${
+                          Number(customAmount) === selectedInvoice.amount
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                        }`}
+                      >
+                        সম্পূর্ণ ফি (৳ {selectedInvoice.amount})
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-emerald-600 font-medium mt-1">
+                    ✓ আপনি যে পরিমাণ টাকা পাঠিয়েছেন ঠিক সেই পরিমাণই যুক্ত হবে।
+                  </p>
+                </div>
+
+                {/* 3. Sender Number */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">প্রেরকের বিকাশ/নগদ নম্বর *</label>
                   <input
                     type="tel"
                     required
                     value={senderNumber}
                     onChange={(e) => setSenderNumber(e.target.value)}
-                    placeholder="017XXXXXXXX"
+                    placeholder="যেমন: 017XXXXXXXX"
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
+                {/* 4. TrxID */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">ট্রানজেকশন আইডি (TrxID)</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">ট্রানজেকশন আইডি (TrxID) *</label>
                   <input
                     type="text"
                     required
@@ -326,7 +434,7 @@ export const BillingPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={submitLoading}
-                    className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all disabled:opacity-50 flex items-center space-x-1.5"
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all disabled:opacity-50 flex items-center space-x-1.5"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>{submitLoading ? 'সাবমিট হচ্ছে...' : 'পেমেন্ট সাবমিট করুন'}</span>
