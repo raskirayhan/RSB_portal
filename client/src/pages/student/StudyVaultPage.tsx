@@ -1,218 +1,314 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import { api, API_BASE_URL } from '../../api/client';
+import { useSearchParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { NctbBooksSection } from '../../components/NctbBooksSection';
-import { playPop } from '../../utils/soundFX';
+import { playPop, playSuccessChime } from '../../utils/soundFX';
 import {
   BookOpen,
   FileText,
   Download,
-  Filter,
-  Search,
-  Lock,
-  ShieldAlert,
-  AlertCircle,
-  Sparkles,
-  CheckCircle,
   Eye,
-  GraduationCap
+  Search,
+  Sparkles,
+  GraduationCap,
+  Plus,
+  Trash2,
+  ExternalLink,
+  X,
+  CheckCircle,
+  AlertCircle,
+  Layers,
+  FolderOpen,
+  RefreshCw,
+  Clock,
+  ArrowRight
 } from 'lucide-react';
 
+interface StudyNote {
+  id: string;
+  classLevel: string;
+  subject: string;
+  chapterNumber: number;
+  chapterName: string;
+  title: string;
+  driveFileUrl: string;
+  previewUrl: string;
+  downloadUrl: string;
+  isGoogleDoc: boolean;
+  fileId?: string;
+  createdAt: string;
+}
+
 export const StudyVaultPage: React.FC = () => {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const [searchParams] = useSearchParams();
 
-  // Determine student's active level (CLASS_8, SSC, or HSC)
-  const getStudentLevel = (): 'CLASS_8' | 'SSC' | 'HSC' => {
+  // Determine student's default level (SSC or HSC)
+  const getInitialLevel = (): 'SSC' | 'HSC' => {
+    const paramLvl = searchParams.get('level')?.toUpperCase();
+    if (paramLvl === 'HSC' || paramLvl === 'SSC') return paramLvl;
+
     const saved = localStorage.getItem('rsb_selected_academic_level');
-    if (saved === 'CLASS_8' || saved === 'SSC' || saved === 'HSC') return saved;
-    const lvl = (profile?.academicLevel || '').toUpperCase();
-    if (lvl.includes('8') || lvl.includes('JSC')) return 'CLASS_8';
-    if (lvl.includes('SSC')) return 'SSC';
-    return 'HSC';
+    if (saved === 'HSC' || saved === 'SSC') return saved;
+
+    const profileLvl = (profile?.academicLevel || '').toUpperCase();
+    if (profileLvl.includes('HSC') || profileLvl.includes('11') || profileLvl.includes('12')) {
+      return 'HSC';
+    }
+    return 'SSC';
   };
 
-  const [activeLevel, setActiveLevel] = useState<'CLASS_8' | 'SSC' | 'HSC'>(getStudentLevel());
-  const [activeVaultTab, setActiveVaultTab] = useState<'SHEETS' | 'NCTB_BOOKS'>('SHEETS');
-
-  const [subjects, setSubjects] = useState<any[]>([]);
-  const [materials, setMaterials] = useState<any[]>([]);
-  const [selectedSubject, setSelectedSubject] = useState<string>(searchParams.get('subject') || '');
-  const [selectedChapter, setSelectedChapter] = useState<string>('');
-  const [selectedType, setSelectedType] = useState<string>('');
+  const [activeLevel, setActiveLevel] = useState<'SSC' | 'HSC'>(getInitialLevel());
+  const [activeVaultTab, setActiveVaultTab] = useState<'NOTES' | 'NCTB_BOOKS'>('NOTES');
+  const [selectedSubject, setSelectedSubject] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Fetch Subjects & Chapters
-    api.get('/vault/subjects')
-      .then((res) => {
-        if (res.data.success) {
-          setSubjects(res.data.data);
-        }
-      })
-      .catch((err) => console.error(err));
-  }, []);
+  const [notes, setNotes] = useState<StudyNote[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [previewNote, setPreviewNote] = useState<StudyNote | null>(null);
 
-  useEffect(() => {
-    // Fetch Materials with Filters
-    let url = `/vault/materials?`;
-    if (selectedSubject) url += `subjectId=${selectedSubject}&`;
-    if (selectedChapter) url += `chapterId=${selectedChapter}&`;
-    if (selectedType) url += `materialType=${selectedType}&`;
+  // Admin Controls
+  const isAdmin = user?.role === 'SUPER_ADMIN';
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [actionLoading, setActionLoading] = useState<boolean>(false);
+  const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-    api.get(url)
-      .then((res) => {
-        if (res.data.success) {
-          setMaterials(res.data.data);
-        }
-      })
-      .catch((err) => console.error(err));
-  }, [selectedSubject, selectedChapter, selectedType]);
+  const [addForm, setAddForm] = useState({
+    classLevel: 'SSC',
+    subject: 'PHYSICS',
+    chapterNumber: 2,
+    chapterName: 'গতি',
+    title: '',
+    driveFileUrl: '',
+  });
 
-  // Handle Dynamic Watermarked PDF Download
-  const handleDownload = async (materialId: string, title: string) => {
-    setDownloadingId(materialId);
-    setErrorMessage(null);
-
+  // Fetch Study Notes
+  const fetchNotes = async () => {
+    setLoading(true);
     try {
-      const token = localStorage.getItem('rsb_token');
-      const response = await fetch(`${API_BASE_URL}/vault/download/${materialId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'x-device-id': localStorage.getItem('rsb_device_id') || 'web',
-        },
-      });
-
-      if (!response.ok) {
-        const errorJson = await response.json();
-        throw new Error(errorJson.message || 'ডাউনলোড ব্যর্থ হয়েছে।');
+      let url = `/study-vault/notes?classLevel=${activeLevel}`;
+      if (selectedSubject !== 'ALL') {
+        url += `&subject=${selectedSubject}`;
+      }
+      if (searchQuery.trim()) {
+        url += `&search=${encodeURIComponent(searchQuery.trim())}`;
       }
 
-      // Convert to blob and download
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${title.replace(/\s+/g, '_')}_RSB.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err: any) {
-      console.error('Download Error', err);
-      setErrorMessage(err.message);
+      const res = await api.get(url);
+      if (res.data.success) {
+        setNotes(res.data.data);
+      }
+    } catch (err) {
+      console.error('[Study Vault] Error loading notes:', err);
     } finally {
-      setDownloadingId(null);
+      setLoading(false);
     }
   };
 
-  const levelFilteredSubjects = subjects.filter((s) => {
-    if (activeLevel === 'CLASS_8') {
-      return s.academicLevel === 'CLASS_8' || s.code.includes('CLASS_8') || s.code.includes('JSC');
+  useEffect(() => {
+    fetchNotes();
+  }, [activeLevel, selectedSubject, searchQuery]);
+
+  // Subject Tabs for SSC vs HSC
+  const sscSubjects = [
+    { key: 'ALL', label: 'সকল বিষয় (All)' },
+    { key: 'PHYSICS', label: 'পদার্থবিজ্ঞান', color: 'bg-blue-600' },
+    { key: 'CHEMISTRY', label: 'রসায়ন', color: 'bg-emerald-600' },
+    { key: 'HIGHER_MATH', label: 'উচ্চতর গণিত', color: 'bg-indigo-600' },
+    { key: 'GENERAL_MATH', label: 'সাধারণ গণিত', color: 'bg-amber-600' },
+    { key: 'BIOLOGY', label: 'জীববিজ্ঞান', color: 'bg-rose-600' },
+  ];
+
+  const hscSubjects = [
+    { key: 'ALL', label: 'সকল বিষয় (All)' },
+    { key: 'ICT', label: 'ICT (তথ্য ও প্রযুক্তি)', color: 'bg-cyan-600' },
+    { key: 'PHYSICS', label: 'পদার্থবিজ্ঞান', color: 'bg-blue-600' },
+    { key: 'CHEMISTRY', label: 'রসায়ন', color: 'bg-emerald-600' },
+    { key: 'HIGHER_MATH', label: 'উচ্চতর গণিত', color: 'bg-indigo-600' },
+    { key: 'BIOLOGY', label: 'জীববিজ্ঞান', color: 'bg-rose-600' },
+  ];
+
+  const currentSubjectList = activeLevel === 'SSC' ? sscSubjects : hscSubjects;
+
+  // Format Subject Label & Color Badge
+  const getSubjectBadge = (subj: string) => {
+    switch (subj.toUpperCase()) {
+      case 'PHYSICS':
+        return { label: 'পদার্থবিজ্ঞান', bg: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30' };
+      case 'CHEMISTRY':
+        return { label: 'রসায়ন', bg: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' };
+      case 'HIGHER_MATH':
+        return { label: 'উচ্চতর গণিত', bg: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30' };
+      case 'GENERAL_MATH':
+        return { label: 'সাধারণ গণিত', bg: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30' };
+      case 'BIOLOGY':
+        return { label: 'জীববিজ্ঞান', bg: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30' };
+      case 'ICT':
+        return { label: 'ICT', bg: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30' };
+      default:
+        return { label: subj, bg: 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/30' };
     }
-    if (activeLevel === 'SSC') {
-      return s.academicLevel === 'SSC' || s.academicLevel === 'BOTH';
+  };
+
+  // Group Notes By Chapter
+  const groupedNotes = notes.reduce((acc, note) => {
+    const key = `${note.chapterNumber}:::${note.chapterName}`;
+    if (!acc[key]) {
+      acc[key] = {
+        chapterNumber: note.chapterNumber,
+        chapterName: note.chapterName,
+        items: [],
+      };
     }
-    if (activeLevel === 'HSC') {
-      return s.academicLevel === 'HSC' || s.academicLevel === 'BOTH';
-    }
-    return true;
+    acc[key].items.push(note);
+    return acc;
+  }, {} as Record<string, { chapterNumber: number; chapterName: string; items: StudyNote[] }>);
+
+  // Sort groups: Ch 0 (Question banks) first, 1..98, then Ch 99 (Model tests)
+  const sortedChapterKeys = Object.keys(groupedNotes).sort((a, b) => {
+    const numA = groupedNotes[a].chapterNumber;
+    const numB = groupedNotes[b].chapterNumber;
+    if (numA === 0) return -1;
+    if (numB === 0) return 1;
+    return numA - numB;
   });
 
-  const currentChapters = subjects.find((s) => s.id === selectedSubject)?.chapters || [];
+  // Admin: Delete Note
+  const handleDeleteNote = async (id: string, title: string) => {
+    if (!window.confirm(`আপনি কি নিশ্চিত যে "${title}" নোটটি মুছে ফেলতে চান?`)) return;
+    setActionLoading(true);
+    try {
+      const res = await api.delete(`/study-vault/admin/notes/${id}`);
+      if (res.data.success) {
+        playSuccessChime();
+        setFeedbackMsg({ type: 'success', text: 'নোটটি সফলভাবে মুছে ফেলা হয়েছে।' });
+        fetchNotes();
+      }
+    } catch (err: any) {
+      setFeedbackMsg({ type: 'error', text: err?.response?.data?.message || 'নোট মুছতে ব্যর্থ হয়েছে।' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
-  const filteredMaterials = materials.filter((m) => {
-    const matchesSearch =
-      m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.chapter?.title.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
-  });
+  // Admin: Create Note
+  const handleCreateNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setActionLoading(true);
+    setFeedbackMsg(null);
+    try {
+      const res = await api.post('/study-vault/admin/notes', addForm);
+      if (res.data.success) {
+        playSuccessChime();
+        setShowAddModal(false);
+        setFeedbackMsg({ type: 'success', text: 'নতুন ড্রাইভ নোট ভল্টে যুক্ত হয়েছে!' });
+        setAddForm({
+          classLevel: activeLevel,
+          subject: 'PHYSICS',
+          chapterNumber: 1,
+          chapterName: '',
+          title: '',
+          driveFileUrl: '',
+        });
+        fetchNotes();
+      }
+    } catch (err: any) {
+      setFeedbackMsg({ type: 'error', text: err?.response?.data?.message || 'নোট যুক্ত করতে সমস্যা হয়েছে।' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Admin: Restore 21 Master Seeds
+  const handleRestoreSeeds = async () => {
+    if (!window.confirm('রায়হান স্যারের নির্ধারিত ২১টি মাস্টার ড্রাইভ নোট ও মডেল টেস্ট রিস্টোর করতে চান?')) return;
+    setActionLoading(true);
+    try {
+      const res = await api.post('/study-vault/admin/seed-notes');
+      if (res.data.success) {
+        playSuccessChime();
+        setFeedbackMsg({ type: 'success', text: res.data.message || 'ডিফল্ট নোটগুলো রিস্টোর হয়েছে।' });
+        fetchNotes();
+      }
+    } catch (err: any) {
+      setFeedbackMsg({ type: 'error', text: 'রিস্টোর করতে সমস্যা হয়েছে।' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Top Academic Level Switcher */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-md">
-        <div className="flex items-center space-x-2.5">
-          <GraduationCap className="w-5 h-5 text-blue-400 flex-shrink-0" />
+    <div className="space-y-8 animate-fade-in pb-16">
+      {/* Top Academic Class Switcher (SSC vs HSC) */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-xl">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400">
+            <GraduationCap className="w-6 h-6" />
+          </div>
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-300 block">
-              শিক্ষাস্তর / বিভাগ নির্বাচন:
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+              শ্রেণি / শিক্ষাস্তর নির্বাচন:
             </span>
-            <span className="text-[11px] text-slate-400">
-              {activeLevel === 'CLASS_8' ? '৮ম শ্রেণি (JSC বিজ্ঞান ও গণিত)' : activeLevel === 'SSC' ? 'এসএসসি বিজ্ঞান শাখা (Physics, Chem, Math, Bio)' : 'এইচএসসি বিজ্ঞান শাখা (উচ্চ মাধ্যমিক)'}
+            <span className="text-sm font-extrabold text-white">
+              {activeLevel === 'SSC' ? 'এসএসসি বিজ্ঞান বিভাগ (SSC 2026/2027)' : 'এইচএসসি বিজ্ঞান ও আইসিটি (HSC 2026/2027)'}
             </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-1.5 w-full sm:w-auto">
-          <button
-            onClick={() => {
-              playPop();
-              setActiveLevel('CLASS_8');
-              localStorage.setItem('rsb_selected_academic_level', 'CLASS_8');
-              setSelectedSubject('');
-            }}
-            className={`px-2.5 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-extrabold transition-all text-center truncate ${
-              activeLevel === 'CLASS_8'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30'
-                : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
-            }`}
-          >
-            🏫 ৮ম (JSC)
-          </button>
-
+        <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
           <button
             onClick={() => {
               playPop();
               setActiveLevel('SSC');
+              setSelectedSubject('ALL');
               localStorage.setItem('rsb_selected_academic_level', 'SSC');
-              setSelectedSubject('');
             }}
-            className={`px-2.5 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-extrabold transition-all text-center truncate ${
+            className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all text-center flex items-center justify-center space-x-2 ${
               activeLevel === 'SSC'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
                 : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
             }`}
           >
-            🎓 এসএসসি
+            <span>🎓</span>
+            <span>এসএসসি (SSC)</span>
           </button>
 
           <button
             onClick={() => {
               playPop();
               setActiveLevel('HSC');
+              setSelectedSubject('ALL');
               localStorage.setItem('rsb_selected_academic_level', 'HSC');
-              setSelectedSubject('');
             }}
-            className={`px-2.5 sm:px-4 py-2 rounded-xl text-[11px] sm:text-xs font-extrabold transition-all text-center truncate ${
+            className={`px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all text-center flex items-center justify-center space-x-2 ${
               activeLevel === 'HSC'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30'
+                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/30'
                 : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
             }`}
           >
-            🔬 এইচএসসি
+            <span>🔬</span>
+            <span>এইচএসসি (HSC)</span>
           </button>
         </div>
       </div>
 
-      {/* Primary Vault Navigation Tabs - responsive 2-column or overflow safe */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+      {/* Primary Vault Navigation Tabs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
         <button
           onClick={() => {
             playPop();
-            setActiveVaultTab('SHEETS');
+            setActiveVaultTab('NOTES');
           }}
-          className={`flex items-center justify-center space-x-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all text-center ${
-            activeVaultTab === 'SHEETS'
-              ? 'bg-blue-600 text-white shadow-sm'
+          className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
+            activeVaultTab === 'NOTES'
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
               : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <FileText className="w-4 h-4 flex-shrink-0" />
-          <span className="truncate">লেকচার শিট ও অধ্যায়ভিত্তিক নোটস</span>
+          <span>অধ্যায়ভিত্তিক নোটস, প্রশ্নব্যাংক ও সমাধান (Drive/PDF)</span>
         </button>
 
         <button
@@ -220,191 +316,482 @@ export const StudyVaultPage: React.FC = () => {
             playPop();
             setActiveVaultTab('NCTB_BOOKS');
           }}
-          className={`flex items-center justify-center space-x-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all text-center ${
+          className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
             activeVaultTab === 'NCTB_BOOKS'
-              ? 'bg-emerald-600 text-white shadow-sm'
+              ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20'
               : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <BookOpen className="w-4 h-4 flex-shrink-0" />
-          <span className="truncate">NCTB মূল বোর্ড বইসমূহ (Textbooks PDF)</span>
+          <span>NCTB মূল পাঠ্যপুস্তক ভল্ট (Official Textbooks)</span>
         </button>
       </div>
 
       {/* Tab 2: NCTB Main Textbooks */}
-      {activeVaultTab === 'NCTB_BOOKS' && (
-        <NctbBooksSection initialLevel={activeLevel} />
-      )}
+      {activeVaultTab === 'NCTB_BOOKS' && <NctbBooksSection initialLevel={activeLevel} />}
 
-      {/* Tab 1: Lecture Sheets & Materials */}
-      {activeVaultTab === 'SHEETS' && (
-        <div className="space-y-8">
-          {/* Header Banner */}
-          <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div className="space-y-1">
-              <div className="flex items-center space-x-2">
-                <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">
-                  Anti-Piracy Protected
-                </span>
-                <span className="text-xs text-slate-500 font-medium">Dynamic Watermarking Active</span>
+      {/* Tab 1: Rayhan Sir's Study Notes & PDFs Vault */}
+      {activeVaultTab === 'NOTES' && (
+        <div className="space-y-6">
+          {/* Hero Banner with Actions */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 rounded-3xl border border-indigo-500/30 shadow-2xl">
+            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="space-y-2">
+                <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-bold">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Rayhan Sir's Verified Study Materials</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                  স্মার্ট স্টাডি ভল্ট — {activeLevel === 'SSC' ? 'এসএসসি' : 'এইচএসসি'}
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+                  রায়হান স্যারের গুগল ড্রাইভের সকল বোর্ড স্ট্যান্ডার্ড লেকচার শিট, হ্যান্ডনোট, ক্যাডেট কলেজ CQ+MCQ প্রশ্নব্যাংক ও পূর্ণাঙ্গ মডেল টেস্ট সলভ। এক ক্লিকে যেকোনো ডিভাইসে প্রিভিউ করুন বা ডাউনলোড করুন।
+                </p>
               </div>
-              <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-                স্মার্ট স্টাডি ভল্ট ({activeLevel === 'CLASS_8' ? '৮ম শ্রেণি' : activeLevel === 'SSC' ? 'এসএসসি' : 'এইচএসসি'})
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl">
-                অধ্যায়ভিত্তিক স্পেশাল লেকচার শিট, সূত্রের শিট ও ক্যাডেট কলেজ CQ প্রশ্নব্যাংক। প্রতিটি নোটে আপনার ছাত্র আইডি ও ফোন নম্বর দিয়ে ডায়নামিক ওয়াটারমার্ক থাকবে।
-              </p>
-            </div>
 
-            <div className="p-3 bg-blue-50/80 dark:bg-blue-950/40 rounded-2xl border border-blue-200/60 dark:border-blue-900 text-xs text-blue-900 dark:text-blue-300 flex items-center space-x-3">
-              <ShieldAlert className="w-5 h-5 text-blue-600 flex-shrink-0" />
-              <span>
-                নিরাপত্তা নোটিশ: প্রতিটি নোটে আপনার নাম <strong>({profile?.studentIdNumber})</strong> ব্যাকগ্রাউন্ডে ওয়াটারমার্ক হয়ে ডাউনলোড হবে।
-              </span>
+              {/* Admin Actions */}
+              {isAdmin && (
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+                  <button
+                    onClick={() => {
+                      playPop();
+                      setShowAddModal(true);
+                    }}
+                    className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-md shadow-blue-500/30"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>নতুন ড্রাইভ নোট যোগ করুন</span>
+                  </button>
+                  <button
+                    onClick={handleRestoreSeeds}
+                    disabled={actionLoading}
+                    className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/30 rounded-2xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${actionLoading ? 'animate-spin' : ''}`} />
+                    <span>২১টি মাস্টার নোট রিস্টোর</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Error / Gatekeeper Alert */}
-          {errorMessage && (
-            <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-start space-x-3">
-              <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="font-bold">অ্যাক্সেস সংরক্ষিত:</p>
-                <p>{errorMessage}</p>
-                {errorMessage.includes('profile') && (
-                  <Link to="/profile" className="mt-2 inline-block font-bold text-rose-900 underline">
-                    প্রোফাইল পূরণ করতে এখানে ক্লিক করুন →
-                  </Link>
+          {/* Feedback Alert */}
+          {feedbackMsg && (
+            <div
+              className={`p-4 rounded-2xl border text-xs sm:text-sm flex items-center justify-between ${
+                feedbackMsg.type === 'success'
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
+                  : 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                {feedbackMsg.type === 'success' ? (
+                  <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
                 )}
-                {errorMessage.includes('fees') && (
-                  <Link to="/billing" className="mt-2 inline-block font-bold text-rose-900 underline">
-                    টিউশন ফি পরিশোধ করতে এখানে ক্লিক করুন →
-                  </Link>
-                )}
+                <span className="font-semibold">{feedbackMsg.text}</span>
               </div>
+              <button onClick={() => setFeedbackMsg(null)} className="p-1 hover:opacity-70">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
 
-          {/* Filters & Search Toolbar */}
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-            {/* Subject Pills */}
-            <div className="flex items-center space-x-2 overflow-x-auto pb-1 text-xs">
-              <button
-                onClick={() => {
-                  setSelectedSubject('');
-                  setSelectedChapter('');
-                }}
-                className={`px-3.5 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap ${
-                  selectedSubject === ''
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-                }`}
-              >
-                সকল বিষয় ({materials.length})
-              </button>
-              {levelFilteredSubjects.map((sub) => (
+          {/* Subject Pills & Search Filter */}
+          <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+            {/* Subject Tabs */}
+            <div className="flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar">
+              {currentSubjectList.map((subj) => (
                 <button
-                  key={sub.id}
+                  key={subj.key}
                   onClick={() => {
-                    setSelectedSubject(sub.id);
-                    setSelectedChapter('');
+                    playPop();
+                    setSelectedSubject(subj.key);
                   }}
-                  className={`px-3.5 py-1.5 rounded-xl font-bold transition-all whitespace-nowrap ${
-                    selectedSubject === sub.id
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                  className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap flex items-center space-x-1.5 ${
+                    selectedSubject === subj.key
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 scale-102'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
-                  {sub.name}
+                  <span>{subj.label}</span>
                 </button>
               ))}
             </div>
 
-            {/* Secondary Filters Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <div className="sm:col-span-5 relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="নোটস বা অধ্যায়ের নাম লিখে খুঁজুন..."
-                  className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="sm:col-span-4">
-                <select
-                  value={selectedChapter}
-                  onChange={(e) => setSelectedChapter(e.target.value)}
-                  disabled={!selectedSubject}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                >
-                  <option value="">সকল অধ্যায় (All Chapters)</option>
-                  {currentChapters.map((ch: any) => (
-                    <option key={ch.id} value={ch.id}>
-                      {ch.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="sm:col-span-3">
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">সকল ধরন (Material Type)</option>
-                  <option value="LECTURE_SHEET">লেকচার শিট</option>
-                  <option value="FORMULA_SHEET">সূত্রের শিট</option>
-                  <option value="CQ_QUESTION_BANK">CQ প্রশ্নব্যাংক</option>
-                  <option value="MCQ_SHEET">MCQ শিট</option>
-                </select>
-              </div>
+            {/* Search Bar */}
+            <div className="relative pt-1 border-t border-slate-100 dark:border-slate-800/80">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-4" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="নোটের নাম, অধ্যায় বা বিষয়ের নাম লিখে খুঁজুন (যেমন: গতি, ভেক্টর, ICT, বোর্ড প্রশ্ন...)"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-400"
+              />
             </div>
           </div>
 
-          {/* Material Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredMaterials.map((mat) => {
-              const isDownloading = downloadingId === mat.id;
-              return (
-                <div
-                  key={mat.id}
-                  className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:shadow-md hover:border-blue-200 transition-all flex flex-col justify-between"
+          {/* Loading State */}
+          {loading ? (
+            <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
+              <RefreshCw className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-3" />
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">স্টাডি ভল্ট লোড হচ্ছে...</p>
+            </div>
+          ) : notes.length === 0 ? (
+            <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
+              <FolderOpen className="w-12 h-12 text-slate-400 mx-auto" />
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">কোনো নোট পাওয়া যায়নি</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                এই ফিল্টারে কোনো নোট নেই। অন্য বিষয় নির্বাচন করুন অথবা আপনার সার্চ টার্ম পরিবর্তন করুন।
+              </p>
+              {isAdmin && (
+                <button
+                  onClick={handleRestoreSeeds}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold inline-flex items-center space-x-1.5 shadow-sm"
                 >
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 uppercase">
-                        {mat.materialType.replace('_', ' ')}
-                      </span>
-                      <span className="text-xs text-slate-400 font-mono font-medium">{mat.fileSize || '2.4 MB'}</span>
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>২১টি মাস্টার ড্রাইভ নোট রিস্টোর করুন</span>
+                </button>
+              )}
+            </div>
+          ) : (
+            /* Grouped Chapters & Notes */
+            <div className="space-y-8">
+              {sortedChapterKeys.map((key) => {
+                const group = groupedNotes[key];
+                const isBoardBank = group.chapterNumber === 0;
+                const isModelTest = group.chapterNumber === 99;
+
+                return (
+                  <div key={key} className="space-y-4">
+                    {/* Chapter Header */}
+                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                      <div className="flex items-center space-x-2.5">
+                        <span className="text-xl">
+                          {isBoardBank ? '🏛️' : isModelTest ? '🏆' : '📑'}
+                        </span>
+                        <div>
+                          <h2 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
+                            {isBoardBank
+                              ? 'বোর্ড প্রশ্ন ব্যাংক ও স্পেশাল সমাধান'
+                              : isModelTest
+                              ? 'পূর্ণাঙ্গ ফাইনাল মডেল টেস্ট (Final Model Tests)'
+                              : `অধ্যায় ${String(group.chapterNumber).padStart(2, '0')}: ${group.chapterName}`}
+                          </h2>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                            {group.items.length}টি লেকচার শিট ও সমাধান
+                          </span>
+                        </div>
+                      </div>
                     </div>
 
-                    <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base leading-snug mb-1">
-                      {mat.title}
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">{mat.chapter?.title}</p>
-                  </div>
+                    {/* Notes Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {group.items.map((note) => {
+                        const badge = getSubjectBadge(note.subject);
+                        return (
+                          <div
+                            key={note.id}
+                            className="group relative bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-5 shadow-xs hover:shadow-xl hover:border-blue-400 dark:hover:border-blue-500 transition-all flex flex-col justify-between"
+                          >
+                            <div>
+                              {/* Card Header: Subject & File Format Badge */}
+                              <div className="flex items-center justify-between mb-3">
+                                <span
+                                  className={`text-[10px] font-black px-2.5 py-1 rounded-xl border ${badge.bg}`}
+                                >
+                                  {badge.label}
+                                </span>
 
-                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <span className="text-[11px] text-slate-400">PDF • ওয়াটারমার্কড</span>
-                    <button
-                      onClick={() => handleDownload(mat.id, mat.title)}
-                      disabled={isDownloading}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center space-x-1.5 disabled:opacity-50"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>{isDownloading ? 'ওয়াটারমার্ক হচ্ছে...' : 'ডাউনলোড'}</span>
-                    </button>
+                                <span
+                                  className={`text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center space-x-1 ${
+                                    note.isGoogleDoc
+                                      ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
+                                      : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                                  }`}
+                                >
+                                  <span>{note.isGoogleDoc ? '📝 Google Doc' : '📑 PDF'}</span>
+                                </span>
+                              </div>
+
+                              {/* Title */}
+                              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug line-clamp-2 mb-2">
+                                {note.title}
+                              </h3>
+
+                              <div className="flex items-center space-x-1.5 text-[11px] text-slate-400 mb-4">
+                                <Clock className="w-3.5 h-3.5" />
+                                <span>বোর্ড স্ট্যান্ডার্ড • সম্পূর্ণ সলভ সহ</span>
+                              </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
+                              {/* 1. Read PDF (In-App Preview Modal) */}
+                              <button
+                                onClick={() => {
+                                  playPop();
+                                  setPreviewNote(note);
+                                }}
+                                className="flex-1 py-2 px-3 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 border border-blue-200 dark:border-blue-900"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>পড়ুন 👁️</span>
+                              </button>
+
+                              {/* 2. Download PDF (Instant 1-Click) */}
+                              <a
+                                href={note.downloadUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-1.5 shadow-sm hover:shadow-md"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                                <span>ডাউনলোড ⬇️</span>
+                              </a>
+
+                              {/* Admin Delete Action */}
+                              {isAdmin && (
+                                <button
+                                  onClick={() => handleDeleteNote(note.id, note.title)}
+                                  disabled={actionLoading}
+                                  title="নোট মুছুন"
+                                  className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-all"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
+
+      {/* In-App PDF / Document Reader Modal */}
+      <AnimatePresence>
+        {previewNote && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-fade-in">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-5xl h-[88vh] bg-white dark:bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl flex flex-col overflow-hidden"
+            >
+              {/* Modal Top Header */}
+              <div className="p-4 sm:p-5 bg-slate-900 text-white border-b border-slate-800 flex items-center justify-between gap-3">
+                <div className="flex items-center space-x-3 overflow-hidden">
+                  <div className="w-9 h-9 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center flex-shrink-0">
+                    <BookOpen className="w-5 h-5" />
+                  </div>
+                  <div className="truncate">
+                    <h3 className="text-sm sm:text-base font-extrabold truncate text-white">
+                      {previewNote.title}
+                    </h3>
+                    <p className="text-[11px] text-slate-400">
+                      {previewNote.chapterName} • {previewNote.subject}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2 flex-shrink-0">
+                  {/* Download Link */}
+                  <a
+                    href={previewNote.downloadUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hidden sm:flex items-center space-x-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>ডাউনলোড</span>
+                  </a>
+
+                  {/* Open in Drive directly */}
+                  <a
+                    href={previewNote.driveFileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="ড্রাইভে খুলুন"
+                    className="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+
+                  {/* Close Modal */}
+                  <button
+                    onClick={() => setPreviewNote(null)}
+                    className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Responsive Iframe Reader */}
+              <div className="flex-1 w-full h-full bg-slate-950 relative">
+                <iframe
+                  src={previewNote.previewUrl}
+                  title={previewNote.title}
+                  className="w-full h-full border-0"
+                  allow="autoplay"
+                />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Admin: Add New Google Drive Note Modal */}
+      <AnimatePresence>
+        {showAddModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-5"
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div className="flex items-center space-x-2 text-blue-600">
+                  <Plus className="w-5 h-5" />
+                  <h3 className="font-black text-slate-900 dark:text-white text-base">
+                    নতুন গুগল ড্রাইভ স্টাডি নোট যুক্ত করুন
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateNote} className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      শ্রেণি (Class)
+                    </label>
+                    <select
+                      value={addForm.classLevel}
+                      onChange={(e) => setAddForm({ ...addForm, classLevel: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200"
+                    >
+                      <option value="SSC">এসএসসি (SSC)</option>
+                      <option value="HSC">এইচএসসি (HSC)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      বিষয় (Subject)
+                    </label>
+                    <select
+                      value={addForm.subject}
+                      onChange={(e) => setAddForm({ ...addForm, subject: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200"
+                    >
+                      <option value="PHYSICS">Physics (পদার্থবিজ্ঞান)</option>
+                      <option value="CHEMISTRY">Chemistry (রসায়ন)</option>
+                      <option value="HIGHER_MATH">Higher Math (উচ্চতর গণিত)</option>
+                      <option value="GENERAL_MATH">General Math (সাধারণ গণিত)</option>
+                      <option value="BIOLOGY">Biology (জীববিজ্ঞান)</option>
+                      <option value="ICT">ICT (তথ্য ও প্রযুক্তি)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      অধ্যায় নং
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={addForm.chapterNumber}
+                      onChange={(e) => setAddForm({ ...addForm, chapterNumber: parseInt(e.target.value, 10) || 0 })}
+                      placeholder="0 (বোর্ড), 2, 99 (মডেল টেস্ট)"
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200"
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      অধ্যায়ের নাম
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={addForm.chapterName}
+                      onChange={(e) => setAddForm({ ...addForm, chapterName: e.target.value })}
+                      placeholder="যেমন: গতি, বল, সংখ্যা পদ্ধতি..."
+                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    নোটের পুরো শিরোনাম (Title)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={addForm.title}
+                    onChange={(e) => setAddForm({ ...addForm, title: e.target.value })}
+                    placeholder="যেমন: SSC Model Test Solve (CQ+MCQ) — Chapter 02"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Google Drive অথবা Docs শেয়ারিং লিংক
+                  </label>
+                  <input
+                    type="url"
+                    required
+                    value={addForm.driveFileUrl}
+                    onChange={(e) => setAddForm({ ...addForm, driveFileUrl: e.target.value })}
+                    placeholder="https://drive.google.com/file/d/... অথবা https://docs.google.com/document/d/..."
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-slate-200"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    * লিংক পেস্ট করলেই সিস্টেম স্বয়ংক্রিয়ভাবে ইন-অ্যাপ রিডার এবং ১-ক্লিক ডিরেক্ট ডাউনলোড তৈরি করবে।
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold transition-all"
+                  >
+                    বাতিল
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={actionLoading}
+                    className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center space-x-1.5 disabled:opacity-50"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{actionLoading ? 'যুক্ত হচ্ছে...' : 'সংরক্ষণ করুন'}</span>
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -23,11 +23,7 @@ router.get('/landing-data', async (req: Request, res: Response) => {
       },
     });
 
-    const demoVideos = await prisma.demoVideo.findMany({
-      where: { featured: true },
-      orderBy: { createdAt: 'desc' },
-      take: 6,
-    });
+    const demoVideos: any[] = [];
 
     const achievements = [
       { year: '2025', count: '48+ GPA-5', description: 'SSC Science Batch All-Board Top Scorers' },

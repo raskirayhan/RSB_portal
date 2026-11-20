@@ -134,31 +134,10 @@ export class AdminController {
   }
 
   /**
-   * 5. Add 2-4 Min Demo Concept Video for Public Landing Page
+   * 5. Add 2-4 Min Demo Concept Video for Public Landing Page (Deprecated)
    */
   static async createDemoVideo(req: AuthenticatedRequest, res: Response) {
-    try {
-      const { title, subject, chapter, duration, youtubeUrl, thumbnailUrl } = req.body;
-
-      if (!title || !subject || !youtubeUrl) {
-        return sendError(res, 'Title, subject, and YouTube URL are required.');
-      }
-
-      const video = await prisma.demoVideo.create({
-        data: {
-          title,
-          subject,
-          chapter: chapter || 'General Concept',
-          duration: duration || '3:30',
-          youtubeUrl,
-          thumbnailUrl,
-        },
-      });
-
-      return sendSuccess(res, video, 'Demo video added successfully.');
-    } catch (error: any) {
-      return sendError(res, 'Failed to add demo video.', 500);
-    }
+    return sendSuccess(res, null, 'Demo videos have been phased out in favor of the Study Vault.');
   }
 
   /**

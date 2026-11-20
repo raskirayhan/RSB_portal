@@ -1,6 +1,7 @@
 import { PrismaClient, Role, UserStatus, MaterialType, InvoiceStatus, PaymentMethod, PaymentStatus, GameType } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { QrService } from '../services/qrService.js';
+import { STUDY_NOTE_SEEDS } from '../utils/studyNoteSeeds.js';
 
 const prisma = new PrismaClient();
 
@@ -200,66 +201,21 @@ async function main() {
     }
   }
 
-  // 4. Seed Demo Videos (Real Faceless 3D Science Concept Lessons from Extraclass)
-  await prisma.demoVideo.deleteMany();
-  await prisma.demoVideo.createMany({
-    data: [
-      {
-        title: 'ডপলার ক্রিয়া ও শব্দ তরঙ্গের ৩ডি বিশ্লেষণ (Doppler Effect in Sound Waves)',
-        subject: 'Physics',
-        chapter: 'তরঙ্গ ও শব্দ (Wave & Sound)',
-        duration: '৩:৩০ মিনিট',
-        youtubeUrl: 'https://www.youtube.com/watch?v=mv6C99LCcxg',
-        thumbnailUrl: 'https://img.youtube.com/vi/mv6C99LCcxg/hqdefault.jpg',
-        featured: true,
+  // 4. Seed Study Vault Notes & PDFs (Rayhan Sir's Google Drive PDFs & Docs)
+  await prisma.studyNote.deleteMany();
+  for (const item of STUDY_NOTE_SEEDS) {
+    await prisma.studyNote.create({
+      data: {
+        classLevel: item.classLevel,
+        subject: item.subject,
+        chapterNumber: item.chapterNumber,
+        chapterName: item.chapterName,
+        title: item.title,
+        driveFileUrl: item.driveFileUrl,
       },
-      {
-        title: 'টর্ক ও ঘূর্ণন বলবিদ্যার ৩ডি মেকানিজম (What is Torque & Rotational Dynamics)',
-        subject: 'Physics',
-        chapter: 'নিউটনিয়ান বলবিদ্যা (Mechanics)',
-        duration: '৩:১৫ মিনিট',
-        youtubeUrl: 'https://www.youtube.com/watch?v=zXxrAJld9mo',
-        thumbnailUrl: 'https://img.youtube.com/vi/zXxrAJld9mo/hqdefault.jpg',
-        featured: true,
-      },
-      {
-        title: 'মুক্তিবেগ ও কৃত্রিম উপগ্রহের ৩ডি গতিপথ (Escape Velocity & Orbital Motion)',
-        subject: 'Physics',
-        chapter: 'মহাকর্ষ ও অভিকর্ষ (Gravitation)',
-        duration: '৩:২০ মিনিট',
-        youtubeUrl: 'https://www.youtube.com/watch?v=tgHsjvSWQe8',
-        thumbnailUrl: 'https://img.youtube.com/vi/tgHsjvSWQe8/hqdefault.jpg',
-        featured: true,
-      },
-      {
-        title: 'জারণ-বিজারণ ও ইলেকট্রন স্থানান্তরের ৩ডি মেকানিজম (Redox Reaction 3D Mechanism)',
-        subject: 'Chemistry',
-        chapter: 'জারণ-বিজারণ ও তড়িৎ রসায়ন',
-        duration: '৪:১৯ মিনিট',
-        youtubeUrl: 'https://www.youtube.com/watch?v=h3XTkpTDN-E',
-        thumbnailUrl: 'https://img.youtube.com/vi/h3XTkpTDN-E/hqdefault.jpg',
-        featured: true,
-      },
-      {
-        title: 'লা শাতেলিয়ের নীতি ও বিক্রিয়ার সাম্যাবস্থা (Le Chatelier’s Principle 3D)',
-        subject: 'Chemistry',
-        chapter: 'রাসায়নিক সাম্যাবস্থা (Chemical Equilibrium)',
-        duration: '৩:৪৫ মিনিট',
-        youtubeUrl: 'https://www.youtube.com/watch?v=iiO2PkL9jsg',
-        thumbnailUrl: 'https://img.youtube.com/vi/iiO2PkL9jsg/hqdefault.jpg',
-        featured: true,
-      },
-      {
-        title: 'মোলের ধারণা ও অ্যাভোগাড্রো সংখ্যা (What is a Mole Concept in 3D)',
-        subject: 'Chemistry',
-        chapter: 'মৌলের ধারণা ও রাসায়নিক গণনা',
-        duration: '৩:১০ মিনিট',
-        youtubeUrl: 'https://www.youtube.com/watch?v=zX918pF1HO0',
-        thumbnailUrl: 'https://img.youtube.com/vi/zX918pF1HO0/hqdefault.jpg',
-        featured: true,
-      },
-    ],
-  });
+    });
+  }
+  console.log(`[Seed] Seeded ${STUDY_NOTE_SEEDS.length} study vault notes & PDFs.`);
 
   // 5. Seed Test Student 1 (Completed Profile)
   const studentUser1 = await prisma.user.upsert({

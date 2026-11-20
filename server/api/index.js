@@ -3,7 +3,7 @@ import express from "express";
 import cors from "cors";
 
 // src/routes/index.ts
-import { Router as Router10 } from "express";
+import { Router as Router11 } from "express";
 
 // src/routes/authRoutes.ts
 import { Router } from "express";
@@ -3167,28 +3167,10 @@ var AdminController = class {
     }
   }
   /**
-   * 5. Add 2-4 Min Demo Concept Video for Public Landing Page
+   * 5. Add 2-4 Min Demo Concept Video for Public Landing Page (Deprecated)
    */
   static async createDemoVideo(req, res) {
-    try {
-      const { title, subject, chapter, duration, youtubeUrl, thumbnailUrl } = req.body;
-      if (!title || !subject || !youtubeUrl) {
-        return sendError(res, "Title, subject, and YouTube URL are required.");
-      }
-      const video = await prisma.demoVideo.create({
-        data: {
-          title,
-          subject,
-          chapter: chapter || "General Concept",
-          duration: duration || "3:30",
-          youtubeUrl,
-          thumbnailUrl
-        }
-      });
-      return sendSuccess(res, video, "Demo video added successfully.");
-    } catch (error) {
-      return sendError(res, "Failed to add demo video.", 500);
-    }
+    return sendSuccess(res, null, "Demo videos have been phased out in favor of the Study Vault.");
   }
   /**
    * 6. Pending Manual bKash/Nagad Payments Queue
@@ -3411,11 +3393,7 @@ router8.get("/landing-data", async (req, res) => {
         }
       }
     });
-    const demoVideos = await prisma.demoVideo.findMany({
-      where: { featured: true },
-      orderBy: { createdAt: "desc" },
-      take: 6
-    });
+    const demoVideos = [];
     const achievements = [
       { year: "2025", count: "48+ GPA-5", description: "SSC Science Batch All-Board Top Scorers" },
       { year: "2025", count: "32+ BUET/Medical", description: "HSC Alumni in BUET, DMC, DU, RUET" },
@@ -4342,18 +4320,447 @@ router9.get("/admin/questions", authenticateJWT, requireRole([Role4.SUPER_ADMIN]
 router9.delete("/admin/questions/:id", authenticateJWT, requireRole([Role4.SUPER_ADMIN]), HscIctController.adminDeleteQuestion);
 var hscIctRoutes_default = router9;
 
-// src/routes/index.ts
+// src/routes/studyVaultRoutes.ts
+import { Router as Router10 } from "express";
+
+// src/utils/studyNoteUtils.ts
+function parseDriveUrl(url) {
+  if (!url) {
+    return { rawUrl: "", previewUrl: "", downloadUrl: "", isGoogleDoc: false, fileId: null };
+  }
+  const trimmed = url.trim();
+  const docMatch = trimmed.match(/docs\.google\.com\/document\/d\/([a-zA-Z0-9_-]+)/);
+  if (docMatch && docMatch[1]) {
+    const fileId2 = docMatch[1];
+    return {
+      rawUrl: trimmed,
+      previewUrl: `https://docs.google.com/document/d/${fileId2}/preview`,
+      downloadUrl: `https://docs.google.com/document/d/${fileId2}/export?format=pdf`,
+      isGoogleDoc: true,
+      fileId: fileId2
+    };
+  }
+  const sheetMatch = trimmed.match(/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if (sheetMatch && sheetMatch[1]) {
+    const fileId2 = sheetMatch[1];
+    return {
+      rawUrl: trimmed,
+      previewUrl: `https://docs.google.com/spreadsheets/d/${fileId2}/preview`,
+      downloadUrl: `https://docs.google.com/spreadsheets/d/${fileId2}/export?format=pdf`,
+      isGoogleDoc: true,
+      fileId: fileId2
+    };
+  }
+  const presMatch = trimmed.match(/docs\.google\.com\/presentation\/d\/([a-zA-Z0-9_-]+)/);
+  if (presMatch && presMatch[1]) {
+    const fileId2 = presMatch[1];
+    return {
+      rawUrl: trimmed,
+      previewUrl: `https://docs.google.com/presentation/d/${fileId2}/preview`,
+      downloadUrl: `https://docs.google.com/presentation/d/${fileId2}/export?format=pdf`,
+      isGoogleDoc: true,
+      fileId: fileId2
+    };
+  }
+  let fileId = null;
+  const fileMatch = trimmed.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (fileMatch && fileMatch[1]) {
+    fileId = fileMatch[1];
+  } else {
+    const idMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (idMatch && idMatch[1]) {
+      fileId = idMatch[1];
+    }
+  }
+  if (fileId) {
+    return {
+      rawUrl: trimmed,
+      previewUrl: `https://drive.google.com/file/d/${fileId}/preview`,
+      downloadUrl: `https://drive.google.com/uc?export=download&id=${fileId}`,
+      isGoogleDoc: false,
+      fileId
+    };
+  }
+  return {
+    rawUrl: trimmed,
+    previewUrl: trimmed,
+    downloadUrl: trimmed,
+    isGoogleDoc: false,
+    fileId: null
+  };
+}
+
+// src/utils/studyNoteSeeds.ts
+var STUDY_NOTE_SEEDS = [
+  // ========================================================
+  // 1. SSC PHYSICS
+  // ========================================================
+  {
+    classLevel: "SSC",
+    subject: "PHYSICS",
+    chapterNumber: 2,
+    chapterName: "\u0985\u09A7\u09CD\u09AF\u09BE\u09DF \u09E6\u09E8: \u0997\u09A4\u09BF (Motion)",
+    title: "SSC Practice + Model Test Solve (CQ+MCQ) \u2014 Chapter 02",
+    driveFileUrl: "https://drive.google.com/file/d/1J6T_-L9TuSDQROErYghXQxxn2PIn5uTO/view?usp=drivesdk"
+  },
+  {
+    classLevel: "SSC",
+    subject: "PHYSICS",
+    chapterNumber: 3,
+    chapterName: "\u0985\u09A7\u09CD\u09AF\u09BE\u09DF \u09E6\u09E9: \u09AC\u09B2 (Force)",
+    title: "SSC Model Test Solve (CQ+MCQ) \u2014 Chapter 03",
+    driveFileUrl: "https://drive.google.com/file/d/1gVva5bbW2nLBw_LAHmEkK0rwRJorxG08/view?usp=drivesdk"
+  },
+  {
+    classLevel: "SSC",
+    subject: "PHYSICS",
+    chapterNumber: 13,
+    chapterName: "\u0985\u09A7\u09CD\u09AF\u09BE\u09DF \u09E7\u09E9: \u0986\u09A7\u09C1\u09A8\u09BF\u0995 \u09AA\u09A6\u09BE\u09B0\u09CD\u09A5\u09AC\u09BF\u099C\u09CD\u099E\u09BE\u09A8 \u0993 \u0987\u09B2\u09C7\u0995\u099F\u09CD\u09B0\u09A8\u09BF\u0995\u09CD\u09B8",
+    title: "SSC Model Test Solve (CQ+MCQ) \u2014 Chapter 13",
+    driveFileUrl: "https://drive.google.com/file/d/1-fWOqE3mu0Si-WSAzTyYyVGJEi_oblAp/view?usp=drivesdk"
+  },
+  {
+    classLevel: "SSC",
+    subject: "PHYSICS",
+    chapterNumber: 99,
+    chapterName: "\u09AB\u09BE\u0987\u09A8\u09BE\u09B2 \u09AE\u09A1\u09C7\u09B2 \u099F\u09C7\u09B8\u09CD\u099F (Final Model Test)",
+    title: "SSC Final Model Test 01 (2026)",
+    driveFileUrl: "https://drive.google.com/file/d/1x7nZjTnVHWWUAFop7vZ0Dj00JHp1r8_1/view?usp=drivesdk"
+  },
+  {
+    classLevel: "SSC",
+    subject: "PHYSICS",
+    chapterNumber: 99,
+    chapterName: "\u09AB\u09BE\u0987\u09A8\u09BE\u09B2 \u09AE\u09A1\u09C7\u09B2 \u099F\u09C7\u09B8\u09CD\u099F (Final Model Test)",
+    title: "SSC Final Model Test 02 (2026)",
+    driveFileUrl: "https://drive.google.com/file/d/1C9qt8BnEWDoMT-OvibDg9Gx7GDG2h2Yq/view?usp=drivesdk"
+  },
+  {
+    classLevel: "SSC",
+    subject: "PHYSICS",
+    chapterNumber: 0,
+    chapterName: "\u09AC\u09CB\u09B0\u09CD\u09A1 \u09AA\u09CD\u09B0\u09B6\u09CD\u09A8 \u09AC\u09CD\u09AF\u09BE\u0982\u0995 (Board Question Bank)",
+    title: "SSC Physics Board Question Bank (2022\u20132026)",
+    driveFileUrl: "https://drive.google.com/file/d/1sSaHfJ4trGKks1-YNueXpK_kRPm8Wk9o/view?usp=drivesdk"
+  },
+  // ========================================================
+  // 2. SSC CHEMISTRY & GENERAL SCIENCE
+  // ========================================================
+  {
+    classLevel: "SSC",
+    subject: "CHEMISTRY",
+    chapterNumber: 0,
+    chapterName: "\u09AC\u09CB\u09B0\u09CD\u09A1 \u09AA\u09CD\u09B0\u09B6\u09CD\u09A8 \u09AC\u09CD\u09AF\u09BE\u0982\u0995 (Board Question Bank)",
+    title: "SSC Chemistry Board Question Bank (2022\u20132026)",
+    driveFileUrl: "https://drive.google.com/file/d/154mg_GVPN7ss6WlzdZb1epJsK3ST9LHL/view?usp=drivesdk"
+  },
+  {
+    classLevel: "SSC",
+    subject: "CHEMISTRY",
+    chapterNumber: 0,
+    chapterName: "\u09AC\u09BF\u099C\u09CD\u099E\u09BE\u09A8 \u09AA\u09CD\u09B0\u09B6\u09CD\u09A8 \u09AC\u09CD\u09AF\u09BE\u0982\u0995 (Science Question Bank)",
+    title: "SSC Science Board Question Bank (2023\u20132026)",
+    driveFileUrl: "https://drive.google.com/file/d/1YMi8qk6HyJDydRjLTKpvKstpS73WoD2D/view?usp=drivesdk"
+  },
+  // ========================================================
+  // 3. SSC BIOLOGY
+  // ========================================================
+  {
+    classLevel: "SSC",
+    subject: "BIOLOGY",
+    chapterNumber: 2,
+    chapterName: "\u0985\u09A7\u09CD\u09AF\u09BE\u09DF \u09E6\u09E8: \u099C\u09C0\u09AC\u0995\u09CB\u09B7 \u0993 \u099F\u09BF\u09B8\u09CD\u09AF\u09C1 (Cells & Tissues)",
+    title: "SSC Biology Model Test \u2014 Chapter 02",
+    driveFileUrl: "https://drive.google.com/file/d/1YID1BSAIMgWfPPutG1iUqsCR-1rDmPMZ/view?usp=drivesdk"
+  },
+  {
+    classLevel: "SSC",
+    subject: "BIOLOGY",
+    chapterNumber: 12,
+    chapterName: "\u0985\u09A7\u09CD\u09AF\u09BE\u09DF \u09E7\u09E8: \u099C\u09C0\u09AC\u09C7\u09B0 \u09AC\u0982\u09B6\u0997\u09A4\u09BF \u0993 \u09AC\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 (Genetics & Evolution)",
+    title: "SSC Biology Model Test \u2014 Chapter 12",
+    driveFileUrl: "https://drive.google.com/file/d/1CwVzHlzRisjbBOM6rE5VrJhHUeNvetOB/view?usp=drivesdk"
+  },
+  // ========================================================
+  // 4. SSC GENERAL MATH & HIGHER MATH
+  // ========================================================
+  {
+    classLevel: "SSC",
+    subject: "GENERAL_MATH",
+    chapterNumber: 0,
+    chapterName: "\u09AC\u09CB\u09B0\u09CD\u09A1 \u09AA\u09CD\u09B0\u09B6\u09CD\u09A8 \u09AC\u09CD\u09AF\u09BE\u0982\u0995 (Board Question Bank)",
+    title: "SSC General Math Board Question Bank (2022\u20132026)",
+    driveFileUrl: "https://drive.google.com/file/d/1wtyCr9b856kWkFSByeTZCwYsAlvI7UJx/view?usp=drivesdk"
+  },
+  {
+    classLevel: "SSC",
+    subject: "HIGHER_MATH",
+    chapterNumber: 1,
+    chapterName: "\u0985\u09A7\u09CD\u09AF\u09BE\u09DF \u09E6\u09E7: \u09B8\u09C7\u099F \u0993 \u09AB\u09BE\u0982\u09B6\u09A8 (Set & Function)",
+    title: "SSC Higher Math \u2014 Chapter 01 Final",
+    driveFileUrl: "https://drive.google.com/file/d/1EVw3mNJFcp8dgFr94Y3rVaHr7B2tUpj9/view?usp=drivesdk"
+  },
+  {
+    classLevel: "SSC",
+    subject: "HIGHER_MATH",
+    chapterNumber: 2,
+    chapterName: "\u0985\u09A7\u09CD\u09AF\u09BE\u09DF \u09E6\u09E8: \u09AC\u09C0\u099C\u0997\u09BE\u09A3\u09BF\u09A4\u09BF\u0995 \u09B0\u09BE\u09B6\u09BF (Algebraic Expressions)",
+    title: "SSC Higher Math \u2014 Chapter 02 Final",
+    driveFileUrl: "https://drive.google.com/file/d/1SmNUTzn5onxycSLIQtd2rjy4J2i0Qv09/view?usp=drivesdk"
+  },
+  {
+    classLevel: "SSC",
+    subject: "HIGHER_MATH",
+    chapterNumber: 9,
+    chapterName: "\u0985\u09A7\u09CD\u09AF\u09BE\u09DF \u09E6\u09EF: \u09B8\u09C2\u099A\u0995\u09C0\u09DF \u0993 \u09B2\u0997\u09BE\u09B0\u09BF\u09A6\u09AE\u09C0\u09DF \u09AB\u09BE\u0982\u09B6\u09A8 (Exponents & Logarithms)",
+    title: "SSC Higher Math \u2014 Chapter 09 Final",
+    driveFileUrl: "https://drive.google.com/file/d/1cZMlpNVk3Q057OfmoZcQ_JntH42IxyQ-/view?usp=drivesdk"
+  },
+  {
+    classLevel: "SSC",
+    subject: "HIGHER_MATH",
+    chapterNumber: 16,
+    chapterName: "\u0985\u09A7\u09CD\u09AF\u09BE\u09DF \u09E7\u09EC: \u09AA\u09B0\u09BF\u09AE\u09BF\u09A4\u09BF (Mensuration)",
+    title: "SSC Higher Math \u2014 Chapter 16 Final",
+    driveFileUrl: "https://drive.google.com/file/d/1OHnm5enNwJwmi6rsXZBBIi3TR0jijDR5/view?usp=drivesdk"
+  },
+  {
+    classLevel: "SSC",
+    subject: "HIGHER_MATH",
+    chapterNumber: 99,
+    chapterName: "\u09AE\u09A1\u09C7\u09B2 \u099F\u09C7\u09B8\u09CD\u099F (Model Tests)",
+    title: "SSC Higher Math \u2014 Model Test 01",
+    driveFileUrl: "https://drive.google.com/file/d/1-Fn9ksdbf_dbkNcL6RQAtiJSFhdt7mc_/view?usp=drivesdk"
+  },
+  {
+    classLevel: "SSC",
+    subject: "HIGHER_MATH",
+    chapterNumber: 99,
+    chapterName: "\u09AE\u09A1\u09C7\u09B2 \u099F\u09C7\u09B8\u09CD\u099F (Model Tests)",
+    title: "SSC Higher Math \u2014 Model Test 02",
+    driveFileUrl: "https://drive.google.com/file/d/1nQX-IqIcqva86gL_8pQ9eGC9Yvt3ClhI/view?usp=drivesdk"
+  },
+  // ========================================================
+  // 5. HSC ICT (RAYHAN SIR'S MASTER NOTES & CHEAT SHEETS)
+  // ========================================================
+  {
+    classLevel: "HSC",
+    subject: "ICT",
+    chapterNumber: 3,
+    chapterName: "\u0985\u09A7\u09CD\u09AF\u09BE\u09DF \u09E6\u09E9: \u09B8\u0982\u0996\u09CD\u09AF\u09BE \u09AA\u09A6\u09CD\u09A7\u09A4\u09BF \u0993 \u09A1\u09BF\u099C\u09BF\u099F\u09BE\u09B2 \u09A1\u09BF\u09AD\u09BE\u0987\u09B8",
+    title: "HSC ICT Chapter 03 \u2014 Number Systems A-to-Z Master Note",
+    driveFileUrl: "https://docs.google.com/document/d/1AkE3i39WEAZNqqlv0AnuUbOtXqkUv-dECtJO1oZ7t38/edit?usp=drivesdk"
+  },
+  {
+    classLevel: "HSC",
+    subject: "ICT",
+    chapterNumber: 3,
+    chapterName: "\u0985\u09A7\u09CD\u09AF\u09BE\u09DF \u09E6\u09E9: \u09B8\u0982\u0996\u09CD\u09AF\u09BE \u09AA\u09A6\u09CD\u09A7\u09A4\u09BF \u0993 \u09A1\u09BF\u099C\u09BF\u099F\u09BE\u09B2 \u09A1\u09BF\u09AD\u09BE\u0987\u09B8",
+    title: "HSC ICT Chapter 03 \u2014 Number Conversion Quick Cheat Sheet",
+    driveFileUrl: "https://docs.google.com/document/d/1JPgMoJusj1i9QvNSYysSrFyRk9nsAUjw01bvXI8bJP8/edit?usp=drivesdk"
+  },
+  {
+    classLevel: "HSC",
+    subject: "ICT",
+    chapterNumber: 5,
+    chapterName: "\u0985\u09A7\u09CD\u09AF\u09BE\u09DF \u09E6\u09EB \u0993 \u09E6\u09EC: \u09AA\u09CD\u09B0\u09CB\u0997\u09CD\u09B0\u09BE\u09AE\u09BF\u0982 \u09AD\u09BE\u09B7\u09BE \u0993 \u09A1\u09C7\u099F\u09BE\u09AC\u09C7\u099C",
+    title: "HSC ICT Chapter 05 & 06 \u2014 Full Study Notes (Rayhan Sir)",
+    driveFileUrl: "https://docs.google.com/document/d/1A_iwjPP3LCfPZMl4QLI-tT-5T3Uzf2F5Hqes2drQhxY/edit?usp=drivesdk"
+  },
+  {
+    classLevel: "HSC",
+    subject: "ICT",
+    chapterNumber: 6,
+    chapterName: "\u0985\u09A7\u09CD\u09AF\u09BE\u09DF \u09E6\u09EB \u0993 \u09E6\u09EC: \u0995\u09AE\u09CD\u09AA\u09CD\u09B0\u09BF\u09B9\u09C7\u09A8\u09B8\u09BF\u09AD \u09B9\u09CD\u09AF\u09BE\u09A8\u09CD\u09A1\u09A8\u09CB\u099F",
+    title: "HSC ICT Comprehensive Notes Ch 05 & 06 (Rayhan Sir)",
+    driveFileUrl: "https://docs.google.com/document/d/1PDtYlShCs51CFgOzfYD5Ix2s8zrgDcbnoNRb3hfJHxI/edit?usp=drivesdk"
+  }
+];
+
+// src/controllers/studyVaultController.ts
+var StudyVaultController = class _StudyVaultController {
+  /**
+   * Auto-seed default Study Notes if table is empty
+   */
+  static async ensureNotesSeeded() {
+    try {
+      const count = await prisma.studyNote.count();
+      if (count === 0) {
+        console.log("[Study Vault] Seeding default Rayhan Sir study notes and PDFs...");
+        for (const item of STUDY_NOTE_SEEDS) {
+          await prisma.studyNote.create({
+            data: {
+              classLevel: item.classLevel,
+              subject: item.subject,
+              chapterNumber: item.chapterNumber,
+              chapterName: item.chapterName,
+              title: item.title,
+              driveFileUrl: item.driveFileUrl
+            }
+          });
+        }
+        console.log(`[Study Vault] Successfully seeded ${STUDY_NOTE_SEEDS.length} study notes.`);
+      }
+    } catch (err) {
+      console.error("[Study Vault] Error checking/seeding study notes", err);
+    }
+  }
+  /**
+   * Get all study notes with optional filtering (classLevel, subject, search)
+   * Enriches each note with auto-parsed previewUrl and 1-click downloadUrl
+   */
+  static async getNotes(req, res) {
+    try {
+      await _StudyVaultController.ensureNotesSeeded();
+      const { classLevel, subject, search } = req.query;
+      const where = {};
+      if (classLevel && classLevel !== "ALL") {
+        const cLvl = String(classLevel).toUpperCase();
+        if (cLvl.includes("SSC") || cLvl.includes("9") || cLvl.includes("10")) {
+          where.classLevel = { in: ["SSC", "SSC_9", "SSC_10", "SSC_2026", "CLASS_8"] };
+        } else if (cLvl.includes("HSC") || cLvl.includes("11") || cLvl.includes("12")) {
+          where.classLevel = { in: ["HSC", "HSC_11", "HSC_12", "HSC_2026", "HSC_2027"] };
+        } else {
+          where.classLevel = cLvl;
+        }
+      }
+      if (subject && subject !== "ALL") {
+        where.subject = String(subject).toUpperCase();
+      }
+      if (search && String(search).trim()) {
+        const query = String(search).trim();
+        where.OR = [
+          { title: { contains: query, mode: "insensitive" } },
+          { chapterName: { contains: query, mode: "insensitive" } },
+          { subject: { contains: query, mode: "insensitive" } }
+        ];
+      }
+      const notes = await prisma.studyNote.findMany({
+        where,
+        orderBy: [{ chapterNumber: "asc" }, { createdAt: "desc" }]
+      });
+      const enrichedNotes = notes.map((note) => {
+        const parsed = parseDriveUrl(note.driveFileUrl);
+        return {
+          id: note.id,
+          classLevel: note.classLevel,
+          subject: note.subject,
+          chapterNumber: note.chapterNumber,
+          chapterName: note.chapterName,
+          title: note.title,
+          driveFileUrl: note.driveFileUrl,
+          previewUrl: parsed.previewUrl,
+          downloadUrl: parsed.downloadUrl,
+          isGoogleDoc: parsed.isGoogleDoc,
+          fileId: parsed.fileId,
+          createdAt: note.createdAt
+        };
+      });
+      return sendSuccess(res, enrichedNotes, "Study notes fetched successfully.");
+    } catch (error) {
+      console.error("[Study Vault Get Notes Error]", error);
+      return sendError(res, "\u09A8\u09CB\u099F \u09A4\u09BE\u09B2\u09BF\u0995\u09BE \u09B2\u09CB\u09A1 \u0995\u09B0\u09A4\u09C7 \u09B8\u09AE\u09B8\u09CD\u09AF\u09BE \u09B9\u09DF\u09C7\u099B\u09C7\u0964", 500, error.message);
+    }
+  }
+  /**
+   * Admin: Add a new Google Drive / Docs study note
+   */
+  static async createNote(req, res) {
+    try {
+      const { classLevel, subject, chapterNumber, chapterName, title, driveFileUrl } = req.body;
+      if (!subject || !title || !driveFileUrl) {
+        return sendError(res, "\u09AC\u09BF\u09B7\u09DF, \u09B6\u09BF\u09B0\u09CB\u09A8\u09BE\u09AE \u098F\u09AC\u0982 \u0997\u09C1\u0997\u09B2 \u09A1\u09CD\u09B0\u09BE\u0987\u09AD \u09B2\u09BF\u0982\u0995 \u09AA\u09CD\u09B0\u09A6\u09BE\u09A8 \u0995\u09B0\u09BE \u09AC\u09BE\u09A7\u09CD\u09AF\u09A4\u09BE\u09AE\u09C2\u09B2\u0995\u0964");
+      }
+      const note = await prisma.studyNote.create({
+        data: {
+          classLevel: classLevel || "SSC",
+          subject: String(subject).toUpperCase(),
+          chapterNumber: parseInt(chapterNumber, 10) || 0,
+          chapterName: chapterName || "\u09B8\u09BE\u09A7\u09BE\u09B0\u09A3 \u0985\u09A7\u09CD\u09AF\u09BE\u09DF",
+          title: title.trim(),
+          driveFileUrl: driveFileUrl.trim()
+        }
+      });
+      const parsed = parseDriveUrl(note.driveFileUrl);
+      const enriched = {
+        ...note,
+        previewUrl: parsed.previewUrl,
+        downloadUrl: parsed.downloadUrl,
+        isGoogleDoc: parsed.isGoogleDoc
+      };
+      return sendSuccess(res, enriched, "\u09A8\u09A4\u09C1\u09A8 \u09B8\u09CD\u099F\u09BE\u09A1\u09BF \u09A8\u09CB\u099F \u09B8\u09AB\u09B2\u09AD\u09BE\u09AC\u09C7 \u09AF\u09C1\u0995\u09CD\u09A4 \u0995\u09B0\u09BE \u09B9\u09DF\u09C7\u099B\u09C7!");
+    } catch (error) {
+      console.error("[Study Vault Create Note Error]", error);
+      return sendError(res, "\u09A8\u09CB\u099F \u09AF\u09C1\u0995\u09CD\u09A4 \u0995\u09B0\u09A4\u09C7 \u09B8\u09AE\u09B8\u09CD\u09AF\u09BE \u09B9\u09DF\u09C7\u099B\u09C7\u0964", 500, error.message);
+    }
+  }
+  /**
+   * Admin: Delete a study note
+   */
+  static async deleteNote(req, res) {
+    try {
+      const { id } = req.params;
+      await prisma.studyNote.delete({ where: { id } });
+      return sendSuccess(res, null, "\u09A8\u09CB\u099F \u09B8\u09AB\u09B2\u09AD\u09BE\u09AC\u09C7 \u09AE\u09C1\u099B\u09C7 \u09AB\u09C7\u09B2\u09BE \u09B9\u09DF\u09C7\u099B\u09C7\u0964");
+    } catch (error) {
+      console.error("[Study Vault Delete Note Error]", error);
+      return sendError(res, "\u09A8\u09CB\u099F \u09AE\u09C1\u099B\u09A4\u09C7 \u09B8\u09AE\u09B8\u09CD\u09AF\u09BE \u09B9\u09DF\u09C7\u099B\u09C7\u0964", 500, error.message);
+    }
+  }
+  /**
+   * Admin: 1-Click Seed/Restore Default Notes
+   */
+  static async seedDefaultNotes(req, res) {
+    try {
+      let count = 0;
+      for (const item of STUDY_NOTE_SEEDS) {
+        const exists = await prisma.studyNote.findFirst({
+          where: { title: item.title, subject: item.subject }
+        });
+        if (!exists) {
+          await prisma.studyNote.create({
+            data: {
+              classLevel: item.classLevel,
+              subject: item.subject,
+              chapterNumber: item.chapterNumber,
+              chapterName: item.chapterName,
+              title: item.title,
+              driveFileUrl: item.driveFileUrl
+            }
+          });
+          count++;
+        }
+      }
+      return sendSuccess(res, { count }, `${count}\u099F\u09BF \u09A8\u09A4\u09C1\u09A8 \u09A1\u09CD\u09B0\u09BE\u0987\u09AD \u09A8\u09CB\u099F \u09A1\u09C7\u099F\u09BE\u09AC\u09C7\u099C\u09C7 \u09AF\u09C1\u0995\u09CD\u09A4 \u0995\u09B0\u09BE \u09B9\u09DF\u09C7\u099B\u09C7!`);
+    } catch (error) {
+      console.error("[Study Vault Seed Notes Error]", error);
+      return sendError(res, "\u09A8\u09CB\u099F \u09B8\u09BF\u09A1 \u0995\u09B0\u09A4\u09C7 \u09B8\u09AE\u09B8\u09CD\u09AF\u09BE \u09B9\u09DF\u09C7\u099B\u09C7\u0964", 500, error.message);
+    }
+  }
+};
+
+// src/routes/studyVaultRoutes.ts
+import { Role as Role5 } from "@prisma/client";
 var router10 = Router10();
-router10.use("/public", publicRoutes_default);
-router10.use("/auth", authRoutes_default);
-router10.use("/profile", profileRoutes_default);
-router10.use("/vault", vaultRoutes_default);
-router10.use("/billing", billingRoutes_default);
-router10.use("/games", gameRoutes_default);
-router10.use("/feedback", feedbackRoutes_default);
-router10.use("/admin", adminRoutes_default);
-router10.use("/hsc-ict", hscIctRoutes_default);
-var routes_default = router10;
+router10.get("/notes", StudyVaultController.getNotes);
+router10.post("/admin/notes", authenticateJWT, requireRole([Role5.SUPER_ADMIN]), StudyVaultController.createNote);
+router10.delete("/admin/notes/:id", authenticateJWT, requireRole([Role5.SUPER_ADMIN]), StudyVaultController.deleteNote);
+router10.post("/admin/seed-notes", authenticateJWT, requireRole([Role5.SUPER_ADMIN]), StudyVaultController.seedDefaultNotes);
+var studyVaultRoutes_default = router10;
+
+// src/routes/index.ts
+var router11 = Router11();
+router11.use("/public", publicRoutes_default);
+router11.use("/auth", authRoutes_default);
+router11.use("/profile", profileRoutes_default);
+router11.use("/vault", vaultRoutes_default);
+router11.use("/study-vault", studyVaultRoutes_default);
+router11.use("/billing", billingRoutes_default);
+router11.use("/games", gameRoutes_default);
+router11.use("/feedback", feedbackRoutes_default);
+router11.use("/admin", adminRoutes_default);
+router11.use("/hsc-ict", hscIctRoutes_default);
+var routes_default = router11;
 
 // src/middlewares/globalErrorHandler.ts
 import { ZodError } from "zod";

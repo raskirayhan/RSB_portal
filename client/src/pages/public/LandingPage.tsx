@@ -33,7 +33,6 @@ import {
 
 export const LandingPage: React.FC = () => {
   const [landingData, setLandingData] = useState<any>(null);
-  const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   useEffect(() => {
@@ -46,83 +45,6 @@ export const LandingPage: React.FC = () => {
       })
       .catch((err) => console.error('Failed to load landing data', err));
   }, []);
-
-  const getYouTubeEmbedUrl = (urlOrId: string) => {
-    if (!urlOrId) return 'https://www.youtube.com/embed/fNk_zzaMoSs?autoplay=1&rel=0';
-    if (urlOrId.includes('embed/')) return `${urlOrId}?autoplay=1&rel=0`;
-    let videoId = urlOrId;
-    if (urlOrId.includes('v=')) {
-      videoId = urlOrId.split('v=')[1]?.split('&')[0];
-    } else if (urlOrId.includes('youtu.be/')) {
-      videoId = urlOrId.split('youtu.be/')[1]?.split('?')[0];
-    }
-    // Prevent accidental rickroll
-    if (videoId === 'dQw4w9WgXcQ') {
-      videoId = 'fNk_zzaMoSs';
-    }
-    return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
-  };
-
-  const fallbackVideos = [
-    {
-      id: 'demo-1',
-      title: 'ডপলার ক্রিয়া ও শব্দ তরঙ্গের ৩ডি বিশ্লেষণ (Doppler Effect in Sound Waves)',
-      subject: 'Physics',
-      chapter: 'তরঙ্গ ও শব্দ (Wave & Sound)',
-      duration: '৩:৩০ মিনিট',
-      youtubeUrl: 'https://www.youtube.com/watch?v=mv6C99LCcxg',
-      thumbnailUrl: 'https://img.youtube.com/vi/mv6C99LCcxg/hqdefault.jpg',
-    },
-    {
-      id: 'demo-2',
-      title: 'টর্ক ও ঘূর্ণন বলবিদ্যার ৩ডি মেকানিজম (What is Torque & Rotational Dynamics)',
-      subject: 'Physics',
-      chapter: 'নিউটনিয়ান বলবিদ্যা (Mechanics)',
-      duration: '৩:১৫ মিনিট',
-      youtubeUrl: 'https://www.youtube.com/watch?v=zXxrAJld9mo',
-      thumbnailUrl: 'https://img.youtube.com/vi/zXxrAJld9mo/hqdefault.jpg',
-    },
-    {
-      id: 'demo-3',
-      title: 'মুক্তিবেগ ও কৃত্রিম উপগ্রহের ৩ডি গতিপথ (Escape Velocity & Orbital Motion)',
-      subject: 'Physics',
-      chapter: 'মহাকর্ষ ও অভিকর্ষ (Gravitation)',
-      duration: '৩:২০ মিনিট',
-      youtubeUrl: 'https://www.youtube.com/watch?v=tgHsjvSWQe8',
-      thumbnailUrl: 'https://img.youtube.com/vi/tgHsjvSWQe8/hqdefault.jpg',
-    },
-    {
-      id: 'demo-4',
-      title: 'জারণ-বিজারণ ও ইলেকট্রন স্থানান্তরের ৩ডি মেকানিজম (Redox Reaction 3D Mechanism)',
-      subject: 'Chemistry',
-      chapter: 'জারণ-বিজারণ ও তড়িৎ রসায়ন',
-      duration: '৪:১৯ মিনিট',
-      youtubeUrl: 'https://www.youtube.com/watch?v=h3XTkpTDN-E',
-      thumbnailUrl: 'https://img.youtube.com/vi/h3XTkpTDN-E/hqdefault.jpg',
-    },
-    {
-      id: 'demo-5',
-      title: 'লা শাতেলিয়ের নীতি ও বিক্রিয়ার সাম্যাবস্থা (Le Chatelier’s Principle 3D)',
-      subject: 'Chemistry',
-      chapter: 'রাসায়নিক সাম্যাবস্থা (Chemical Equilibrium)',
-      duration: '৩:৪৫ মিনিট',
-      youtubeUrl: 'https://www.youtube.com/watch?v=iiO2PkL9jsg',
-      thumbnailUrl: 'https://img.youtube.com/vi/iiO2PkL9jsg/hqdefault.jpg',
-    },
-    {
-      id: 'demo-6',
-      title: 'মোলের ধারণা ও অ্যাভোগাড্রো সংখ্যা (What is a Mole Concept in 3D)',
-      subject: 'Chemistry',
-      chapter: 'মৌলের ধারণা ও রাসায়নিক গণনা',
-      duration: '৩:১০ মিনিট',
-      youtubeUrl: 'https://www.youtube.com/watch?v=zX918pF1HO0',
-      thumbnailUrl: 'https://img.youtube.com/vi/zX918pF1HO0/hqdefault.jpg',
-    },
-  ];
-
-  const [videoFilter, setVideoFilter] = useState<'ALL' | 'Physics' | 'Chemistry'>('ALL');
-  const videos = landingData?.demoVideos?.length ? landingData.demoVideos : fallbackVideos;
-  const filteredVideos = videos.filter((v: any) => videoFilter === 'ALL' || v.subject === videoFilter);
 
   const faqs = [
     {
@@ -295,13 +217,13 @@ export const LandingPage: React.FC = () => {
                   <span>Join the Batch 🚀</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
-                <a
-                  href="#demo-classes"
+                <Link
+                  to="/vault"
                   className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl font-bold text-slate-800 dark:text-slate-200 bg-white/90 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 shadow-sm transition-all flex items-center justify-center space-x-2 text-sm sm:text-base backdrop-blur-md text-center"
                 >
-                  <Play className="w-4 h-4 text-blue-600 fill-blue-600" />
-                  <span>Watch 3-Min Demo ▶️</span>
-                </a>
+                  <BookOpen className="w-4 h-4 text-blue-600" />
+                  <span>Study Vault (Notes & PDFs) 📚</span>
+                </Link>
               </motion.div>
 
               {/* Batch Location Pill */}
@@ -716,99 +638,19 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* ========================================================= */}
-      {/* SECTION 7: 3-MIN DEMO VIDEOS & REVIEWS (Dark Carousel)    */}
+      {/* SECTION 7: STUDENT & GUARDIAN EXPERIENCES                */}
       {/* ========================================================= */}
-      <section id="demo-classes" className="py-24 bg-[#090d16] text-white">
+      <section id="reviews" className="py-20 bg-[#090d16] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <div className="text-center max-w-3xl mx-auto mb-10">
-            <span className="text-xs font-mono font-bold uppercase tracking-widest text-blue-400 bg-blue-950/80 px-3.5 py-1 rounded-full border border-blue-800">
-              FREE DEMO LESSONS
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight mt-4">
-              Watch 3-Minute Free Concept Lessons
-            </h2>
-            <p className="text-sm sm:text-base text-slate-400 mt-2">
-              লগইন ছাড়াই দেখে নিন রায়হান স্যারের পড়ানোর স্টাইল এবং কনসেপ্ট বোঝানোর অভিনব কৌশল
-            </p>
-          </div>
-
-          {/* Topic Filter Pills - horizontally scrollable without breaking on mobile */}
-          <div className="flex items-center justify-start sm:justify-center gap-2 mb-8 overflow-x-auto no-scrollbar pb-1 px-1">
-            <button
-              onClick={() => setVideoFilter('ALL')}
-              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
-                videoFilter === 'ALL'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
-                  : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 border border-white/10'
-              }`}
-            >
-              সব বিষয় (All)
-            </button>
-            <button
-              onClick={() => setVideoFilter('Physics')}
-              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
-                videoFilter === 'Physics'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
-                  : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 border border-white/10'
-              }`}
-            >
-              পদার্থবিজ্ঞান (Physics 3D)
-            </button>
-            <button
-              onClick={() => setVideoFilter('Chemistry')}
-              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
-                videoFilter === 'Chemistry'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
-                  : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 border border-white/10'
-              }`}
-            >
-              রসায়ন (Chemistry 3D)
-            </button>
-          </div>
-
-          {/* Videos Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-16 sm:mb-20">
-            {filteredVideos.map((vid: any) => (
-              <div
-                key={vid.id}
-                onClick={() => setSelectedVideo(vid)}
-                className="group cursor-pointer rounded-2xl bg-white/[0.04] border border-white/10 hover:border-blue-500/50 overflow-hidden shadow-lg transition-all hover:scale-[1.02]"
-              >
-                <div className="relative aspect-video overflow-hidden bg-slate-800">
-                  <img
-                    src={vid.thumbnailUrl}
-                    alt={vid.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 flex items-center justify-center transition-colors">
-                    <div className="w-11 h-11 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                      <Play className="w-5 h-5 fill-white ml-0.5" />
-                    </div>
-                  </div>
-                  <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-mono text-white">
-                    {vid.duration}
-                  </span>
-                </div>
-
-                <div className="p-4 space-y-2">
-                  <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">
-                    {vid.subject} • {vid.chapter}
-                  </span>
-                  <h4 className="text-xs font-bold text-slate-100 line-clamp-2 leading-snug group-hover:text-blue-300 transition-colors">
-                    {vid.title}
-                  </h4>
-                </div>
-              </div>
-            ))}
-          </div>
-
           {/* Student & Guardian Reviews Header */}
-          <div className="text-center max-w-2xl mx-auto mb-10 pt-8 border-t border-slate-800">
-            <h3 className="text-2xl font-black tracking-tight text-white">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <span className="text-xs font-mono font-bold uppercase tracking-widest text-blue-400 bg-blue-950/80 px-3.5 py-1 rounded-full border border-blue-800">
+              TRUST & EXCELLENCE
+            </span>
+            <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-3">
               Student & Guardian Experiences
             </h3>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
               খুলনা ও বাগেরহাটের শিক্ষার্থী ও অভিভাবকদের বাস্তব অভিজ্ঞতা
             </p>
           </div>
@@ -931,36 +773,6 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
       </section>
-
-      {/* Video Modal Player */}
-      {selectedVideo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/85 backdrop-blur-md">
-          <div className="relative w-full max-w-3xl max-h-[92vh] flex flex-col bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
-            <div className="flex items-center justify-between p-3.5 sm:p-4 bg-slate-800 text-white border-b border-slate-700">
-              <div className="min-w-0 pr-2">
-                <h4 className="text-xs sm:text-sm font-bold truncate">{selectedVideo.title}</h4>
-                <p className="text-[10px] sm:text-[11px] text-blue-400 font-mono">{selectedVideo.subject} • {selectedVideo.duration}</p>
-              </div>
-              <button
-                onClick={() => setSelectedVideo(null)}
-                className="p-1.5 rounded-full hover:bg-slate-700 text-slate-400 hover:text-white flex-shrink-0"
-                aria-label="Close modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="aspect-video w-full bg-black">
-              <iframe
-                src={getYouTubeEmbedUrl(selectedVideo.youtubeUrl || selectedVideo.id)}
-                title={selectedVideo.title}
-                className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

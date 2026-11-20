@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, FileText, Video, ArrowRight } from 'lucide-react';
+import { Sparkles, FileText, BookOpen, ArrowRight } from 'lucide-react';
 import { playPop } from '../utils/soundFX';
 
 export interface PeriodicSubject {
@@ -13,7 +13,6 @@ export interface PeriodicSubject {
   borderGlow: string;
   bgGlow: string;
   notesCount: number;
-  videosCount: number;
   highlightTopic: string;
   code: string;
 }
@@ -29,7 +28,6 @@ export const PERIODIC_SUBJECTS: PeriodicSubject[] = [
     borderGlow: 'hover:border-amber-400 hover:shadow-amber-500/30',
     bgGlow: 'from-amber-500/10 to-orange-500/5',
     notesCount: 9,
-    videosCount: 4,
     highlightTopic: 'ভেক্টর ও গতিবিদ্যা',
     code: 'PHYSICS',
   },
@@ -43,7 +41,6 @@ export const PERIODIC_SUBJECTS: PeriodicSubject[] = [
     borderGlow: 'hover:border-emerald-400 hover:shadow-emerald-500/30',
     bgGlow: 'from-emerald-500/10 to-teal-500/5',
     notesCount: 9,
-    videosCount: 3,
     highlightTopic: 'জৈব রসায়ন ও গুণগত রসায়ন',
     code: 'CHEMISTRY',
   },
@@ -57,7 +54,6 @@ export const PERIODIC_SUBJECTS: PeriodicSubject[] = [
     borderGlow: 'hover:border-purple-400 hover:shadow-purple-500/30',
     bgGlow: 'from-purple-500/10 to-indigo-500/5',
     notesCount: 9,
-    videosCount: 4,
     highlightTopic: 'ম্যাট্রিক্স ও অন্তরীকরণ',
     code: 'HIGHER_MATH',
   },
@@ -71,7 +67,6 @@ export const PERIODIC_SUBJECTS: PeriodicSubject[] = [
     borderGlow: 'hover:border-lime-400 hover:shadow-lime-500/30',
     bgGlow: 'from-lime-500/10 to-green-500/5',
     notesCount: 6,
-    videosCount: 2,
     highlightTopic: 'কোষ ও জিনতত্ত্ব',
     code: 'BIOLOGY',
   },
@@ -85,7 +80,6 @@ export const PERIODIC_SUBJECTS: PeriodicSubject[] = [
     borderGlow: 'hover:border-cyan-400 hover:shadow-cyan-500/30',
     bgGlow: 'from-cyan-500/10 to-blue-500/5',
     notesCount: 6,
-    videosCount: 3,
     highlightTopic: 'ডিজিটাল লজিক ও প্রোগ্রামিং',
     code: 'ICT',
   },
@@ -188,11 +182,11 @@ export const PeriodicSubjectSelector: React.FC<Props> = ({
               <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px]">
                 <span className="flex items-center space-x-1 text-slate-500 dark:text-slate-400">
                   <FileText className="w-3 h-3 text-blue-500" />
-                  <span>{item.notesCount} Notes</span>
+                  <span>{item.notesCount} অধ্যায় নোটস</span>
                 </span>
-                <span className="flex items-center space-x-1 text-slate-500 dark:text-slate-400">
-                  <Video className="w-3 h-3 text-rose-500" />
-                  <span>{item.videosCount}</span>
+                <span className="flex items-center space-x-1 text-emerald-600 dark:text-emerald-400 font-bold">
+                  <BookOpen className="w-3 h-3" />
+                  <span>PDF ভল্ট</span>
                 </span>
               </div>
 

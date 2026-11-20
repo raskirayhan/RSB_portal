@@ -8,6 +8,7 @@ import feedbackRoutes from './feedbackRoutes.js';
 import adminRoutes from './adminRoutes.js';
 import publicRoutes from './publicRoutes.js';
 import hscIctRoutes from './hscIctRoutes.js';
+import studyVaultRoutes from './studyVaultRoutes.js';
 
 const router = Router();
 
@@ -15,6 +16,7 @@ router.use('/public', publicRoutes);
 router.use('/auth', authRoutes);
 router.use('/profile', profileRoutes);
 router.use('/vault', vaultRoutes);
+router.use('/study-vault', studyVaultRoutes);
 router.use('/billing', billingRoutes);
 router.use('/games', gameRoutes);
 router.use('/feedback', feedbackRoutes);

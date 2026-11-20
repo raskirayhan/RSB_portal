@@ -200,16 +200,19 @@ model StudyMaterial {
   createdAt     DateTime     @default(now())
 }
 
-model DemoVideo {
+model StudyNote {
   id            String   @id @default(uuid())
-  title         String
-  subject       String
-  chapter       String
-  duration      String
-  youtubeUrl    String
-  thumbnailUrl  String?
-  featured      Boolean  @default(true)
+  classLevel    String   // "SSC_9", "SSC_10", "HSC_11", "HSC_12", or "SSC", "HSC"
+  subject       String   // "PHYSICS", "CHEMISTRY", "HIGHER_MATH", "GENERAL_MATH", "BIOLOGY", "ICT"
+  chapterNumber Int      // e.g. 1, 2, 3... (0 for special/board question bank/final model test)
+  chapterName   String   // e.g. "গতি", "বল", "সংখ্যা পদ্ধতি মাস্টার নোট"
+  title         String   // e.g. "SSC Practice + Model Test Solve (CQ+MCQ) — Chapter 02"
+  driveFileUrl  String   // Google Drive or Google Docs URL
   createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([classLevel, subject])
+  @@index([chapterNumber])
 }
 
 model Invoice {
